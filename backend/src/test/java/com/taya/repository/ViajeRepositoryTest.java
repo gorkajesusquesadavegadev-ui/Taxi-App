@@ -25,8 +25,8 @@ class ViajeRepositoryTest {
         v.setDestinoLat(28.0); v.setDestinoLng(-15.4);
         v = viajes.save(v);
 
-        int first = viajes.aceptarSiDisponible(v.getId(), 10L);
-        int second = viajes.aceptarSiDisponible(v.getId(), 20L);
+        int first = viajes.aceptarSiDisponible(v.getId(), 10L, java.time.Instant.now());
+        int second = viajes.aceptarSiDisponible(v.getId(), 20L, java.time.Instant.now());
 
         assertThat(first).isEqualTo(1);
         assertThat(second).isEqualTo(0);

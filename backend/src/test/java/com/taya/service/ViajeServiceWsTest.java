@@ -19,7 +19,7 @@ class ViajeServiceWsTest {
 
     @Test void aceptar_emiteAcceptedAlCliente() {
         Viaje v = new Viaje(); v.setId(1L); v.setClienteId(5L); v.setTaxistaId(7L); v.setEstado(EstadoViaje.ACEPTADO);
-        when(viajes.aceptarSiDisponible(1L, 7L)).thenReturn(1);
+        when(viajes.aceptarSiDisponible(eq(1L), eq(7L), any())).thenReturn(1);
         when(viajes.findById(1L)).thenReturn(Optional.of(v));
         service.aceptar(1L, 7L);
         verify(ws).enviarAceptado(eq(5L), any(Viaje.class));

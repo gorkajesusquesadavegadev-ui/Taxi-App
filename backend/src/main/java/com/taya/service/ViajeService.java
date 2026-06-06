@@ -45,7 +45,7 @@ public class ViajeService {
 
     @Transactional
     public ViajeResponse aceptar(Long viajeId, Long taxistaId) {
-        int updated = viajes.aceptarSiDisponible(viajeId, taxistaId);
+        int updated = viajes.aceptarSiDisponible(viajeId, taxistaId, Instant.now());
         if (updated == 0)
             throw new ResponseStatusException(HttpStatus.CONFLICT, "viaje ya no disponible");
         ubicacion.setOcupado(taxistaId);
