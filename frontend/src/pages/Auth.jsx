@@ -48,7 +48,7 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-volcanic text-cream">
+    <div className="grain mesh-warm relative min-h-screen w-full bg-volcanic text-cream">
       {/* hero backdrop */}
       <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col">
         <div className="absolute inset-0 -z-0 overflow-hidden">

@@ -27,10 +27,12 @@ export default function Sidebar({ open, onClose }) {
       />
       {/* drawer */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[78%] max-w-[19rem] flex-col
+        className={`grain fixed inset-y-0 left-0 z-50 flex w-[78%] max-w-[19rem] flex-col
           bg-volcanic text-cream shadow-drawer transition-transform duration-300 ease-out
           ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
+        {/* warm glow top-right */}
+        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-taxi/20 blur-3xl" />
         {/* header */}
         <div className="flex items-center justify-between px-5 pt-6 pb-4">
           <div className="flex items-center gap-2.5">
@@ -70,18 +72,20 @@ export default function Sidebar({ open, onClose }) {
         </div>
 
         {/* nav */}
-        <nav className="mt-2 flex-1 space-y-1 px-3">
-          {items.map(({ to, label, icon: Icon, end }) => (
+        <nav className="relative mt-2 flex-1 space-y-1 px-3">
+          {items.map(({ to, label, icon: Icon, end }, i) => (
             <NavLink
               key={to}
               to={to}
               end={end}
               onClick={onClose}
+              style={open ? { animationDelay: `${120 + i * 60}ms` } : undefined}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-2xl px-4 py-3 font-semibold transition-colors
+                `flex items-center gap-3 rounded-2xl px-4 py-3 font-semibold transition-all
+                ${open ? "animate-fade-up" : ""}
                 ${
                   isActive
-                    ? "bg-taxi text-volcanic"
+                    ? "bg-taxi text-volcanic shadow-[0_8px_20px_-8px_rgba(255,196,0,0.7)]"
                     : "text-cream/75 hover:bg-volcanic-700 hover:text-cream"
                 }`
               }

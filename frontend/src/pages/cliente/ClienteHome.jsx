@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Layout from "../../components/Layout.jsx";
 import MapView, { LPGC } from "../../components/MapView.jsx";
+import Sheet from "../../components/Sheet.jsx";
 import Button from "../../components/Button.jsx";
 import Badge from "../../components/Badge.jsx";
 import Spinner from "../../components/Spinner.jsx";
@@ -132,7 +133,7 @@ export default function ClienteHome() {
   const center = taxiPos || origen || LPGC;
 
   return (
-    <Layout title="Pedir taxi">
+    <Layout title="Pedir taxi" framed>
       <div className="relative h-full">
         {/* map fills the content area */}
         <div className="absolute inset-0">
@@ -159,9 +160,8 @@ export default function ClienteHome() {
         )}
 
         {/* bottom sheet */}
-        <div className="absolute inset-x-0 bottom-0 z-[600] p-3">
-          <div className="animate-fade-up rounded-[1.5rem] bg-cream/95 p-4 shadow-card backdrop-blur">
-            {viaje ? (
+        <Sheet>
+          {viaje ? (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Badge estado={viaje.estado} />
@@ -240,8 +240,7 @@ export default function ClienteHome() {
                 </p>
               </div>
             )}
-          </div>
-        </div>
+        </Sheet>
       </div>
     </Layout>
   );

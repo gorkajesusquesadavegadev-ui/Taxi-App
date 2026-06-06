@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Layout from "../../components/Layout.jsx";
 import MapView, { LPGC } from "../../components/MapView.jsx";
+import Sheet from "../../components/Sheet.jsx";
 import Button from "../../components/Button.jsx";
 import Badge from "../../components/Badge.jsx";
 import { api } from "../../api/client.js";
@@ -128,7 +129,7 @@ export default function TaxistaHome() {
     : null;
 
   return (
-    <Layout title="Conducir" action={<OnlineToggle online={online} onToggle={toggleOnline} />}>
+    <Layout title="Conducir" framed action={<OnlineToggle online={online} onToggle={toggleOnline} />}>
       <div className="relative h-full">
         <div className="absolute inset-0">
           <MapView center={pos} markers={markers} route={route} />
@@ -159,9 +160,8 @@ export default function TaxistaHome() {
         )}
 
         {/* bottom status / lifecycle sheet */}
-        <div className="absolute inset-x-0 bottom-0 z-[600] p-3">
-          <div className="animate-fade-up rounded-[1.5rem] bg-cream/95 p-4 shadow-card backdrop-blur">
-            {viaje && viaje.estado !== "COMPLETADO" ? (
+        <Sheet>
+          {viaje && viaje.estado !== "COMPLETADO" ? (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Badge estado={viaje.estado} />
@@ -219,8 +219,7 @@ export default function TaxistaHome() {
                 )}
               </div>
             )}
-          </div>
-        </div>
+        </Sheet>
       </div>
     </Layout>
   );
