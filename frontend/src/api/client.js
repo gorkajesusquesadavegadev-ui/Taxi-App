@@ -19,7 +19,13 @@ async function req(method, path, body) {
   });
   if (!res.ok) {
     const text = await res.text();
-    const msg = text || `${res.status} ${res.statusText}`;
+    let msg = text || `${res.status} ${res.statusText}`;
+    try {
+      const body = JSON.parse(text);
+      if (body && body.message) msg = body.message; // Spring error payload
+    } catch (_) {
+      /* plain text */
+    }
     const err = new Error(msg);
     err.status = res.status;
     throw err;
