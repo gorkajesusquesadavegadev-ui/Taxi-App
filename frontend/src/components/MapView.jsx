@@ -27,9 +27,9 @@ function dotIcon(kind) {
 
 const carIcon = L.divIcon({
   className: "",
-  html: `<div class="taya-car">🚕</div>`,
-  iconSize: [36, 36],
-  iconAnchor: [18, 18],
+  html: `<div class="taya-car"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFC400" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.5-4.2A2 2 0 0 1 8.4 5.5h7.2a2 2 0 0 1 1.9 1.3L19 11"/><path d="M3 16v-2.2A2 2 0 0 1 4.4 12h15.2A2 2 0 0 1 21 13.8V16a1 1 0 0 1-1 1h-1"/><path d="M6 17v1.5M18 17v1.5M5 17h14"/><circle cx="7.5" cy="16.5" r="1.3"/><circle cx="16.5" cy="16.5" r="1.3"/></svg></div>`,
+  iconSize: [38, 38],
+  iconAnchor: [19, 19],
 });
 
 function ClickHandler({ onClick }) {
@@ -67,7 +67,7 @@ export default function MapView({
       attributionControl={true}
     >
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         attribution='&copy; OpenStreetMap &copy; CARTO'
         maxZoom={20}
       />

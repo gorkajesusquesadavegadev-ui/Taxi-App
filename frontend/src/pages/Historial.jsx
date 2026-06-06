@@ -3,6 +3,7 @@ import Layout from "../components/Layout.jsx";
 import Card from "../components/Card.jsx";
 import Badge from "../components/Badge.jsx";
 import Spinner from "../components/Spinner.jsx";
+import { IconList } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { api } from "../api/client.js";
 
@@ -32,7 +33,9 @@ export default function Historial() {
         {error && <p className="rounded-2xl bg-coral/12 p-4 text-sm text-coral">{error}</p>}
         {viajes && viajes.length === 0 && (
           <div className="grid place-items-center py-16 text-center">
-            <span className="mb-3 text-4xl">🗺️</span>
+            <span className="mb-3 grid h-16 w-16 place-items-center rounded-3xl bg-atlantic/10 text-atlantic-dark">
+              <IconList width={30} height={30} />
+            </span>
             <p className="font-display text-lg font-bold">Sin viajes todavía</p>
             <p className="text-sm text-volcanic/55">
               {esTaxista ? "Conéctate para recibir carreras." : "Pide tu primer taxi."}

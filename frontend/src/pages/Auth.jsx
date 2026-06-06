@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import Button from "../components/Button.jsx";
 import Input from "../components/Input.jsx";
 import Spinner from "../components/Spinner.jsx";
-import { IconBolt } from "../components/icons.jsx";
+import { IconBolt, IconPin, IconCar } from "../components/icons.jsx";
 
 export default function Auth() {
   const { login, register } = useAuth();
@@ -101,13 +101,14 @@ export default function Auth() {
                     key={r}
                     type="button"
                     onClick={() => setRol(r)}
-                    className={`rounded-2xl border-2 py-3 text-sm font-bold transition-all ${
+                    className={`flex items-center justify-center gap-2 rounded-2xl border-2 py-3 text-sm font-bold transition-all ${
                       rol === r
                         ? "border-taxi bg-taxi/15 text-volcanic"
                         : "border-sand-deep text-volcanic/50"
                     }`}
                   >
-                    {r === "CLIENTE" ? "🙋 Cliente" : "🚕 Taxista"}
+                    {r === "CLIENTE" ? <IconPin /> : <IconCar />}
+                    {r === "CLIENTE" ? "Cliente" : "Taxista"}
                   </button>
                 ))}
               </div>

@@ -4,6 +4,7 @@ import MapView, { LPGC } from "../../components/MapView.jsx";
 import Sheet from "../../components/Sheet.jsx";
 import Button from "../../components/Button.jsx";
 import Badge from "../../components/Badge.jsx";
+import { IconCar } from "../../components/icons.jsx";
 import { api } from "../../api/client.js";
 import { connectWs } from "../../api/ws.js";
 
@@ -201,10 +202,10 @@ export default function TaxistaHome() {
               <div className="flex items-center gap-3">
                 <span
                   className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ${
-                    online ? "bg-palm/15 text-palm" : "bg-volcanic/10 text-volcanic/50"
+                    online ? "bg-atlantic/15 text-atlantic-dark" : "bg-volcanic/10 text-volcanic/50"
                   }`}
                 >
-                  {online ? "📡" : "💤"}
+                  <IconCar />
                 </span>
                 <div className="min-w-0">
                   <p className="font-display font-bold">

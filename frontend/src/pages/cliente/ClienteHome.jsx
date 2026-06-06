@@ -28,7 +28,7 @@ export default function ClienteHome() {
     const ws = connectWs((event, data) => {
       if (event === "trip:accepted") setStatusMsg(`Taxista #${data.taxistaId} en camino`);
       if (event === "trip:location") setTaxiPos({ lat: data.lat, lng: data.lng });
-      if (event === "trip:arrived") setStatusMsg("Tu taxi ha llegado 🎉");
+      if (event === "trip:arrived") setStatusMsg("Tu taxi ha llegado");
       if (event === "trip:status") {
         const map = { ARRIVED: "LLEGADO", IN_PROGRESS: "EN_CURSO", COMPLETED: "COMPLETADO" };
         setViaje((v) => (v ? { ...v, estado: map[data.status] || v.estado } : v));
