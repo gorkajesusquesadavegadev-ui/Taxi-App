@@ -1,0 +1,27 @@
+package com.taya.service;
+import com.taya.model.*;
+import com.taya.repository.ViajeRepository;
+import com.taya.websocket.TripWsService;
+import org.junit.jupiter.api.*;
+import java.util.Optional;
+import static org.mockito.Mockito.*;
+
+class ViajeServiceWsTest {
+    ViajeRepository viajes; TarifaService tarifa; UbicacionService ubic;
+    MatchingService matching; TripWsService ws; ViajeService service;
+
+    @BeforeEach void setup() {
+        viajes = mock(ViajeRepository.class); tarifa = mock(TarifaService.class);
+        ubic = mock(UbicacionService.class); matching = mock(MatchingService.class);
+        ws = mock(TripWsService.class);
+        service = new ViajeService(viajes, tarifa, ubic, matching, ws);
+    }
+
+    @Test void aceptar_emiteAcceptedAlCliente() {
+        Viaje v = new Viaje(); v.setId(1L); v.setClienteId(5L); v.setTaxistaId(7L); v.setEstado(EstadoViaje.ACEPTADO);
+        when(viajes.aceptarSiDisponible(1L, 7L)).thenReturn(1);
+        when(viajes.findById(1L)).thenReturn(Optional.of(v));
+        service.aceptar(1L, 7L);
+        verify(ws).enviarAceptado(eq(5L), any(Viaje.class));
+    }
+}

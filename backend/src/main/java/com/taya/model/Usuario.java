@@ -1,0 +1,28 @@
+package com.taya.model;
+import jakarta.persistence.*;
+import java.time.Instant;
+
+@Entity @Table(name = "usuarios")
+public class Usuario {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
+    @Column(nullable = false) private String nombre;
+    @Column(nullable = false, unique = true) private String email;
+    @Column(name = "password_hash", nullable = false) private String passwordHash;
+    @Enumerated(EnumType.STRING) @Column(nullable = false) private Rol rol;
+    private String licencia;
+    @Column(name = "vehiculo_matricula") private String vehiculoMatricula;
+    @Column(name = "vehiculo_modelo") private String vehiculoModelo;
+    private boolean activo = true;
+    @Column(name = "creado_en") private Instant creadoEn = Instant.now();
+
+    public Long getId() { return id; } public void setId(Long id) { this.id = id; }
+    public String getNombre() { return nombre; } public void setNombre(String v) { this.nombre = v; }
+    public String getEmail() { return email; } public void setEmail(String v) { this.email = v; }
+    public String getPasswordHash() { return passwordHash; } public void setPasswordHash(String v) { this.passwordHash = v; }
+    public Rol getRol() { return rol; } public void setRol(Rol v) { this.rol = v; }
+    public String getLicencia() { return licencia; } public void setLicencia(String v) { this.licencia = v; }
+    public String getVehiculoMatricula() { return vehiculoMatricula; } public void setVehiculoMatricula(String v) { this.vehiculoMatricula = v; }
+    public String getVehiculoModelo() { return vehiculoModelo; } public void setVehiculoModelo(String v) { this.vehiculoModelo = v; }
+    public boolean isActivo() { return activo; } public void setActivo(boolean v) { this.activo = v; }
+    public Instant getCreadoEn() { return creadoEn; } public void setCreadoEn(Instant v) { this.creadoEn = v; }
+}
