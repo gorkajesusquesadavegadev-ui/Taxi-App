@@ -6,13 +6,13 @@ import L from "leaflet";
 export const LPGC = { lat: 28.1235, lng: -15.4363 };
 
 const DOT_COLORS = {
-  origin: "#2F8F5B", // palm green
-  destino: "#E8643C", // coral
-  nearby: "#FFC400", // taxi yellow
+  origin: "#FFC400", // amarillo
+  destino: "#0B5C9E", // azul oscuro
+  nearby: "#1577C2", // azul
 };
 
 function dotIcon(kind) {
-  const color = DOT_COLORS[kind] || "#0E7C9B";
+  const color = DOT_COLORS[kind] || "#1577C2";
   const ring =
     kind === "nearby"
       ? `<span class="taya-pin__ring" style="background:${color}"></span>`
@@ -76,7 +76,7 @@ export default function MapView({
       {route && route.length > 1 && (
         <Polyline
           positions={route.map((p) => [p.lat, p.lng])}
-          pathOptions={{ color: "#0E7C9B", weight: 5, opacity: 0.7, dashArray: "1 10", lineCap: "round" }}
+          pathOptions={{ color: "#1577C2", weight: 5, opacity: 0.75, dashArray: "1 10", lineCap: "round" }}
         />
       )}
       {markers.map((m) => (

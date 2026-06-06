@@ -190,9 +190,9 @@ export default function ClienteHome() {
                 {/* points summary */}
                 <div className="flex items-center gap-3 text-sm">
                   <div className="flex flex-col items-center pt-1">
-                    <span className="h-2.5 w-2.5 rounded-full bg-palm" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-taxi" />
                     <span className="my-1 h-6 w-px bg-volcanic/20" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-coral" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-atlantic-dark" />
                   </div>
                   <div className="flex-1 space-y-2">
                     <p className={origen ? "font-semibold" : "text-volcanic/40"}>

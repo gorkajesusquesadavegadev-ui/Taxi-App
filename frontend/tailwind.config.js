@@ -4,37 +4,38 @@ export default {
   theme: {
     extend: {
       colors: {
-        // TAYA palette — taxi + Canarias coastal
+        // TAYA palette — Canarias: amarillo + azul + blanco (only 3 hues)
         taxi: {
-          DEFAULT: "#FFC400", // taxi yellow
+          DEFAULT: "#FFC400", // amarillo
           dark: "#E0A800",
-          soft: "#FFE48A",
+          soft: "#FFE9A6",
         },
+        // "volcanic" token now = deep navy blue (was near-black); used for dark surfaces + text
         volcanic: {
-          DEFAULT: "#221B1A", // warm near-black basalt
-          800: "#2E2523",
-          700: "#3B302D",
+          DEFAULT: "#0B2E4F",
+          800: "#123A61",
+          700: "#1B4A78",
         },
         atlantic: {
-          DEFAULT: "#0E7C9B", // deep teal sea
-          dark: "#0A5E77",
-          light: "#36A7C4",
+          DEFAULT: "#1577C2", // azul
+          dark: "#0B5C9E",
+          light: "#4AA3DD",
         },
-        palm: "#2F8F5B",
-        coral: "#E8643C", // sunset accent
+        palm: "#1577C2", // remapped green -> azul
+        coral: "#0B5C9E", // remapped accent/danger -> azul oscuro
         sand: {
-          DEFAULT: "#F6ECD4",
-          deep: "#EADFC0",
+          DEFAULT: "#E8F1F8", // blanco azulado
+          deep: "#CFE0EE",
         },
-        cream: "#FBF7EE",
+        cream: "#F6FAFD", // blanco
       },
       fontFamily: {
         display: ['"Bricolage Grotesque"', "system-ui", "sans-serif"],
         body: ['"DM Sans"', "system-ui", "sans-serif"],
       },
       boxShadow: {
-        card: "0 6px 24px -8px rgba(34,27,26,0.18)",
-        drawer: "8px 0 40px -12px rgba(34,27,26,0.45)",
+        card: "0 6px 24px -8px rgba(11,46,79,0.18)",
+        drawer: "8px 0 40px -12px rgba(11,46,79,0.45)",
         glow: "0 0 0 4px rgba(255,196,0,0.25)",
       },
       borderRadius: {
