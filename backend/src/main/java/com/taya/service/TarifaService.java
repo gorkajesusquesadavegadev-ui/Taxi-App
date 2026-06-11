@@ -23,8 +23,8 @@ public class TarifaService {
 
     public EstimacionResponse estimar(double oLat, double oLng, double dLat, double dLng) {
         var c = cfg();
-        double km = osrm.distanciaKm(oLat, oLng, dLat, dLng);
-        return new EstimacionResponse(BigDecimal.valueOf(km), calcular(c, km));
+        var ruta = osrm.rutaEntre(oLat, oLng, dLat, dLng);
+        return new EstimacionResponse(BigDecimal.valueOf(ruta.km()), calcular(c, ruta.km()), ruta.puntos());
     }
     public BigDecimal precioFinal(double distanciaRealKm) { return calcular(cfg(), distanciaRealKm); }
     public BigDecimal radioBusquedaKm() { return cfg().getRadioBusquedaKm(); }

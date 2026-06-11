@@ -24,7 +24,7 @@ export default function Historial() {
 
   return (
     <Layout title={esTaxista ? "Mis carreras" : "Mis viajes"}>
-      <div className="h-full overflow-y-auto no-scrollbar px-4 py-4">
+      <div className="slim-scroll h-full overflow-y-auto px-4 py-4 lg:px-8 lg:py-6">
         {!viajes && !error && (
           <div className="grid place-items-center py-16">
             <Spinner />
@@ -42,7 +42,7 @@ export default function Historial() {
             </p>
           </div>
         )}
-        <div className="space-y-3">
+        <div className="mx-auto grid max-w-5xl gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {viajes?.map((v, i) => (
             <Card
               key={v.id}

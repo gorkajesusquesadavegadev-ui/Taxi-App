@@ -32,10 +32,36 @@ export default function TaxistaHome() {
   const [pos] = useState(LPGC); // MVP: fixed position (geolocation deferred)
   const [incoming, setIncoming] = useState(null); // trip:new payload
   const [viaje, setViaje] = useState(null);
+  const [routeGeo, setRouteGeo] = useState(null); // real road geometry for the active trip
   const [msg, setMsg] = useState("Conéctate para recibir viajes.");
   const wsRef = useRef(null);
   const viajeRef = useRef(null);
   viajeRef.current = viaje;
+
+  // Fetch the real road route (OSRM) for the active trip so the taxista sees the
+  // same street-following line as the client, not a straight segment.
+  useEffect(() => {
+    if (!viaje) {
+      setRouteGeo(null);
+      return;
+    }
+    let alive = true;
+    api
+      .estimar({
+        origenLat: viaje.origenLat,
+        origenLng: viaje.origenLng,
+        destinoLat: viaje.destinoLat,
+        destinoLng: viaje.destinoLng,
+      })
+      .then((e) => {
+        if (alive && e?.ruta?.length > 1)
+          setRouteGeo(e.ruta.map(([lat, lng]) => ({ lat, lng })));
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [viaje?.id]);
 
   // socket lifecycle tied to online state
   useEffect(() => {
@@ -123,7 +149,7 @@ export default function TaxistaHome() {
     ...(viaje ? [{ id: "d", lat: viaje.destinoLat, lng: viaje.destinoLng, kind: "destino" }] : []),
   ];
   const route = viaje
-    ? [
+    ? routeGeo ?? [
         { lat: viaje.origenLat, lng: viaje.origenLng },
         { lat: viaje.destinoLat, lng: viaje.destinoLng },
       ]
@@ -139,7 +165,7 @@ export default function TaxistaHome() {
         {/* incoming trip modal */}
         {incoming && (
           <div className="absolute inset-0 z-[700] grid place-items-end bg-volcanic/40 p-3 backdrop-blur-sm sm:place-items-center">
-            <div className="w-full animate-fade-up rounded-[1.5rem] bg-cream p-5 shadow-card">
+            <div className="w-full max-w-md animate-pop rounded-[1.7rem] bg-cream p-5 shadow-float ring-4 ring-taxi/70 lg:p-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-atlantic-dark">
                 Nuevo viaje
               </p>

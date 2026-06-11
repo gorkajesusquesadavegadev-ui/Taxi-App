@@ -39,6 +39,11 @@ public class ViajeController {
     @PutMapping("/{id}/cancelar")
     public ViajeResponse cancelar(@AuthenticationPrincipal String uid, @PathVariable Long id) { return viajes.cancelar(id, Long.valueOf(uid)); }
 
+    @GetMapping("/activo")
+    public ViajeResponse activo(@AuthenticationPrincipal String uid) {
+        return viajes.activoCliente(Long.valueOf(uid));
+    }
+
     @GetMapping("/historial")
     public List<ViajeResponse> historial(@AuthenticationPrincipal String uid) {
         return viajes.historialCliente(Long.valueOf(uid));

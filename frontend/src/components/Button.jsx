@@ -1,6 +1,6 @@
 const VARIANTS = {
   primary:
-    "bg-taxi text-volcanic hover:bg-taxi-dark active:scale-[0.98] shadow-card",
+    "btn-shine bg-taxi text-volcanic hover:bg-taxi-dark active:scale-[0.98] shadow-card",
   dark: "bg-volcanic text-cream hover:bg-volcanic-800 active:scale-[0.98]",
   sea: "bg-atlantic text-white hover:bg-atlantic-dark active:scale-[0.98]",
   ghost: "bg-transparent text-volcanic hover:bg-sand-deep/50",

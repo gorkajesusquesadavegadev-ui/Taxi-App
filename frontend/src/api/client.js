@@ -2,10 +2,13 @@
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 const TOKEN_KEY = "taya_token";
 
+// sessionStorage (per-tab) not localStorage (shared): lets you run a cliente
+// in one tab and a taxista in another tab of the same window without their
+// tokens overwriting each other. Trade-off: closing the tab logs you out.
 export const tokenStore = {
-  get: () => localStorage.getItem(TOKEN_KEY),
-  set: (t) => localStorage.setItem(TOKEN_KEY, t),
-  clear: () => localStorage.removeItem(TOKEN_KEY),
+  get: () => sessionStorage.getItem(TOKEN_KEY),
+  set: (t) => sessionStorage.setItem(TOKEN_KEY, t),
+  clear: () => sessionStorage.removeItem(TOKEN_KEY),
 };
 
 async function req(method, path, body) {
@@ -42,6 +45,7 @@ export const api = {
   // viajes (cliente)
   estimar: (d) => req("POST", "/viajes/estimar", d),
   solicitar: (d) => req("POST", "/viajes/solicitar", d),
+  activo: () => req("GET", "/viajes/activo"),
   cancelar: (id) => req("PUT", `/viajes/${id}/cancelar`),
   historialCliente: () => req("GET", "/viajes/historial"),
   cercanos: (lat, lng, radio) =>

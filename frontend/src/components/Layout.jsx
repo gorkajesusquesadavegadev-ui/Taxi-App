@@ -8,25 +8,22 @@ export default function Layout({ title, action, children, framed = false }) {
   const { user } = useAuth();
 
   return (
-    // On desktop, present the app inside a centered phone-sized column over a textured backdrop.
-    <div className="grain mesh-warm relative min-h-screen w-full bg-volcanic md:py-6">
-      <div
-        className="grain mesh-warm relative mx-auto flex h-screen w-full max-w-md flex-col overflow-hidden bg-cream
-          md:h-[min(880px,calc(100vh-3rem))] md:rounded-[2rem] md:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] md:ring-1 md:ring-black/20"
-      >
-        <Sidebar open={open} onClose={() => setOpen(false)} />
+    // Full-bleed responsive shell: drawer sidebar on mobile, docked rail on lg+.
+    <div className="relative flex h-screen w-full overflow-hidden bg-cream">
+      <Sidebar open={open} onClose={() => setOpen(false)} />
 
+      <div className="grain mesh-warm relative flex min-w-0 flex-1 flex-col">
         {/* top bar */}
-        <header className="glass relative z-30 flex items-center gap-3 border-b border-sand-deep/60 px-3 py-3">
+        <header className="glass relative z-30 flex items-center gap-3 border-b border-sand-deep/60 px-3 py-3 lg:px-6">
           <button
             onClick={() => setOpen(true)}
-            className="grid h-11 w-11 place-items-center rounded-2xl bg-volcanic text-cream shadow-card transition-transform active:scale-90"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-volcanic text-cream shadow-card transition-transform active:scale-90 lg:hidden"
             aria-label="Abrir menú"
           >
             <IconMenu />
           </button>
           <div className="min-w-0 flex-1">
-            <h1 className="truncate font-display text-lg font-extrabold leading-tight">
+            <h1 className="truncate font-display text-base font-bold leading-tight lg:text-lg">
               {title}
             </h1>
             <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-volcanic/45">

@@ -15,9 +15,14 @@ export function AuthProvider({ children }) {
     try {
       const me = await api.me();
       setUser(me);
-    } catch (_) {
-      tokenStore.clear();
-      setUser(null);
+    } catch (e) {
+      // Only drop the session when the backend explicitly rejects the token
+      // (401/403). A transient failure (backend restarting -> no status) must
+      // NOT wipe a still-valid token, or a dev restart silently logs you out.
+      if (e?.status === 401 || e?.status === 403) {
+        tokenStore.clear();
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }

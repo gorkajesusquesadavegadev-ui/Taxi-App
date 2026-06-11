@@ -44,7 +44,7 @@ public class TaxiWsHandler extends TextWebSocketHandler {
 
     @Override public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         Long userId = userIdOf(session);
-        if (userId != null) registry.remove(userId);
+        if (userId != null) registry.remove(userId, session);
     }
 
     private String tokenFromUri(URI uri) {

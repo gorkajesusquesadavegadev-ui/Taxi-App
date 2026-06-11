@@ -1,15 +1,22 @@
 package com.taya.repository;
+import com.taya.model.EstadoViaje;
 import com.taya.model.Viaje;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface ViajeRepository extends JpaRepository<Viaje, Long> {
     List<Viaje> findByClienteIdOrderBySolicitadoEnDesc(Long clienteId);
     List<Viaje> findByTaxistaIdOrderBySolicitadoEnDesc(Long taxistaId);
+
+    // Current non-terminal trip for resync ("always informed" client polling).
+    Optional<Viaje> findFirstByClienteIdAndEstadoInOrderBySolicitadoEnDesc(
+        Long clienteId, Collection<EstadoViaje> estados);
 
     // First-accept-wins: only succeeds while still SOLICITADO
     @Modifying

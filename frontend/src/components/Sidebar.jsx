@@ -13,42 +13,47 @@ const NAV = {
   ],
 };
 
+// Drawer on mobile; permanently docked navigation rail on lg+.
 export default function Sidebar({ open, onClose }) {
   const { user, logout } = useAuth();
   const items = NAV[user?.rol] || [];
 
   return (
     <>
-      {/* overlay */}
+      {/* overlay (mobile only) */}
       <div
         onClick={onClose}
-        className={`fixed inset-0 z-40 bg-volcanic/60 backdrop-blur-sm transition-opacity duration-300
+        className={`fixed inset-0 z-40 bg-volcanic/60 backdrop-blur-sm transition-opacity duration-300 lg:hidden
           ${open ? "opacity-100" : "pointer-events-none opacity-0"}`}
       />
-      {/* drawer */}
+      {/* drawer / rail */}
       <aside
         className={`grain fixed inset-y-0 left-0 z-50 flex w-[78%] max-w-[19rem] flex-col
           bg-volcanic text-cream shadow-drawer transition-transform duration-300 ease-out
+          lg:static lg:z-auto lg:w-[17.5rem] lg:max-w-none lg:translate-x-0 lg:shadow-none
           ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
         {/* warm glow top-right */}
-        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-taxi/20 blur-3xl" />
+        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 animate-sun-drift rounded-full bg-taxi/20 blur-3xl" />
+        {/* atlantic glow bottom */}
+        <div className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-atlantic/25 blur-3xl" />
+
         {/* header */}
         <div className="flex items-center justify-between px-5 pt-6 pb-4">
           <div className="flex items-center gap-2.5">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-taxi text-volcanic font-display text-xl font-extrabold">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-taxi font-display text-lg font-extrabold text-volcanic shadow-sun">
               T
             </span>
             <div className="leading-tight">
-              <p className="font-display text-xl font-extrabold tracking-tight">TAYA</p>
-              <p className="text-[11px] uppercase tracking-[0.2em] text-taxi-soft/80">
+              <p className="font-display text-lg font-extrabold tracking-tight">TAYA</p>
+              <p className="text-[10px] uppercase tracking-[0.24em] text-taxi-soft/80">
                 Taxi · Canarias
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="grid h-9 w-9 place-items-center rounded-xl text-cream/70 hover:bg-volcanic-700"
+            className="grid h-9 w-9 place-items-center rounded-xl text-cream/70 hover:bg-volcanic-700 lg:hidden"
             aria-label="Cerrar menú"
           >
             <IconClose />
@@ -56,11 +61,12 @@ export default function Sidebar({ open, onClose }) {
         </div>
 
         {/* user card */}
-        <div className="mx-4 mb-2 rounded-2xl bg-volcanic-800 p-4">
-          <p className="text-xs uppercase tracking-wider text-taxi-soft/70">
+        <div className="relative mx-4 mb-2 overflow-hidden rounded-2xl bg-volcanic-800 p-4 ring-1 ring-white/5">
+          <div className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-taxi/10 blur-2xl" />
+          <p className="text-[10px] uppercase tracking-[0.2em] text-taxi-soft/70">
             {user?.rol === "TAXISTA" ? "Taxista" : "Cliente"}
           </p>
-          <p className="mt-0.5 truncate font-display text-lg font-bold">
+          <p className="mt-0.5 truncate font-display text-base font-bold">
             {user?.nombre || "—"}
           </p>
           <p className="truncate text-sm text-cream/55">{user?.email}</p>
@@ -97,14 +103,14 @@ export default function Sidebar({ open, onClose }) {
         </nav>
 
         {/* footer */}
-        <div className="px-3 pb-6">
+        <div className="relative px-3 pb-6">
           <button
             onClick={() => {
               onClose?.();
               logout();
             }}
             className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 font-semibold
-              text-coral/90 transition-colors hover:bg-coral/15"
+              text-cream/60 transition-colors hover:bg-volcanic-700 hover:text-cream"
           >
             <IconLogout />
             Cerrar sesión

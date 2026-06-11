@@ -113,6 +113,14 @@ public class ViajeService {
         return ViajeResponse.of(v);
     }
 
+    /** The client's current non-terminal trip, or null. Used by the client to
+     *  resync its UI on load/poll so a missed WebSocket event never strands it. */
+    public ViajeResponse activoCliente(Long clienteId) {
+        return viajes.findFirstByClienteIdAndEstadoInOrderBySolicitadoEnDesc(clienteId,
+            List.of(EstadoViaje.SOLICITADO, EstadoViaje.ACEPTADO, EstadoViaje.LLEGADO, EstadoViaje.EN_CURSO))
+            .map(ViajeResponse::of).orElse(null);
+    }
+
     public List<ViajeResponse> historialCliente(Long clienteId) {
         return viajes.findByClienteIdOrderBySolicitadoEnDesc(clienteId).stream().map(ViajeResponse::of).toList();
     }

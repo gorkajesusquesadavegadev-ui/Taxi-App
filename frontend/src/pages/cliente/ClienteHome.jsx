@@ -10,6 +10,13 @@ import { connectWs } from "../../api/ws.js";
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
 
+const MSG_ESTADO = {
+  SOLICITADO: "Buscando un taxi cercano…",
+  ACEPTADO: "Taxista en camino",
+  LLEGADO: "Tu taxi ha llegado",
+  EN_CURSO: "Viaje en curso",
+};
+
 export default function ClienteHome() {
   const [origen, setOrigen] = useState(null);
   const [destino, setDestino] = useState(null);
@@ -26,9 +33,15 @@ export default function ClienteHome() {
   // live socket for trip events
   useEffect(() => {
     const ws = connectWs((event, data) => {
-      if (event === "trip:accepted") setStatusMsg(`Taxista #${data.taxistaId} en camino`);
+      if (event === "trip:accepted") {
+        setViaje((v) => (v ? { ...v, estado: "ACEPTADO", taxistaId: data.taxistaId } : v));
+        setStatusMsg(`Taxista #${data.taxistaId} en camino`);
+      }
       if (event === "trip:location") setTaxiPos({ lat: data.lat, lng: data.lng });
-      if (event === "trip:arrived") setStatusMsg("Tu taxi ha llegado");
+      if (event === "trip:arrived") {
+        setViaje((v) => (v ? { ...v, estado: "LLEGADO" } : v));
+        setStatusMsg("Tu taxi ha llegado");
+      }
       if (event === "trip:status") {
         const map = { ARRIVED: "LLEGADO", IN_PROGRESS: "EN_CURSO", COMPLETED: "COMPLETADO" };
         setViaje((v) => (v ? { ...v, estado: map[data.status] || v.estado } : v));
@@ -42,6 +55,30 @@ export default function ClienteHome() {
     });
     wsRef.current = ws;
     return () => ws.close();
+  }, []);
+
+  // REST resync: source of truth so the client is always informed, even if a
+  // live WebSocket event is missed (reconnect, restart) or the page reloads.
+  useEffect(() => {
+    let alive = true;
+    const sync = async () => {
+      try {
+        const a = await api.activo();
+        if (!alive || !a) return;
+        setViaje((cur) =>
+          !cur || cur.id !== a.id || cur.estado !== a.estado ? a : cur
+        );
+        setStatusMsg((m) => MSG_ESTADO[a.estado] || m);
+      } catch (_) {
+        /* keep current state on transient error */
+      }
+    };
+    sync();
+    const id = setInterval(sync, 4000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
   }, []);
 
   // nearby free taxis around city center on load
@@ -112,10 +149,14 @@ export default function ClienteHome() {
 
   async function cancelar() {
     if (!viaje) return;
-    try {
-      await api.cancelar(viaje.id);
-    } catch (_) {
-      /* ignore */
+    // Only call the API for trips still cancelable. A COMPLETADO/CANCELADO trip
+    // returns 409; "Nuevo viaje" just needs a local reset, not a cancel call.
+    if (viaje.estado !== "COMPLETADO" && viaje.estado !== "CANCELADO") {
+      try {
+        await api.cancelar(viaje.id);
+      } catch (_) {
+        /* ignore */
+      }
     }
     setViaje(null);
     setTaxiPos(null);
@@ -129,7 +170,13 @@ export default function ClienteHome() {
     ...(destino ? [{ id: "d", ...destino, kind: "destino" }] : []),
     ...(taxiPos ? [{ id: "taxi", ...taxiPos, kind: "taxi" }] : []),
   ];
-  const route = origen && destino ? [origen, destino] : null;
+  // Real road geometry from OSRM (list of [lat,lng]); straight line only as fallback.
+  const route =
+    estimacion?.ruta?.length > 1
+      ? estimacion.ruta.map(([lat, lng]) => ({ lat, lng }))
+      : origen && destino
+        ? [origen, destino]
+        : null;
   const center = taxiPos || origen || LPGC;
 
   return (
