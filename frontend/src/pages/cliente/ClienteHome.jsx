@@ -17,6 +17,8 @@ const MSG_ESTADO = {
   ACEPTADO: "Taxista en camino",
   LLEGADO: "Tu taxi ha llegado",
   EN_CURSO: "Viaje en curso",
+  COMPLETADO: "Viaje completado. ¡Gracias!",
+  CANCELADO: "El viaje fue cancelado",
 };
 
 export default function ClienteHome() {
@@ -31,6 +33,8 @@ export default function ClienteHome() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const wsRef = useRef(null);
+  const viajeRef = useRef(null);
+  viajeRef.current = viaje;
 
   // live socket for trip events
   useEffect(() => {
@@ -61,14 +65,19 @@ export default function ClienteHome() {
 
   // REST resync: source of truth so the client is always informed, even if a
   // live WebSocket event is missed (reconnect, restart) or the page reloads.
+  // With an active trip we poll it BY ID: /activo can't return terminal states
+  // (COMPLETADO/CANCELADO), so polling only /activo strands the client at the end.
   useEffect(() => {
     let alive = true;
     const sync = async () => {
       try {
-        const a = await api.activo();
+        const cur = viajeRef.current;
+        const a = cur ? await api.viaje(cur.id) : await api.activo();
         if (!alive || !a) return;
-        setViaje((cur) =>
-          !cur || cur.id !== a.id || cur.estado !== a.estado ? a : cur
+        setViaje((c) =>
+          !c || c.id !== a.id || c.estado !== a.estado || c.precioFinal !== a.precioFinal
+            ? a
+            : c
         );
         setStatusMsg((m) => MSG_ESTADO[a.estado] || m);
       } catch (_) {
@@ -76,7 +85,7 @@ export default function ClienteHome() {
       }
     };
     sync();
-    const id = setInterval(sync, 4000);
+    const id = setInterval(sync, 2000);
     return () => {
       alive = false;
       clearInterval(id);
@@ -237,11 +246,11 @@ export default function ClienteHome() {
                 </div>
                 <p className="text-sm text-volcanic/70">
                   {statusMsg || "Viaje en curso"}
-                  {viaje.estado !== "COMPLETADO" && (
+                  {viaje.estado !== "COMPLETADO" && viaje.estado !== "CANCELADO" && (
                     <Spinner className="ml-2 h-4 w-4 align-middle" />
                   )}
                 </p>
-                {viaje.estado === "COMPLETADO" ? (
+                {viaje.estado === "COMPLETADO" || viaje.estado === "CANCELADO" ? (
                   <Button full variant="dark" onClick={cancelar}>
                     Nuevo viaje
                   </Button>

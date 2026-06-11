@@ -44,6 +44,11 @@ public class ViajeController {
         return viajes.activoCliente(Long.valueOf(uid));
     }
 
+    @GetMapping("/{id}")
+    public ViajeResponse uno(@AuthenticationPrincipal String uid, @PathVariable Long id) {
+        return viajes.uno(id, Long.valueOf(uid));
+    }
+
     @GetMapping("/historial")
     public List<ViajeResponse> historial(@AuthenticationPrincipal String uid) {
         return viajes.historialCliente(Long.valueOf(uid));

@@ -46,6 +46,7 @@ export const api = {
   estimar: (d) => req("POST", "/viajes/estimar", d),
   solicitar: (d) => req("POST", "/viajes/solicitar", d),
   activo: () => req("GET", "/viajes/activo"),
+  viaje: (id) => req("GET", `/viajes/${id}`),
   cancelar: (id) => req("PUT", `/viajes/${id}/cancelar`),
   historialCliente: () => req("GET", "/viajes/historial"),
   cercanos: (lat, lng, radio) =>

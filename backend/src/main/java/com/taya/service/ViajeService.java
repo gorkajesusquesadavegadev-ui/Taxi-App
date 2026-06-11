@@ -113,6 +113,16 @@ public class ViajeService {
         return ViajeResponse.of(v);
     }
 
+    /** One trip by id, restricted to its participants. The client polls this to
+     *  observe terminal states (COMPLETADO/CANCELADO) that /activo can't return. */
+    public ViajeResponse uno(Long viajeId, Long usuarioId) {
+        Viaje v = viajes.findById(viajeId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "viaje no existe"));
+        if (!usuarioId.equals(v.getClienteId()) && !usuarioId.equals(v.getTaxistaId()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "no participas en el viaje");
+        return ViajeResponse.of(v);
+    }
+
     /** The client's current non-terminal trip, or null. Used by the client to
      *  resync its UI on load/poll so a missed WebSocket event never strands it. */
     public ViajeResponse activoCliente(Long clienteId) {
