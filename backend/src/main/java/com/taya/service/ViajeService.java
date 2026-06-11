@@ -49,14 +49,15 @@ public class ViajeService {
         v.setClienteId(clienteId);
         v.setOrigenLat(r.origenLat()); v.setOrigenLng(r.origenLng());
         v.setDestinoLat(r.destinoLat()); v.setDestinoLng(r.destinoLng());
-        // los nombres se persisten siempre: si el cliente no los manda, los
-        // resuelve el servidor (historial y stats no dependen de servicios externos)
-        v.setOrigenTexto(textoOResuelto(r.origenTexto(), r.origenLat(), r.origenLng()));
-        v.setDestinoTexto(textoOResuelto(r.destinoTexto(), r.destinoLat(), r.destinoLng()));
+        // nombre del cliente si llega; si falta, el backfill async lo resuelve
+        // después (pedir taxi nunca espera a un geocoder externo)
+        v.setOrigenTexto(sinTexto(r.origenTexto()) ? null : r.origenTexto());
+        v.setDestinoTexto(sinTexto(r.destinoTexto()) ? null : r.destinoTexto());
         v.setDistanciaEstimadaKm(est.distanciaKm()); v.setPrecioEstimado(est.precioEstimado());
         v.setEstado(EstadoViaje.SOLICITADO);
         v = viajes.save(v);
         matching.difundirNuevoViaje(v);
+        backfillTextosAsync(List.of(v));
         return ViajeResponse.of(v);
     }
 
@@ -73,8 +74,7 @@ public class ViajeService {
         v.setClienteId(clienteId);
         v.setOrigenLat(oLat); v.setOrigenLng(oLng);
         v.setDestinoLat(of.destinoLat()); v.setDestinoLng(of.destinoLng());
-        v.setOrigenTexto(textoOResuelto(null, oLat, oLng));
-        v.setDestinoTexto(of.nombre());
+        v.setDestinoTexto(of.nombre()); // origenTexto lo resuelve el backfill async
         v.setDistanciaEstimadaKm(BigDecimal.valueOf(ruta.km()));
         v.setPrecioEstimado(of.precio()); // precio cerrado del catálogo, no taxímetro
         v.setTipo(of.tipo());
@@ -202,42 +202,54 @@ public class ViajeService {
             .map(ViajeResponse::of).orElse(null);
     }
 
-    @Transactional
     public List<ViajeResponse> historialCliente(Long clienteId) {
         var lista = viajes.findByClienteIdOrderBySolicitadoEnDesc(clienteId);
-        rellenarTextos(lista);
+        backfillTextosAsync(lista);
         return lista.stream().map(ViajeResponse::of).toList();
     }
-    @Transactional
     public List<ViajeResponse> historialTaxista(Long taxistaId) {
         var lista = viajes.findByTaxistaIdOrderBySolicitadoEnDesc(taxistaId);
-        rellenarTextos(lista);
+        backfillTextosAsync(lista);
         return lista.stream().map(ViajeResponse::of).toList();
     }
 
-    private String textoOResuelto(String texto, double lat, double lng) {
-        if (texto != null && !texto.isBlank()) return texto;
-        return geo.nombreDe(lat, lng).orElse(null);
-    }
+    private static boolean sinTexto(String s) { return s == null || s.isBlank(); }
 
-    /** Backfill: viajes antiguos sin dirección guardada se resuelven y persisten
-     *  (máx. 6 por consulta para respetar los límites de los geocoders). */
-    private void rellenarTextos(List<Viaje> lista) {
-        int presupuesto = 6;
+    // Backfill de nombres en segundo plano: la respuesta del historial nunca
+    // espera a geocoders externos. Un solo hilo serializa las llamadas
+    // (respeta rate limits) y el set evita re-encolar el mismo viaje.
+    private final java.util.concurrent.ExecutorService geoPool =
+        java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r, "geo-backfill");
+            t.setDaemon(true);
+            return t;
+        });
+    private final java.util.Set<Long> geoPendientes =
+        java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    private void backfillTextosAsync(List<Viaje> lista) {
         for (Viaje v : lista) {
-            if (presupuesto <= 0) break;
-            boolean cambiado = false;
-            if (v.getOrigenTexto() == null || v.getOrigenTexto().isBlank()) {
-                var n = geo.nombreDe(v.getOrigenLat(), v.getOrigenLng());
-                if (n.isPresent()) { v.setOrigenTexto(n.get()); cambiado = true; }
-                presupuesto--;
-            }
-            if (presupuesto > 0 && (v.getDestinoTexto() == null || v.getDestinoTexto().isBlank())) {
-                var n = geo.nombreDe(v.getDestinoLat(), v.getDestinoLng());
-                if (n.isPresent()) { v.setDestinoTexto(n.get()); cambiado = true; }
-                presupuesto--;
-            }
-            if (cambiado) viajes.save(v);
+            if (!sinTexto(v.getOrigenTexto()) && !sinTexto(v.getDestinoTexto())) continue;
+            final Long id = v.getId();
+            if (!geoPendientes.add(id)) continue;
+            geoPool.submit(() -> {
+                try {
+                    viajes.findById(id).ifPresent(x -> {
+                        boolean cambiado = false;
+                        if (sinTexto(x.getOrigenTexto())) {
+                            var n = geo.nombreDe(x.getOrigenLat(), x.getOrigenLng());
+                            if (n.isPresent()) { x.setOrigenTexto(n.get()); cambiado = true; }
+                        }
+                        if (sinTexto(x.getDestinoTexto())) {
+                            var n = geo.nombreDe(x.getDestinoLat(), x.getDestinoLng());
+                            if (n.isPresent()) { x.setDestinoTexto(n.get()); cambiado = true; }
+                        }
+                        if (cambiado) viajes.save(x);
+                    });
+                } finally {
+                    geoPendientes.remove(id);
+                }
+            });
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.taya.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import java.util.Optional;
@@ -13,8 +14,16 @@ import java.util.Optional;
  */
 @Service
 public class GeocodingService {
-    private final RestClient http = RestClient.create();
+    // timeouts cortos: un geocoder caído no puede congelar la petición
+    private final RestClient http;
     private final ObjectMapper json = new ObjectMapper();
+
+    public GeocodingService() {
+        var f = new SimpleClientHttpRequestFactory();
+        f.setConnectTimeout(2000);
+        f.setReadTimeout(2500);
+        this.http = RestClient.builder().requestFactory(f).build();
+    }
 
     public Optional<String> nombreDe(double lat, double lng) {
         Optional<String> r = photon(lat, lng);

@@ -14,8 +14,16 @@ import java.util.List;
  */
 @Service
 public class OsrmClient {
-    private final RestClient http = RestClient.create();
+    private final RestClient http;
     private static final String BASE = "https://router.project-osrm.org/route/v1/driving/";
+
+    public OsrmClient() {
+        // OSRM caído no puede colgar estimaciones: timeout corto + fallback Haversine
+        var f = new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        f.setConnectTimeout(2500);
+        f.setReadTimeout(4000);
+        this.http = RestClient.builder().requestFactory(f).build();
+    }
 
     /** A road route: driving distance in km, duration in minutes, polyline as [lat,lng]. */
     public record Ruta(double km, double duracionMin, List<double[]> puntos) {}
