@@ -56,6 +56,6 @@ export const api = {
   aceptar: (id) => req("PUT", `/viajes/${id}/aceptar`),
   llegada: (id) => req("PUT", `/viajes/${id}/llegada`),
   iniciar: (id) => req("PUT", `/viajes/${id}/iniciar`),
-  finalizar: (id, distanciaReal) => req("PUT", `/viajes/${id}/finalizar`, { distanciaReal }),
+  finalizar: (id) => req("PUT", `/viajes/${id}/finalizar`),
   historialTaxista: () => req("GET", "/taxista/historial"),
 };

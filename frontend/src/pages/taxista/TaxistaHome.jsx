@@ -146,12 +146,11 @@ export default function TaxistaHome() {
   }
 
   async function finalizar() {
-    const km = parseFloat(prompt("Kilómetros recorridos (taxímetro):", "4.0"));
-    if (!km || km <= 0) return;
     try {
-      const v = await api.finalizar(viaje.id, km);
+      // el backend tarifica con la distancia OSRM real del viaje
+      const v = await api.finalizar(viaje.id);
       setViaje(v);
-      setMsg(`Completado · ${fmtEur(v.precioFinal)}`);
+      setMsg(`Completado · ${fmtEur(v.precioFinal)} · ${Number(v.distanciaRealKm).toFixed(1)} km`);
     } catch (e) {
       setMsg(e.message || "Error al finalizar");
     }

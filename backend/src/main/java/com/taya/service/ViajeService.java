@@ -86,10 +86,16 @@ public class ViajeService {
     }
 
     @Transactional
-    public ViajeResponse finalizar(Long viajeId, Long taxistaId, double distanciaReal) {
+    public ViajeResponse finalizar(Long viajeId, Long taxistaId) {
         Viaje v = cargarDelTaxista(viajeId, taxistaId, EstadoViaje.EN_CURSO);
-        v.setDistanciaRealKm(BigDecimal.valueOf(distanciaReal));
-        v.setPrecioFinal(tarifa.precioFinal(distanciaReal));
+        // Sin GPS real, la distancia OSRM por calles del viaje es el taxímetro
+        // más objetivo: el servidor calcula el precio, no el cliente.
+        double kmRuta = v.getDistanciaEstimadaKm() != null
+            ? v.getDistanciaEstimadaKm().doubleValue()
+            : tarifa.estimar(v.getOrigenLat(), v.getOrigenLng(),
+                v.getDestinoLat(), v.getDestinoLng()).distanciaKm().doubleValue();
+        v.setDistanciaRealKm(BigDecimal.valueOf(kmRuta));
+        v.setPrecioFinal(tarifa.precioFinal(kmRuta));
         v.setEstado(EstadoViaje.COMPLETADO); v.setCompletadoEn(Instant.now());
         ubicacion.setLibre(taxistaId, v.getDestinoLat(), v.getDestinoLng());
         v = viajes.save(v);

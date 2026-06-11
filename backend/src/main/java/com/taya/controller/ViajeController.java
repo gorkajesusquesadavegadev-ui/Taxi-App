@@ -32,8 +32,8 @@ public class ViajeController {
     public ViajeResponse iniciar(@AuthenticationPrincipal String uid, @PathVariable Long id) { return viajes.iniciar(id, Long.valueOf(uid)); }
 
     @PutMapping("/{id}/finalizar") @PreAuthorize("hasRole('TAXISTA')")
-    public ViajeResponse finalizar(@AuthenticationPrincipal String uid, @PathVariable Long id, @Valid @RequestBody FinalizarRequest r) {
-        return viajes.finalizar(id, Long.valueOf(uid), r.distanciaReal());
+    public ViajeResponse finalizar(@AuthenticationPrincipal String uid, @PathVariable Long id) {
+        return viajes.finalizar(id, Long.valueOf(uid));
     }
 
     @PutMapping("/{id}/cancelar")
