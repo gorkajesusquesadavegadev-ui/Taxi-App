@@ -19,9 +19,11 @@ public class ViajeService {
     private final UbicacionService ubicacion;
     private final MatchingService matching;
     private final TripWsService ws;
+    private final CatalogoService catalogo;
 
-    public ViajeService(ViajeRepository v, TarifaService t, UbicacionService u, MatchingService m, TripWsService ws) {
-        this.viajes = v; this.tarifa = t; this.ubicacion = u; this.matching = m; this.ws = ws;
+    public ViajeService(ViajeRepository v, TarifaService t, UbicacionService u, MatchingService m,
+                        TripWsService ws, CatalogoService c) {
+        this.viajes = v; this.tarifa = t; this.ubicacion = u; this.matching = m; this.ws = ws; this.catalogo = c;
     }
 
     public EstimacionResponse estimar(EstimarRequest r) {
@@ -37,6 +39,29 @@ public class ViajeService {
         v.setDestinoLat(r.destinoLat()); v.setDestinoLng(r.destinoLng());
         v.setOrigenTexto(r.origenTexto()); v.setDestinoTexto(r.destinoTexto());
         v.setDistanciaEstimadaKm(est.distanciaKm()); v.setPrecioEstimado(est.precioEstimado());
+        v.setEstado(EstadoViaje.SOLICITADO);
+        v = viajes.save(v);
+        matching.difundirNuevoViaje(v);
+        return ViajeResponse.of(v);
+    }
+
+    /** Transfer o excursión del catálogo: precio cerrado, mismo flujo de matching. */
+    @Transactional
+    public ViajeResponse solicitarOferta(Long clienteId, SolicitarOfertaRequest r) {
+        var of = catalogo.porId(r.ofertaId())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "oferta no existe"));
+        double oLat = r.recogidaLat() != null ? r.recogidaLat() : of.origenLat();
+        double oLng = r.recogidaLng() != null ? r.recogidaLng() : of.origenLng();
+        var est = tarifa.estimar(oLat, oLng, of.destinoLat(), of.destinoLng());
+        Viaje v = new Viaje();
+        v.setClienteId(clienteId);
+        v.setOrigenLat(oLat); v.setOrigenLng(oLng);
+        v.setDestinoLat(of.destinoLat()); v.setDestinoLng(of.destinoLng());
+        v.setDestinoTexto(of.nombre());
+        v.setDistanciaEstimadaKm(est.distanciaKm());
+        v.setPrecioEstimado(of.precio()); // precio cerrado del catálogo, no taxímetro
+        v.setTipo(of.tipo());
+        v.setDetalle(of.nombre());
         v.setEstado(EstadoViaje.SOLICITADO);
         v = viajes.save(v);
         matching.difundirNuevoViaje(v);
@@ -88,14 +113,20 @@ public class ViajeService {
     @Transactional
     public ViajeResponse finalizar(Long viajeId, Long taxistaId) {
         Viaje v = cargarDelTaxista(viajeId, taxistaId, EstadoViaje.EN_CURSO);
-        // Sin GPS real, la distancia OSRM por calles del viaje es el taxímetro
-        // más objetivo: el servidor calcula el precio, no el cliente.
-        double kmRuta = v.getDistanciaEstimadaKm() != null
-            ? v.getDistanciaEstimadaKm().doubleValue()
-            : tarifa.estimar(v.getOrigenLat(), v.getOrigenLng(),
-                v.getDestinoLat(), v.getDestinoLng()).distanciaKm().doubleValue();
-        v.setDistanciaRealKm(BigDecimal.valueOf(kmRuta));
-        v.setPrecioFinal(tarifa.precioFinal(kmRuta));
+        if (v.getTipo() != null && v.getTipo() != TipoViaje.NORMAL) {
+            // transfers/excursiones: precio cerrado pactado al solicitar
+            v.setDistanciaRealKm(v.getDistanciaEstimadaKm());
+            v.setPrecioFinal(v.getPrecioEstimado());
+        } else {
+            // Sin GPS real, la distancia OSRM por calles del viaje es el taxímetro
+            // más objetivo: el servidor calcula el precio, no el cliente.
+            double kmRuta = v.getDistanciaEstimadaKm() != null
+                ? v.getDistanciaEstimadaKm().doubleValue()
+                : tarifa.estimar(v.getOrigenLat(), v.getOrigenLng(),
+                    v.getDestinoLat(), v.getDestinoLng()).distanciaKm().doubleValue();
+            v.setDistanciaRealKm(BigDecimal.valueOf(kmRuta));
+            v.setPrecioFinal(tarifa.precioFinal(kmRuta));
+        }
         v.setEstado(EstadoViaje.COMPLETADO); v.setCompletadoEn(Instant.now());
         ubicacion.setLibre(taxistaId, v.getDestinoLat(), v.getDestinoLng());
         v = viajes.save(v);

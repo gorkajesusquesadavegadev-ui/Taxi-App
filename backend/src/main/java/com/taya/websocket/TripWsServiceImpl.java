@@ -30,6 +30,8 @@ public class TripWsServiceImpl implements TripWsService {
         payload.put("destinoLat", v.getDestinoLat());
         payload.put("destinoLng", v.getDestinoLng());
         payload.put("precioEstimado", v.getPrecioEstimado());
+        payload.put("tipo", v.getTipo() != null ? v.getTipo().name() : "NORMAL");
+        payload.put("detalle", v.getDetalle());
         taxistaIds.forEach(id -> send(id, "trip:new", payload));
     }
     @Override public void enviarAceptado(Long clienteId, Viaje v) {

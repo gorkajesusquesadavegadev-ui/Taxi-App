@@ -22,6 +22,12 @@ public class ViajeController {
         return viajes.solicitar(Long.valueOf(uid), r);
     }
 
+    @PostMapping("/solicitar-oferta")
+    @PreAuthorize("hasRole('CLIENTE')")
+    public ViajeResponse solicitarOferta(@AuthenticationPrincipal String uid, @Valid @RequestBody SolicitarOfertaRequest r) {
+        return viajes.solicitarOferta(Long.valueOf(uid), r);
+    }
+
     @PutMapping("/{id}/aceptar") @PreAuthorize("hasRole('TAXISTA')")
     public ViajeResponse aceptar(@AuthenticationPrincipal String uid, @PathVariable Long id) { return viajes.aceptar(id, Long.valueOf(uid)); }
 

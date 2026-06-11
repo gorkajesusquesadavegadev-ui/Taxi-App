@@ -1,10 +1,21 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { IconPin, IconCar, IconList, IconClose, IconLogout } from "./icons.jsx";
+import {
+  IconPin,
+  IconCar,
+  IconList,
+  IconClose,
+  IconLogout,
+  IconGear,
+  IconPlane,
+  IconCompass,
+} from "./icons.jsx";
 
 const NAV = {
   CLIENTE: [
     { to: "/", label: "Pedir taxi", icon: IconPin, end: true },
+    { to: "/transfers", label: "Transfers", icon: IconPlane },
+    { to: "/excursiones", label: "Excursiones", icon: IconCompass },
     { to: "/historial", label: "Mis viajes", icon: IconList },
   ],
   TAXISTA: [
@@ -60,23 +71,6 @@ export default function Sidebar({ open, onClose }) {
           </button>
         </div>
 
-        {/* user card */}
-        <div className="relative mx-4 mb-2 overflow-hidden rounded-2xl bg-volcanic-800 p-4 ring-1 ring-white/5">
-          <div className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-taxi/10 blur-2xl" />
-          <p className="text-[10px] uppercase tracking-[0.2em] text-taxi-soft/70">
-            {user?.rol === "TAXISTA" ? "Taxista" : "Cliente"}
-          </p>
-          <p className="mt-0.5 truncate font-display text-base font-bold">
-            {user?.nombre || "—"}
-          </p>
-          <p className="truncate text-sm text-cream/55">{user?.email}</p>
-          {user?.vehiculoMatricula && (
-            <p className="mt-2 inline-flex rounded-lg bg-taxi/15 px-2 py-1 text-xs font-semibold text-taxi-soft">
-              {user.vehiculoModelo} · {user.vehiculoMatricula}
-            </p>
-          )}
-        </div>
-
         {/* nav */}
         <nav className="relative mt-2 flex-1 space-y-1 px-3">
           {items.map(({ to, label, icon: Icon, end }, i) => (
@@ -102,19 +96,35 @@ export default function Sidebar({ open, onClose }) {
           ))}
         </nav>
 
-        {/* footer */}
+        {/* footer: cerrar sesión + ajustes */}
         <div className="relative px-3 pb-6">
-          <button
-            onClick={() => {
-              onClose?.();
-              logout();
-            }}
-            className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 font-semibold
-              text-cream/60 transition-colors hover:bg-volcanic-700 hover:text-cream"
-          >
-            <IconLogout />
-            Cerrar sesión
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => {
+                onClose?.();
+                logout();
+              }}
+              className="flex flex-1 items-center gap-3 rounded-2xl px-4 py-3 font-semibold
+                text-cream/60 transition-colors hover:bg-volcanic-700 hover:text-cream"
+            >
+              <IconLogout />
+              Cerrar sesión
+            </button>
+            <NavLink
+              to="/ajustes"
+              onClick={onClose}
+              aria-label="Ajustes"
+              className={({ isActive }) =>
+                `grid h-11 w-11 shrink-0 place-items-center rounded-2xl transition-colors ${
+                  isActive
+                    ? "bg-taxi text-volcanic"
+                    : "text-cream/60 hover:bg-volcanic-700 hover:text-cream"
+                }`
+              }
+            >
+              <IconGear />
+            </NavLink>
+          </div>
           <p className="mt-3 px-4 text-[11px] text-cream/30">TAYA MVP · v0.1</p>
         </div>
       </aside>

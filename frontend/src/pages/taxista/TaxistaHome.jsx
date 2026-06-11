@@ -8,8 +8,10 @@ import { IconCar } from "../../components/icons.jsx";
 import { api } from "../../api/client.js";
 import { direccionDe } from "../../api/geo.js";
 import { connectWs } from "../../api/ws.js";
+import { prefs, beep } from "../../utils/prefs.js";
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
+const TIPO_LABEL = { TRANSFER: "Transfer", EXCURSION: "Excursión" };
 
 // Toggle pill for online/offline.
 function OnlineToggle({ online, onToggle }) {
@@ -82,7 +84,10 @@ export default function TaxistaHome() {
     if (!online) return;
     const ws = connectWs(
       (event, data) => {
-        if (event === "trip:new") setIncoming(data);
+        if (event === "trip:new") {
+          setIncoming(data);
+          if (prefs.getSound()) beep();
+        }
         if (event === "trip:cancelled") {
           setViaje(null);
           setIncoming(null);
@@ -180,11 +185,18 @@ export default function TaxistaHome() {
           <div className="absolute inset-0 z-[700] grid place-items-end bg-volcanic/40 p-3 backdrop-blur-sm sm:place-items-center">
             <div className="w-full max-w-md animate-pop rounded-[1.7rem] bg-cream p-5 shadow-float ring-4 ring-taxi/70 lg:p-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-atlantic-dark">
-                Nuevo viaje
+                {TIPO_LABEL[incoming.tipo] ? `Solicitud de ${TIPO_LABEL[incoming.tipo]}` : "Nuevo viaje"}
               </p>
+              {incoming.detalle && (
+                <p className="mt-0.5 font-display text-base font-extrabold text-volcanic">
+                  {incoming.detalle}
+                </p>
+              )}
               <p className="mt-1 font-display text-2xl font-extrabold">
                 {fmtEur(incoming.precioEstimado)}
-                <span className="ml-2 text-sm font-medium text-volcanic/50">estimado</span>
+                <span className="ml-2 text-sm font-medium text-volcanic/50">
+                  {TIPO_LABEL[incoming.tipo] ? "precio cerrado" : "estimado"}
+                </span>
               </p>
               <p className="mt-1 text-sm text-volcanic/60">
                 Recogida marcada en el mapa · viaje #{incoming.viajeId}
@@ -209,6 +221,11 @@ export default function TaxistaHome() {
                     {fmtEur(viaje.precioFinal ?? viaje.precioEstimado)}
                   </span>
                 </div>
+                {TIPO_LABEL[viaje.tipo] && (
+                  <span className="pill bg-taxi/20 text-volcanic">
+                    {TIPO_LABEL[viaje.tipo]} · {viaje.detalle}
+                  </span>
+                )}
                 {rutaInfo && (
                   <p className="font-display text-sm font-extrabold text-atlantic-dark">
                     {rutaInfo.min} min

@@ -9,6 +9,9 @@ import AddressSearch from "../../components/AddressSearch.jsx";
 import { api } from "../../api/client.js";
 import { direccionDe } from "../../api/geo.js";
 import { connectWs } from "../../api/ws.js";
+import { prefs } from "../../utils/prefs.js";
+
+const TIPO_LABEL = { TRANSFER: "Transfer", EXCURSION: "Excursión" };
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
 
@@ -94,6 +97,10 @@ export default function ClienteHome() {
 
   // nearby free taxis around city center on load
   const loadNearby = useCallback(async () => {
+    if (!prefs.getNearby()) {
+      setNearby([]);
+      return;
+    }
     try {
       const t = await api.cercanos(LPGC.lat, LPGC.lng);
       setNearby(t || []);
@@ -244,6 +251,11 @@ export default function ClienteHome() {
                     {fmtEur(viaje.precioFinal ?? viaje.precioEstimado)}
                   </span>
                 </div>
+                {TIPO_LABEL[viaje.tipo] && (
+                  <span className="pill bg-taxi/20 text-volcanic">
+                    {TIPO_LABEL[viaje.tipo]} · {viaje.detalle} · precio cerrado
+                  </span>
+                )}
                 <p className="text-sm text-volcanic/70">
                   {statusMsg || "Viaje en curso"}
                   {viaje.estado !== "COMPLETADO" && viaje.estado !== "CANCELADO" && (

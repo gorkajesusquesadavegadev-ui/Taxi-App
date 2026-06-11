@@ -5,6 +5,8 @@ import Auth from "./pages/Auth.jsx";
 import ClienteHome from "./pages/cliente/ClienteHome.jsx";
 import TaxistaHome from "./pages/taxista/TaxistaHome.jsx";
 import Historial from "./pages/Historial.jsx";
+import Ofertas from "./pages/cliente/Ofertas.jsx";
+import Ajustes from "./pages/Ajustes.jsx";
 
 function Splash() {
   return (
@@ -44,6 +46,30 @@ export default function App() {
         element={
           <Protected>
             <Historial />
+          </Protected>
+        }
+      />
+      <Route
+        path="/transfers"
+        element={
+          <Protected>
+            {user?.rol === "TAXISTA" ? <Navigate to="/" replace /> : <Ofertas tipo="transfers" />}
+          </Protected>
+        }
+      />
+      <Route
+        path="/excursiones"
+        element={
+          <Protected>
+            {user?.rol === "TAXISTA" ? <Navigate to="/" replace /> : <Ofertas tipo="excursiones" />}
+          </Protected>
+        }
+      />
+      <Route
+        path="/ajustes"
+        element={
+          <Protected>
+            <Ajustes />
           </Protected>
         }
       />

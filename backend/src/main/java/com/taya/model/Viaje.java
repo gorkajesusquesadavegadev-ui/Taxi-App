@@ -19,6 +19,9 @@ public class Viaje {
     @Column(name = "distancia_real_km") private BigDecimal distanciaRealKm;
     @Column(name = "precio_final") private BigDecimal precioFinal;
     @Enumerated(EnumType.STRING) @Column(nullable = false) private EstadoViaje estado = EstadoViaje.SOLICITADO;
+    // nullable en BD por filas antiguas; null se interpreta como NORMAL
+    @Enumerated(EnumType.STRING) @Column(name = "tipo") private TipoViaje tipo = TipoViaje.NORMAL;
+    @Column(name = "detalle") private String detalle;
     @Column(name = "solicitado_en") private Instant solicitadoEn = Instant.now();
     @Column(name = "aceptado_en") private Instant aceptadoEn;
     @Column(name = "llegada_en") private Instant llegadaEn;
@@ -40,6 +43,8 @@ public class Viaje {
     public BigDecimal getDistanciaRealKm(){ return distanciaRealKm; } public void setDistanciaRealKm(BigDecimal v){ this.distanciaRealKm=v; }
     public BigDecimal getPrecioFinal(){ return precioFinal; } public void setPrecioFinal(BigDecimal v){ this.precioFinal=v; }
     public EstadoViaje getEstado(){ return estado; } public void setEstado(EstadoViaje v){ this.estado=v; }
+    public TipoViaje getTipo(){ return tipo; } public void setTipo(TipoViaje v){ this.tipo=v; }
+    public String getDetalle(){ return detalle; } public void setDetalle(String v){ this.detalle=v; }
     public Instant getSolicitadoEn(){ return solicitadoEn; } public void setSolicitadoEn(Instant v){ this.solicitadoEn=v; }
     public Instant getAceptadoEn(){ return aceptadoEn; } public void setAceptadoEn(Instant v){ this.aceptadoEn=v; }
     public Instant getLlegadaEn(){ return llegadaEn; } public void setLlegadaEn(Instant v){ this.llegadaEn=v; }
