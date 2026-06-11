@@ -43,6 +43,8 @@ export const api = {
   login: (d) => req("POST", "/auth/login", d),
   me: () => req("GET", "/usuarios/me"),
   actualizarMe: (d) => req("PUT", "/usuarios/me", d),
+  cambiarPassword: (d) => req("PUT", "/usuarios/me/password", d),
+  rutaViaje: (id) => req("GET", `/viajes/${id}/ruta`),
   catalogo: () => req("GET", "/catalogo"),
   solicitarOferta: (d) => req("POST", "/viajes/solicitar-oferta", d),
   // viajes (cliente)

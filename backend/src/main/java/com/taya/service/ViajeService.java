@@ -20,10 +20,21 @@ public class ViajeService {
     private final MatchingService matching;
     private final TripWsService ws;
     private final CatalogoService catalogo;
+    private final OsrmClient osrm;
 
     public ViajeService(ViajeRepository v, TarifaService t, UbicacionService u, MatchingService m,
-                        TripWsService ws, CatalogoService c) {
-        this.viajes = v; this.tarifa = t; this.ubicacion = u; this.matching = m; this.ws = ws; this.catalogo = c;
+                        TripWsService ws, CatalogoService c, OsrmClient osrm) {
+        this.viajes = v; this.tarifa = t; this.ubicacion = u; this.matching = m; this.ws = ws;
+        this.catalogo = c; this.osrm = osrm;
+    }
+
+    /** Recorrido completo de una oferta: recogida → paradas → destino. */
+    private static java.util.List<double[]> puntosDeOferta(CatalogoService.Oferta of, double oLat, double oLng) {
+        var pts = new java.util.ArrayList<double[]>();
+        pts.add(new double[]{oLat, oLng});
+        pts.addAll(of.paradas());
+        pts.add(new double[]{of.destinoLat(), of.destinoLng()});
+        return pts;
     }
 
     public EstimacionResponse estimar(EstimarRequest r) {
@@ -52,16 +63,18 @@ public class ViajeService {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "oferta no existe"));
         double oLat = r.recogidaLat() != null ? r.recogidaLat() : of.origenLat();
         double oLng = r.recogidaLng() != null ? r.recogidaLng() : of.origenLng();
-        var est = tarifa.estimar(oLat, oLng, of.destinoLat(), of.destinoLng());
+        // distancia del recorrido REAL (con paradas), no de la línea origen→destino
+        var ruta = osrm.rutaVia(puntosDeOferta(of, oLat, oLng));
         Viaje v = new Viaje();
         v.setClienteId(clienteId);
         v.setOrigenLat(oLat); v.setOrigenLng(oLng);
         v.setDestinoLat(of.destinoLat()); v.setDestinoLng(of.destinoLng());
         v.setDestinoTexto(of.nombre());
-        v.setDistanciaEstimadaKm(est.distanciaKm());
+        v.setDistanciaEstimadaKm(BigDecimal.valueOf(ruta.km()));
         v.setPrecioEstimado(of.precio()); // precio cerrado del catálogo, no taxímetro
         v.setTipo(of.tipo());
         v.setDetalle(of.nombre());
+        v.setOfertaId(of.id());
         v.setEstado(EstadoViaje.SOLICITADO);
         v = viajes.save(v);
         matching.difundirNuevoViaje(v);
@@ -158,6 +171,22 @@ public class ViajeService {
         if (!usuarioId.equals(v.getClienteId()) && !usuarioId.equals(v.getTaxistaId()))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "no participas en el viaje");
         return ViajeResponse.of(v);
+    }
+
+    /** Ruta por calles del viaje. Para ofertas reconstruye las paradas del
+     *  catálogo, así la excursión dibuja su recorrido completo en el mapa. */
+    public RutaResponse rutaDe(Long viajeId, Long usuarioId) {
+        Viaje v = viajes.findById(viajeId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "viaje no existe"));
+        if (!usuarioId.equals(v.getClienteId()) && !usuarioId.equals(v.getTaxistaId()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "no participas en el viaje");
+        var ruta = (v.getOfertaId() != null)
+            ? catalogo.porId(v.getOfertaId())
+                .map(of -> osrm.rutaVia(puntosDeOferta(of, v.getOrigenLat(), v.getOrigenLng())))
+                .orElseGet(() -> osrm.rutaEntre(v.getOrigenLat(), v.getOrigenLng(), v.getDestinoLat(), v.getDestinoLng()))
+            : osrm.rutaEntre(v.getOrigenLat(), v.getOrigenLng(), v.getDestinoLat(), v.getDestinoLng());
+        return new RutaResponse(ruta.puntos(), BigDecimal.valueOf(ruta.km()),
+            BigDecimal.valueOf(Math.ceil(ruta.duracionMin())));
     }
 
     /** The client's current non-terminal trip, or null. Used by the client to

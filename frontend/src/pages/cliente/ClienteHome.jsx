@@ -31,6 +31,7 @@ export default function ClienteHome() {
   const [estimacion, setEstimacion] = useState(null);
   const [estimando, setEstimando] = useState(false);
   const [viaje, setViaje] = useState(null);
+  const [rutaActiva, setRutaActiva] = useState(null); // ruta servidor del viaje activo (con paradas)
   const [taxiPos, setTaxiPos] = useState(null);
   const [statusMsg, setStatusMsg] = useState("");
   const [busy, setBusy] = useState(false);
@@ -94,6 +95,23 @@ export default function ClienteHome() {
       clearInterval(id);
     };
   }, []);
+
+  // route of the active trip from the server: for catálogo trips it includes
+  // the excursion's real stops, so the map shows the full circuit
+  useEffect(() => {
+    if (!viaje) {
+      setRutaActiva(null);
+      return;
+    }
+    let alive = true;
+    api
+      .rutaViaje(viaje.id)
+      .then((r) => alive && r?.puntos?.length > 1 && setRutaActiva(r))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [viaje?.id]);
 
   // nearby free taxis around city center on load
   const loadNearby = useCallback(async () => {
@@ -201,18 +219,29 @@ export default function ClienteHome() {
 
   const markers = [
     ...nearby.map((t) => ({ id: `n-${t.taxistaId}`, lat: t.lat, lng: t.lng, kind: "nearby" })),
-    ...(origen ? [{ id: "o", ...origen, kind: "origin" }] : []),
-    ...(destino ? [{ id: "d", ...destino, kind: "destino" }] : []),
+    // con viaje activo los puntos salen del propio viaje (cubre transfers/excursiones)
+    ...(viaje
+      ? [
+          { id: "o", lat: viaje.origenLat, lng: viaje.origenLng, kind: "origin" },
+          { id: "d", lat: viaje.destinoLat, lng: viaje.destinoLng, kind: "destino" },
+        ]
+      : [
+          ...(origen ? [{ id: "o", ...origen, kind: "origin" }] : []),
+          ...(destino ? [{ id: "d", ...destino, kind: "destino" }] : []),
+        ]),
     ...(taxiPos ? [{ id: "taxi", ...taxiPos, kind: "taxi" }] : []),
   ];
   // Real road geometry from OSRM (list of [lat,lng]); straight line only as fallback.
   const route =
-    estimacion?.ruta?.length > 1
-      ? estimacion.ruta.map(([lat, lng]) => ({ lat, lng }))
-      : origen && destino
-        ? [origen, destino]
-        : null;
-  const center = taxiPos || origen || LPGC;
+    viaje && rutaActiva
+      ? rutaActiva.puntos.map(([lat, lng]) => ({ lat, lng }))
+      : estimacion?.ruta?.length > 1
+        ? estimacion.ruta.map(([lat, lng]) => ({ lat, lng }))
+        : origen && destino
+          ? [origen, destino]
+          : null;
+  const center =
+    taxiPos || (viaje ? { lat: viaje.origenLat, lng: viaje.origenLng } : origen) || LPGC;
 
   return (
     <Layout title="Pedir taxi" framed>

@@ -36,19 +36,35 @@ function Toggle({ checked, onChange, label, hint }) {
 
 export default function Ajustes() {
   const { user, setUser, logout } = useAuth();
+  const esTaxista = user?.rol === "TAXISTA";
   const [nombre, setNombre] = useState(user?.nombre || "");
+  const [modelo, setModelo] = useState(user?.vehiculoModelo || "");
+  const [matricula, setMatricula] = useState(user?.vehiculoMatricula || "");
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
   const [sound, setSound] = useState(prefs.getSound());
   const [nearby, setNearby] = useState(prefs.getNearby());
+  // cambio de contraseña
+  const [pwdActual, setPwdActual] = useState("");
+  const [pwdNueva, setPwdNueva] = useState("");
+  const [pwdBusy, setPwdBusy] = useState(false);
+  const [pwdMsg, setPwdMsg] = useState(null); // {ok, text}
 
-  const dirty = nombre.trim() !== (user?.nombre || "") && nombre.trim().length >= 2;
+  const dirty =
+    (nombre.trim() !== (user?.nombre || "") && nombre.trim().length >= 2) ||
+    (esTaxista &&
+      (modelo.trim() !== (user?.vehiculoModelo || "") ||
+        matricula.trim().toUpperCase() !== (user?.vehiculoMatricula || "")));
 
   async function guardar() {
     setSaving(true);
     setSavedMsg("");
     try {
-      const me = await api.actualizarMe({ nombre: nombre.trim() });
+      const me = await api.actualizarMe({
+        nombre: nombre.trim(),
+        vehiculoModelo: esTaxista ? modelo.trim() : null,
+        vehiculoMatricula: esTaxista ? matricula.trim() : null,
+      });
       setUser(me);
       setSavedMsg("Guardado");
       setTimeout(() => setSavedMsg(""), 2500);
@@ -56,6 +72,21 @@ export default function Ajustes() {
       setSavedMsg(e.message || "No se pudo guardar");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function cambiarPassword() {
+    setPwdBusy(true);
+    setPwdMsg(null);
+    try {
+      await api.cambiarPassword({ actual: pwdActual, nueva: pwdNueva });
+      setPwdMsg({ ok: true, text: "Contraseña actualizada" });
+      setPwdActual("");
+      setPwdNueva("");
+    } catch (e) {
+      setPwdMsg({ ok: false, text: e.message || "No se pudo cambiar" });
+    } finally {
+      setPwdBusy(false);
     }
   }
 
@@ -78,12 +109,6 @@ export default function Ajustes() {
               </div>
             </div>
 
-            {user?.vehiculoMatricula && (
-              <p className="mt-4 rounded-xl bg-sand px-3 py-2 text-sm font-semibold text-volcanic/70">
-                Vehículo: {user.vehiculoModelo} · {user.vehiculoMatricula}
-              </p>
-            )}
-
             <div className="mt-5 space-y-2.5">
               <Input
                 label="Tu nombre"
@@ -92,6 +117,24 @@ export default function Ajustes() {
                 onChange={(e) => setNombre(e.target.value)}
                 placeholder="Tu nombre"
               />
+              {esTaxista && (
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    label="Modelo"
+                    name="vehiculoModelo"
+                    value={modelo}
+                    onChange={(e) => setModelo(e.target.value)}
+                    placeholder="Toyota Prius"
+                  />
+                  <Input
+                    label="Matrícula"
+                    name="vehiculoMatricula"
+                    value={matricula}
+                    onChange={(e) => setMatricula(e.target.value)}
+                    placeholder="1234-ABC"
+                  />
+                </div>
+              )}
               <div className="flex items-center gap-3">
                 <Button size="sm" disabled={!dirty || saving} onClick={guardar}>
                   {saving ? <Spinner className="border-volcanic/30 border-t-volcanic" /> : "Guardar"}
@@ -127,6 +170,52 @@ export default function Ajustes() {
                 label="Taxis cercanos en el mapa"
                 hint="Muestra los taxis libres alrededor (cliente)"
               />
+            </div>
+          </section>
+
+          {/* seguridad */}
+          <section className="surface p-5">
+            <h3 className="mb-1 font-display text-base font-extrabold">Seguridad</h3>
+            <p className="mb-3 text-xs text-volcanic/50">
+              Cambia tu contraseña verificando la actual.
+            </p>
+            <div className="space-y-2.5">
+              <Input
+                label="Contraseña actual"
+                name="pwdActual"
+                type="password"
+                value={pwdActual}
+                onChange={(e) => setPwdActual(e.target.value)}
+                placeholder="tu contraseña de ahora"
+              />
+              <Input
+                label="Contraseña nueva"
+                name="pwdNueva"
+                type="password"
+                value={pwdNueva}
+                onChange={(e) => setPwdNueva(e.target.value)}
+                placeholder="mínimo 6 caracteres"
+                hint={pwdNueva && pwdNueva.length < 6 ? "Mínimo 6 caracteres" : undefined}
+              />
+              <div className="flex items-center gap-3">
+                <Button
+                  size="sm"
+                  variant="sea"
+                  disabled={pwdBusy || !pwdActual || pwdNueva.length < 6}
+                  onClick={cambiarPassword}
+                >
+                  {pwdBusy ? <Spinner /> : "Cambiar contraseña"}
+                </Button>
+                {pwdMsg && (
+                  <span
+                    className={`animate-fade-up text-sm font-semibold ${
+                      pwdMsg.ok ? "text-atlantic-dark" : "text-coral"
+                    }`}
+                  >
+                    {pwdMsg.text}
+                  </span>
+                )}
+              </div>
             </div>
           </section>
 

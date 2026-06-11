@@ -22,9 +22,20 @@ public class OsrmClient {
 
     /** Full road route between two points (geometry + distance + duration). */
     public Ruta rutaEntre(double oLat, double oLng, double dLat, double dLng) {
+        return rutaVia(List.of(new double[]{oLat, oLng}, new double[]{dLat, dLng}));
+    }
+
+    /** Road route through an ordered list of [lat,lng] waypoints (2+ points). */
+    public Ruta rutaVia(List<double[]> waypoints) {
+        double oLat = waypoints.get(0)[0], oLng = waypoints.get(0)[1];
+        double dLat = waypoints.get(waypoints.size() - 1)[0], dLng = waypoints.get(waypoints.size() - 1)[1];
         try {
-            String url = BASE + oLng + "," + oLat + ";" + dLng + "," + dLat
-                + "?overview=full&geometries=geojson";
+            StringBuilder coords = new StringBuilder();
+            for (double[] p : waypoints) {
+                if (coords.length() > 0) coords.append(';');
+                coords.append(p[1]).append(',').append(p[0]); // OSRM espera lng,lat
+            }
+            String url = BASE + coords + "?overview=full&geometries=geojson";
             OsrmResponse r = http.get().uri(url).retrieve().body(OsrmResponse.class);
             if (r != null && r.routes() != null && !r.routes().isEmpty()) {
                 Route ro = r.routes().get(0);

@@ -22,6 +22,7 @@ public class Viaje {
     // nullable en BD por filas antiguas; null se interpreta como NORMAL
     @Enumerated(EnumType.STRING) @Column(name = "tipo") private TipoViaje tipo = TipoViaje.NORMAL;
     @Column(name = "detalle") private String detalle;
+    @Column(name = "oferta_id") private String ofertaId; // catálogo: permite reconstruir paradas
     @Column(name = "solicitado_en") private Instant solicitadoEn = Instant.now();
     @Column(name = "aceptado_en") private Instant aceptadoEn;
     @Column(name = "llegada_en") private Instant llegadaEn;
@@ -45,6 +46,7 @@ public class Viaje {
     public EstadoViaje getEstado(){ return estado; } public void setEstado(EstadoViaje v){ this.estado=v; }
     public TipoViaje getTipo(){ return tipo; } public void setTipo(TipoViaje v){ this.tipo=v; }
     public String getDetalle(){ return detalle; } public void setDetalle(String v){ this.detalle=v; }
+    public String getOfertaId(){ return ofertaId; } public void setOfertaId(String v){ this.ofertaId=v; }
     public Instant getSolicitadoEn(){ return solicitadoEn; } public void setSolicitadoEn(Instant v){ this.solicitadoEn=v; }
     public Instant getAceptadoEn(){ return aceptadoEn; } public void setAceptadoEn(Instant v){ this.aceptadoEn=v; }
     public Instant getLlegadaEn(){ return llegadaEn; } public void setLlegadaEn(Instant v){ this.llegadaEn=v; }

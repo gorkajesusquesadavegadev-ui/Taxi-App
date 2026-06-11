@@ -53,18 +53,14 @@ export default function TaxistaHome() {
       return;
     }
     let alive = true;
+    // ruta del servidor: en ofertas incluye las paradas reales de la excursión
     api
-      .estimar({
-        origenLat: viaje.origenLat,
-        origenLng: viaje.origenLng,
-        destinoLat: viaje.destinoLat,
-        destinoLng: viaje.destinoLng,
-      })
-      .then((e) => {
+      .rutaViaje(viaje.id)
+      .then((r) => {
         if (!alive) return;
-        if (e?.ruta?.length > 1) setRouteGeo(e.ruta.map(([lat, lng]) => ({ lat, lng })));
-        if (e?.duracionMin != null)
-          setRutaInfo({ min: Math.round(Number(e.duracionMin)), km: Number(e.distanciaKm) });
+        if (r?.puntos?.length > 1) setRouteGeo(r.puntos.map(([lat, lng]) => ({ lat, lng })));
+        if (r?.duracionMin != null)
+          setRutaInfo({ min: Math.round(Number(r.duracionMin)), km: Number(r.km) });
       })
       .catch(() => {});
     // street names of pickup & dropoff for the driver
