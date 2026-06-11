@@ -190,6 +190,9 @@ export default function ClienteHome() {
         origenLng: origen.lng,
         destinoLat: destino.lat,
         destinoLng: destino.lng,
+        // las direcciones viajan a la BD: historial y estadísticas con nombres
+        origenTexto: origen.label || null,
+        destinoTexto: destino.label || null,
       });
       setViaje(v);
       setStatusMsg("Buscando un taxi cercano…");

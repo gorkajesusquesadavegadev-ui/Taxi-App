@@ -3,11 +3,105 @@ import Layout from "../components/Layout.jsx";
 import Card from "../components/Card.jsx";
 import Badge from "../components/Badge.jsx";
 import Spinner from "../components/Spinner.jsx";
-import { IconList } from "../components/icons.jsx";
+import { IconList, IconPlane, IconCompass, IconPin } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { api } from "../api/client.js";
+import { direccionDe } from "../api/geo.js";
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
+const TIPO = {
+  TRANSFER: { label: "Transfer", icon: IconPlane },
+  EXCURSION: { label: "Excursión", icon: IconCompass },
+};
+
+const fmtFecha = (iso) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleDateString("es-ES", { day: "numeric", month: "short" }) +
+    " · " + d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+};
+
+// cache local de reverse geocoding para viajes antiguos sin dirección guardada
+const GEO_KEY = "taya:geocache";
+const geoCache = JSON.parse(localStorage.getItem(GEO_KEY) || "{}");
+async function nombreDe(lat, lng) {
+  const k = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+  if (geoCache[k]) return geoCache[k];
+  const label = await direccionDe(lat, lng);
+  if (label) {
+    geoCache[k] = label;
+    localStorage.setItem(GEO_KEY, JSON.stringify(geoCache));
+  }
+  return label;
+}
+
+function TramoRuta({ origen, destino }) {
+  return (
+    <div className="mt-2 flex items-start gap-2.5 text-sm">
+      <div className="flex flex-col items-center pt-1.5">
+        <span className="h-2 w-2 rounded-full bg-taxi" />
+        <span className="my-0.5 h-4 w-px bg-volcanic/15" />
+        <span className="h-2 w-2 rounded-full bg-atlantic-dark" />
+      </div>
+      <div className="min-w-0 flex-1 space-y-1">
+        <p className="truncate font-semibold leading-tight">{origen || "…"}</p>
+        <p className="truncate font-semibold leading-tight">{destino || "…"}</p>
+      </div>
+    </div>
+  );
+}
+
+function ViajeCard({ v, index }) {
+  const [origen, setOrigen] = useState(v.origenTexto || "");
+  const [destino, setDestino] = useState(v.detalle || v.destinoTexto || "");
+
+  // viajes antiguos sin texto: resolver calle por coordenadas (con caché)
+  useEffect(() => {
+    let alive = true;
+    if (!origen) nombreDe(v.origenLat, v.origenLng).then((n) => alive && n && setOrigen(n));
+    if (!destino) nombreDe(v.destinoLat, v.destinoLng).then((n) => alive && n && setDestino(n));
+    return () => {
+      alive = false;
+    };
+  }, [v.id]);
+
+  const tipo = TIPO[v.tipo];
+  const TipoIcon = tipo?.icon || IconPin;
+
+  return (
+    <Card className="animate-fade-up" style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${
+            tipo ? "bg-taxi/20 text-volcanic" : "bg-atlantic/12 text-atlantic-dark"
+          }`}>
+            <TipoIcon width={18} height={18} />
+          </span>
+          <div className="min-w-0 leading-tight">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-volcanic/45">
+              {tipo ? tipo.label : "Viaje"} · {fmtFecha(v.completadoEn || v.solicitadoEn)}
+            </p>
+            <p className="text-xs text-volcanic/50">
+              {Number(v.distanciaRealKm ?? v.distanciaEstimadaKm ?? 0).toFixed(1)} km
+            </p>
+          </div>
+        </div>
+        <Badge estado={v.estado} />
+      </div>
+
+      <TramoRuta origen={origen || "Punto en el mapa"} destino={destino || "Punto en el mapa"} />
+
+      <div className="mt-3 flex items-end justify-between border-t border-sand-deep/70 pt-3">
+        <span className="text-xs uppercase tracking-wider text-volcanic/45">
+          {v.precioFinal != null ? "Precio final" : "Estimado"}
+        </span>
+        <span className="font-display text-xl font-extrabold">
+          {fmtEur(v.precioFinal ?? v.precioEstimado)}
+        </span>
+      </div>
+    </Card>
+  );
+}
 
 export default function Historial() {
   const { user } = useAuth();
@@ -44,29 +138,7 @@ export default function Historial() {
         )}
         <div className="mx-auto grid max-w-5xl gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {viajes?.map((v, i) => (
-            <Card
-              key={v.id}
-              className="animate-fade-up"
-              style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="font-display font-bold">Viaje #{v.id}</p>
-                  <p className="mt-0.5 text-sm text-volcanic/55">
-                    {Number(v.distanciaRealKm ?? v.distanciaEstimadaKm ?? 0).toFixed(1)} km
-                  </p>
-                </div>
-                <Badge estado={v.estado} />
-              </div>
-              <div className="mt-3 flex items-end justify-between border-t border-sand-deep/70 pt-3">
-                <span className="text-xs uppercase tracking-wider text-volcanic/45">
-                  {v.precioFinal != null ? "Precio final" : "Estimado"}
-                </span>
-                <span className="font-display text-xl font-extrabold">
-                  {fmtEur(v.precioFinal ?? v.precioEstimado)}
-                </span>
-              </div>
-            </Card>
+            <ViajeCard key={v.id} v={v} index={i} />
           ))}
         </div>
       </div>

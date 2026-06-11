@@ -7,6 +7,7 @@ import TaxistaHome from "./pages/taxista/TaxistaHome.jsx";
 import Historial from "./pages/Historial.jsx";
 import Ofertas from "./pages/cliente/Ofertas.jsx";
 import Ajustes from "./pages/Ajustes.jsx";
+import Estadisticas from "./pages/Estadisticas.jsx";
 
 function Splash() {
   return (
@@ -70,6 +71,14 @@ export default function App() {
         element={
           <Protected>
             <Ajustes />
+          </Protected>
+        }
+      />
+      <Route
+        path="/estadisticas"
+        element={
+          <Protected>
+            <Estadisticas />
           </Protected>
         }
       />

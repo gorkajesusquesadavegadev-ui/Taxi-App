@@ -1,6 +1,18 @@
 import { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, useMap, useMapEvents } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Polyline,
+  Circle,
+  Tooltip,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
 import L from "leaflet";
+
+// semáforo de demanda (zonas calientes)
+const ZONA_COLOR = { ALTO: "#E03131", MEDIO: "#F08C00", BAJO: "#FFC400" };
 
 // Las Palmas de Gran Canaria
 export const LPGC = { lat: 28.1235, lng: -15.4363 };
@@ -68,6 +80,7 @@ export default function MapView({
   zoom = 14,
   markers = [],
   route = null,
+  zonas = null, // [{lat,lng,radioM,nivel,motivo}] demanda para taxistas
   onClick,
   follow = false,
   className = "",
@@ -89,6 +102,26 @@ export default function MapView({
       />
       {onClick && <ClickHandler onClick={onClick} />}
       <Recenter center={center} follow={follow} />
+      {zonas?.map((z, i) => (
+        <Circle
+          key={`z-${i}`}
+          center={[z.lat, z.lng]}
+          radius={z.radioM || 500}
+          pathOptions={{
+            color: ZONA_COLOR[z.nivel] || ZONA_COLOR.BAJO,
+            fillColor: ZONA_COLOR[z.nivel] || ZONA_COLOR.BAJO,
+            fillOpacity: z.nivel === "ALTO" ? 0.3 : z.nivel === "MEDIO" ? 0.22 : 0.15,
+            weight: 1.5,
+            opacity: 0.65,
+          }}
+        >
+          {z.motivo && (
+            <Tooltip direction="top" sticky>
+              {z.motivo}
+            </Tooltip>
+          )}
+        </Circle>
+      ))}
       {routePts && (
         <>
           {/* navigation-style route: white halo, ink casing, ocean-blue core */}

@@ -14,6 +14,9 @@ public interface ViajeRepository extends JpaRepository<Viaje, Long> {
     List<Viaje> findByClienteIdOrderBySolicitadoEnDesc(Long clienteId);
     List<Viaje> findByTaxistaIdOrderBySolicitadoEnDesc(Long taxistaId);
 
+    // Demand analysis: every pickup requested in the recent window.
+    List<Viaje> findBySolicitadoEnAfter(Instant desde);
+
     // Current non-terminal trip for resync ("always informed" client polling).
     Optional<Viaje> findFirstByClienteIdAndEstadoInOrderBySolicitadoEnDesc(
         Long clienteId, Collection<EstadoViaje> estados);

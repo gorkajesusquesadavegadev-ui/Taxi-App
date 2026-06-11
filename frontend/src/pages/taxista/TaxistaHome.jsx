@@ -38,6 +38,7 @@ export default function TaxistaHome() {
   const [routeGeo, setRouteGeo] = useState(null); // real road geometry for the active trip
   const [rutaInfo, setRutaInfo] = useState(null); // {min, km} via OSRM
   const [dirs, setDirs] = useState(null); // {o, d} reverse-geocoded addresses
+  const [zonas, setZonas] = useState(null); // demanda: zonas calientes del big data
   const [msg, setMsg] = useState("Conéctate para recibir viajes.");
   const wsRef = useRef(null);
   const viajeRef = useRef(null);
@@ -74,6 +75,22 @@ export default function TaxistaHome() {
       alive = false;
     };
   }, [viaje?.id]);
+
+  // demand heatmap: refreshed every 60s (history decay + live events)
+  useEffect(() => {
+    let alive = true;
+    const load = () =>
+      api
+        .zonasCalientes()
+        .then((z) => alive && setZonas(z))
+        .catch(() => {});
+    load();
+    const id = setInterval(load, 60000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, []);
 
   // socket lifecycle tied to online state
   useEffect(() => {
@@ -173,8 +190,22 @@ export default function TaxistaHome() {
     <Layout title="Conducir" framed action={<OnlineToggle online={online} onToggle={toggleOnline} />}>
       <div className="relative h-full">
         <div className="absolute inset-0">
-          <MapView center={pos} markers={markers} route={route} />
+          <MapView center={pos} markers={markers} route={route} zonas={zonas} />
         </div>
+
+        {/* leyenda de demanda */}
+        {zonas?.length > 0 && (
+          <div className="glass pointer-events-none absolute right-3 top-3 z-[500] rounded-2xl px-3 py-2 shadow-card">
+            <p className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-volcanic/50">
+              Demanda
+            </p>
+            <div className="mt-1 space-y-0.5 text-[11px] font-semibold text-volcanic/75">
+              <p><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#E03131" }} />Alta</p>
+              <p><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#F08C00" }} />Media</p>
+              <p><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#FFC400" }} />Baja</p>
+            </div>
+          </div>
+        )}
 
         {/* incoming trip modal */}
         {incoming && (

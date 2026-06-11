@@ -71,3 +71,11 @@ export const IconCompass = (p) => (
     <path d="m16.2 7.8-2.2 6.2-6.2 2.2 2.2-6.2 6.2-2.2Z" />
   </svg>
 );
+export const IconChart = (p) => (
+  <svg {...base} {...p}>
+    <path d="M3 3v18h18" />
+    <rect x="7" y="12" width="3" height="6" rx="1" />
+    <rect x="12" y="8" width="3" height="10" rx="1" />
+    <rect x="17" y="5" width="3" height="13" rx="1" />
+  </svg>
+);
