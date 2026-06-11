@@ -6,6 +6,7 @@ import Button from "../../components/Button.jsx";
 import Badge from "../../components/Badge.jsx";
 import { IconCar } from "../../components/icons.jsx";
 import { api } from "../../api/client.js";
+import { direccionDe } from "../../api/geo.js";
 import { connectWs } from "../../api/ws.js";
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
@@ -33,6 +34,8 @@ export default function TaxistaHome() {
   const [incoming, setIncoming] = useState(null); // trip:new payload
   const [viaje, setViaje] = useState(null);
   const [routeGeo, setRouteGeo] = useState(null); // real road geometry for the active trip
+  const [rutaInfo, setRutaInfo] = useState(null); // {min, km} via OSRM
+  const [dirs, setDirs] = useState(null); // {o, d} reverse-geocoded addresses
   const [msg, setMsg] = useState("Conéctate para recibir viajes.");
   const wsRef = useRef(null);
   const viajeRef = useRef(null);
@@ -43,6 +46,8 @@ export default function TaxistaHome() {
   useEffect(() => {
     if (!viaje) {
       setRouteGeo(null);
+      setRutaInfo(null);
+      setDirs(null);
       return;
     }
     let alive = true;
@@ -54,9 +59,18 @@ export default function TaxistaHome() {
         destinoLng: viaje.destinoLng,
       })
       .then((e) => {
-        if (alive && e?.ruta?.length > 1)
-          setRouteGeo(e.ruta.map(([lat, lng]) => ({ lat, lng })));
+        if (!alive) return;
+        if (e?.ruta?.length > 1) setRouteGeo(e.ruta.map(([lat, lng]) => ({ lat, lng })));
+        if (e?.duracionMin != null)
+          setRutaInfo({ min: Math.round(Number(e.duracionMin)), km: Number(e.distanciaKm) });
       })
+      .catch(() => {});
+    // street names of pickup & dropoff for the driver
+    Promise.all([
+      direccionDe(viaje.origenLat, viaje.origenLng),
+      direccionDe(viaje.destinoLat, viaje.destinoLng),
+    ])
+      .then(([o, d]) => alive && setDirs({ o, d }))
       .catch(() => {});
     return () => {
       alive = false;
@@ -193,9 +207,30 @@ export default function TaxistaHome() {
                 <div className="flex items-center justify-between">
                   <Badge estado={viaje.estado} />
                   <span className="font-display text-lg font-extrabold">
-                    {fmtEur(viaje.precioEstimado)}
+                    {fmtEur(viaje.precioFinal ?? viaje.precioEstimado)}
                   </span>
                 </div>
+                {rutaInfo && (
+                  <p className="font-display text-sm font-extrabold text-atlantic-dark">
+                    {rutaInfo.min} min
+                    <span className="ml-1.5 font-body text-xs font-medium text-volcanic/50">
+                      {rutaInfo.km.toFixed(1)} km
+                    </span>
+                  </p>
+                )}
+                {dirs && (dirs.o || dirs.d) && (
+                  <div className="flex items-start gap-2.5 text-xs">
+                    <div className="flex flex-col items-center pt-1">
+                      <span className="h-2 w-2 rounded-full bg-taxi" />
+                      <span className="my-0.5 h-4 w-px bg-volcanic/20" />
+                      <span className="h-2 w-2 rounded-full bg-atlantic-dark" />
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <p className="truncate font-semibold">{dirs.o || "Punto de recogida"}</p>
+                      <p className="truncate font-semibold">{dirs.d || "Destino"}</p>
+                    </div>
+                  </div>
+                )}
                 <p className="text-sm text-volcanic/70">{msg}</p>
                 <div className="grid grid-cols-3 gap-2">
                   <Button

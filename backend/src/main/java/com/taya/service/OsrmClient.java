@@ -17,10 +17,10 @@ public class OsrmClient {
     private final RestClient http = RestClient.create();
     private static final String BASE = "https://router.project-osrm.org/route/v1/driving/";
 
-    /** A road route: driving distance in km plus the polyline points as [lat,lng]. */
-    public record Ruta(double km, List<double[]> puntos) {}
+    /** A road route: driving distance in km, duration in minutes, polyline as [lat,lng]. */
+    public record Ruta(double km, double duracionMin, List<double[]> puntos) {}
 
-    /** Full road route between two points (geometry + distance). */
+    /** Full road route between two points (geometry + distance + duration). */
     public Ruta rutaEntre(double oLat, double oLng, double dLat, double dLng) {
         try {
             String url = BASE + oLng + "," + oLat + ";" + dLng + "," + dLat
@@ -32,12 +32,13 @@ public class OsrmClient {
                 if (ro.geometry() != null && ro.geometry().coordinates() != null)
                     for (List<Double> c : ro.geometry().coordinates())
                         pts.add(new double[]{c.get(1), c.get(0)}); // geojson is [lng,lat] -> [lat,lng]
-                if (!pts.isEmpty()) return new Ruta(ro.distance() / 1000.0, pts);
+                if (!pts.isEmpty()) return new Ruta(ro.distance() / 1000.0, ro.duration() / 60.0, pts);
             }
         } catch (Exception ignored) { }
-        // Fallback: straight segment + Haversine distance.
+        // Fallback: straight segment + Haversine distance at ~28 km/h urban speed.
         double km = GeoUtil.haversineKm(oLat, oLng, dLat, dLng);
-        return new Ruta(km, List.of(new double[]{oLat, oLng}, new double[]{dLat, dLng}));
+        return new Ruta(km, km / 28.0 * 60.0,
+            List.of(new double[]{oLat, oLng}, new double[]{dLat, dLng}));
     }
 
     /** Driving distance in km; falls back to Haversine on any error. */
@@ -48,7 +49,7 @@ public class OsrmClient {
     @JsonIgnoreProperties(ignoreUnknown = true)
     record OsrmResponse(List<Route> routes) {}
     @JsonIgnoreProperties(ignoreUnknown = true)
-    record Route(double distance, Geometry geometry) {}
+    record Route(double distance, double duration, Geometry geometry) {}
     @JsonIgnoreProperties(ignoreUnknown = true)
     record Geometry(List<List<Double>> coordinates) {}
 }

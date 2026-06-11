@@ -5,7 +5,9 @@ import Sheet from "../../components/Sheet.jsx";
 import Button from "../../components/Button.jsx";
 import Badge from "../../components/Badge.jsx";
 import Spinner from "../../components/Spinner.jsx";
+import AddressSearch from "../../components/AddressSearch.jsx";
 import { api } from "../../api/client.js";
+import { direccionDe } from "../../api/geo.js";
 import { connectWs } from "../../api/ws.js";
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
@@ -94,9 +96,12 @@ export default function ClienteHome() {
     loadNearby();
   }, [loadNearby]);
 
-  // auto-estimate when both points set
+  // auto-estimate when both points set (keyed on coords: label updates must not refetch)
   useEffect(() => {
-    if (!origen || !destino) return;
+    if (!origen || !destino) {
+      setEstimacion(null);
+      return;
+    }
     let alive = true;
     setEstimando(true);
     api
@@ -112,12 +117,26 @@ export default function ClienteHome() {
     return () => {
       alive = false;
     };
-  }, [origen, destino]);
+  }, [origen?.lat, origen?.lng, destino?.lat, destino?.lng]);
+
+  // map click sets the point right away, then fills in the street name async
+  function etiquetar(p, setter) {
+    direccionDe(p.lat, p.lng).then((label) => {
+      if (!label) return;
+      setter((cur) => (cur && cur.lat === p.lat && cur.lng === p.lng ? { ...cur, label } : cur));
+    });
+  }
 
   function onMapClick(latlng) {
     if (viaje) return; // locked during an active trip
-    if (!origen) setOrigen(latlng);
-    else if (!destino) setDestino(latlng);
+    const punto = { ...latlng, label: "" };
+    if (!origen) {
+      setOrigen(punto);
+      etiquetar(punto, setOrigen);
+    } else if (!destino) {
+      setDestino(punto);
+      etiquetar(punto, setDestino);
+    }
   }
 
   function reset() {
@@ -198,9 +217,9 @@ export default function ClienteHome() {
           <div className="pointer-events-none absolute left-1/2 top-3 z-[500] -translate-x-1/2">
             <span className="pill bg-volcanic/90 text-cream shadow-card">
               {!origen
-                ? "Toca el mapa: punto de recogida"
+                ? "Busca, dicta o toca el mapa: recogida"
                 : !destino
-                  ? "Ahora toca tu destino"
+                  ? "Ahora el destino"
                   : "Listo para pedir"}
             </span>
           </div>
@@ -234,45 +253,54 @@ export default function ClienteHome() {
               </div>
             ) : (
               <div className="space-y-3">
-                {/* points summary */}
-                <div className="flex items-center gap-3 text-sm">
-                  <div className="flex flex-col items-center pt-1">
-                    <span className="h-2.5 w-2.5 rounded-full bg-taxi" />
-                    <span className="my-1 h-6 w-px bg-volcanic/20" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-atlantic-dark" />
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <p className={origen ? "font-semibold" : "text-volcanic/40"}>
-                      {origen ? "Recogida marcada" : "Punto de recogida"}
-                    </p>
-                    <p className={destino ? "font-semibold" : "text-volcanic/40"}>
-                      {destino ? "Destino marcado" : "Destino"}
-                    </p>
-                  </div>
-                  {(origen || destino) && (
-                    <button
-                      onClick={reset}
-                      className="text-sm font-semibold text-atlantic-dark underline-offset-2 hover:underline"
-                    >
-                      Reiniciar
-                    </button>
-                  )}
+                {/* address search: type, dictate or tap the map */}
+                <div className="space-y-2">
+                  <AddressSearch
+                    placeholder="¿Dónde te recogemos?"
+                    value={origen}
+                    onSelect={setOrigen}
+                    dotClass="bg-taxi"
+                  />
+                  <AddressSearch
+                    placeholder="¿A dónde vas?"
+                    value={destino}
+                    onSelect={setDestino}
+                    dotClass="bg-atlantic-dark"
+                  />
                 </div>
+                {(origen || destino) && (
+                  <button
+                    onClick={reset}
+                    className="text-sm font-semibold text-atlantic-dark underline-offset-2 hover:underline"
+                  >
+                    Reiniciar puntos
+                  </button>
+                )}
 
-                {/* estimate */}
+                {/* estimate: time + distance + price, Google-style */}
                 <div className="flex items-center justify-between rounded-2xl bg-sand px-4 py-3">
-                  <span className="text-sm font-semibold text-volcanic/70">Estimado</span>
                   {estimando ? (
-                    <Spinner className="h-4 w-4" />
+                    <>
+                      <span className="text-sm font-semibold text-volcanic/70">Calculando ruta…</span>
+                      <Spinner className="h-4 w-4" />
+                    </>
                   ) : estimacion ? (
-                    <span className="font-display text-lg font-extrabold">
-                      {fmtEur(estimacion.precioEstimado)}
-                      <span className="ml-1 text-xs font-medium text-volcanic/50">
-                        · {Number(estimacion.distanciaKm).toFixed(1)} km
+                    <>
+                      <span className="font-display text-lg font-extrabold text-atlantic-dark">
+                        {Math.round(Number(estimacion.duracionMin ?? 0))} min
+                        <span className="ml-1.5 text-xs font-medium text-volcanic/50">
+                          {Number(estimacion.distanciaKm).toFixed(1)} km
+                        </span>
                       </span>
-                    </span>
+                      <span className="font-display text-lg font-extrabold">
+                        {fmtEur(estimacion.precioEstimado)}
+                      </span>
+                    </>
                   ) : (
-                    <span className="text-sm text-volcanic/40">marca 2 puntos</span>
+                    <>
+                      <span className="text-sm font-semibold text-volcanic/70">Estimado</span>
+                      <span className="text-sm text-volcanic/40">elige origen y destino</span>
+                    </>
                   )}
                 </div>
 
