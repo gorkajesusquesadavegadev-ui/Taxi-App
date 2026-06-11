@@ -6,7 +6,6 @@ import Spinner from "../components/Spinner.jsx";
 import { IconList, IconPlane, IconCompass, IconPin } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { api } from "../api/client.js";
-import { direccionDe } from "../api/geo.js";
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
 const TIPO = {
@@ -20,20 +19,6 @@ const fmtFecha = (iso) => {
   return d.toLocaleDateString("es-ES", { day: "numeric", month: "short" }) +
     " · " + d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
 };
-
-// cache local de reverse geocoding para viajes antiguos sin dirección guardada
-const GEO_KEY = "taya:geocache";
-const geoCache = JSON.parse(localStorage.getItem(GEO_KEY) || "{}");
-async function nombreDe(lat, lng) {
-  const k = `${lat.toFixed(4)},${lng.toFixed(4)}`;
-  if (geoCache[k]) return geoCache[k];
-  const label = await direccionDe(lat, lng);
-  if (label) {
-    geoCache[k] = label;
-    localStorage.setItem(GEO_KEY, JSON.stringify(geoCache));
-  }
-  return label;
-}
 
 function TramoRuta({ origen, destino }) {
   return (
@@ -52,19 +37,10 @@ function TramoRuta({ origen, destino }) {
 }
 
 function ViajeCard({ v, index }) {
-  const [origen, setOrigen] = useState(v.origenTexto || "");
-  const [destino, setDestino] = useState(v.detalle || v.destinoTexto || "");
-
-  // viajes antiguos sin texto: resolver calle por coordenadas (con caché)
-  useEffect(() => {
-    let alive = true;
-    if (!origen) nombreDe(v.origenLat, v.origenLng).then((n) => alive && n && setOrigen(n));
-    if (!destino) nombreDe(v.destinoLat, v.destinoLng).then((n) => alive && n && setDestino(n));
-    return () => {
-      alive = false;
-    };
-  }, [v.id]);
-
+  // los nombres llegan de la BD: el backend los guarda al solicitar y
+  // rellena los antiguos al consultar el historial
+  const origen = v.origenTexto || "";
+  const destino = v.detalle || v.destinoTexto || "";
   const tipo = TIPO[v.tipo];
   const TipoIcon = tipo?.icon || IconPin;
 

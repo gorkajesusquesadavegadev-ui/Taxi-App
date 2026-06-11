@@ -21,11 +21,12 @@ public class ViajeService {
     private final TripWsService ws;
     private final CatalogoService catalogo;
     private final OsrmClient osrm;
+    private final GeocodingService geo;
 
     public ViajeService(ViajeRepository v, TarifaService t, UbicacionService u, MatchingService m,
-                        TripWsService ws, CatalogoService c, OsrmClient osrm) {
+                        TripWsService ws, CatalogoService c, OsrmClient osrm, GeocodingService geo) {
         this.viajes = v; this.tarifa = t; this.ubicacion = u; this.matching = m; this.ws = ws;
-        this.catalogo = c; this.osrm = osrm;
+        this.catalogo = c; this.osrm = osrm; this.geo = geo;
     }
 
     /** Recorrido completo de una oferta: recogida → paradas → destino. */
@@ -48,7 +49,10 @@ public class ViajeService {
         v.setClienteId(clienteId);
         v.setOrigenLat(r.origenLat()); v.setOrigenLng(r.origenLng());
         v.setDestinoLat(r.destinoLat()); v.setDestinoLng(r.destinoLng());
-        v.setOrigenTexto(r.origenTexto()); v.setDestinoTexto(r.destinoTexto());
+        // los nombres se persisten siempre: si el cliente no los manda, los
+        // resuelve el servidor (historial y stats no dependen de servicios externos)
+        v.setOrigenTexto(textoOResuelto(r.origenTexto(), r.origenLat(), r.origenLng()));
+        v.setDestinoTexto(textoOResuelto(r.destinoTexto(), r.destinoLat(), r.destinoLng()));
         v.setDistanciaEstimadaKm(est.distanciaKm()); v.setPrecioEstimado(est.precioEstimado());
         v.setEstado(EstadoViaje.SOLICITADO);
         v = viajes.save(v);
@@ -69,6 +73,7 @@ public class ViajeService {
         v.setClienteId(clienteId);
         v.setOrigenLat(oLat); v.setOrigenLng(oLng);
         v.setDestinoLat(of.destinoLat()); v.setDestinoLng(of.destinoLng());
+        v.setOrigenTexto(textoOResuelto(null, oLat, oLng));
         v.setDestinoTexto(of.nombre());
         v.setDistanciaEstimadaKm(BigDecimal.valueOf(ruta.km()));
         v.setPrecioEstimado(of.precio()); // precio cerrado del catálogo, no taxímetro
@@ -197,10 +202,42 @@ public class ViajeService {
             .map(ViajeResponse::of).orElse(null);
     }
 
+    @Transactional
     public List<ViajeResponse> historialCliente(Long clienteId) {
-        return viajes.findByClienteIdOrderBySolicitadoEnDesc(clienteId).stream().map(ViajeResponse::of).toList();
+        var lista = viajes.findByClienteIdOrderBySolicitadoEnDesc(clienteId);
+        rellenarTextos(lista);
+        return lista.stream().map(ViajeResponse::of).toList();
     }
+    @Transactional
     public List<ViajeResponse> historialTaxista(Long taxistaId) {
-        return viajes.findByTaxistaIdOrderBySolicitadoEnDesc(taxistaId).stream().map(ViajeResponse::of).toList();
+        var lista = viajes.findByTaxistaIdOrderBySolicitadoEnDesc(taxistaId);
+        rellenarTextos(lista);
+        return lista.stream().map(ViajeResponse::of).toList();
+    }
+
+    private String textoOResuelto(String texto, double lat, double lng) {
+        if (texto != null && !texto.isBlank()) return texto;
+        return geo.nombreDe(lat, lng).orElse(null);
+    }
+
+    /** Backfill: viajes antiguos sin dirección guardada se resuelven y persisten
+     *  (máx. 6 por consulta para respetar los límites de los geocoders). */
+    private void rellenarTextos(List<Viaje> lista) {
+        int presupuesto = 6;
+        for (Viaje v : lista) {
+            if (presupuesto <= 0) break;
+            boolean cambiado = false;
+            if (v.getOrigenTexto() == null || v.getOrigenTexto().isBlank()) {
+                var n = geo.nombreDe(v.getOrigenLat(), v.getOrigenLng());
+                if (n.isPresent()) { v.setOrigenTexto(n.get()); cambiado = true; }
+                presupuesto--;
+            }
+            if (presupuesto > 0 && (v.getDestinoTexto() == null || v.getDestinoTexto().isBlank())) {
+                var n = geo.nombreDe(v.getDestinoLat(), v.getDestinoLng());
+                if (n.isPresent()) { v.setDestinoTexto(n.get()); cambiado = true; }
+                presupuesto--;
+            }
+            if (cambiado) viajes.save(v);
+        }
     }
 }

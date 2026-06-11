@@ -19,6 +19,13 @@ function StatChip({ label, value, accent }) {
 /** Gráfico de barras CSS: serie [{etiqueta, valor}]. */
 function Barras({ serie, color = "bg-atlantic", labelCada = 1 }) {
   const max = Math.max(...serie.map((p) => Number(p.valor)), 0.01);
+  const vacio = serie.every((p) => Number(p.valor) === 0);
+  if (vacio)
+    return (
+      <p className="grid h-24 place-items-center rounded-2xl bg-sand text-sm text-volcanic/45">
+        Sin movimientos en este periodo todavía.
+      </p>
+    );
   return (
     <div className="flex h-32 items-end gap-1.5">
       {serie.map((p, i) => {
