@@ -6,6 +6,14 @@ const NOMINATIM = "https://nominatim.openstreetmap.org";
 const BBOX = "-15.9,27.7,-15.3,28.2"; // lonMin,latMin,lonMax,latMax — Gran Canaria
 const CENTER = { lat: 28.1235, lon: -15.4363 }; // Las Palmas de G.C.
 
+// circuit breaker: si Photon falla, ir directos a Nominatim 5 min
+// (menos errores en consola y respuestas más rápidas mientras está caído)
+let photonCaidoHasta = 0;
+const photonDisponible = () => Date.now() > photonCaidoHasta;
+const marcarPhotonCaido = () => {
+  photonCaidoHasta = Date.now() + 5 * 60 * 1000;
+};
+
 function labelOf(p) {
   const calle = p.name || [p.street, p.housenumber].filter(Boolean).join(" ");
   const zona = p.district || p.city || p.county;
@@ -49,8 +57,10 @@ async function nominatimSearch(q) {
 export async function buscarDirecciones(q) {
   let res = [];
   try {
+    if (!photonDisponible()) throw new Error("photon en cuarentena");
     res = await photonSearch(q);
-  } catch {
+  } catch (e) {
+    if (e.message !== "photon en cuarentena") marcarPhotonCaido();
     try {
       res = await nominatimSearch(q);
     } catch {
@@ -94,8 +104,10 @@ async function nominatimReverse(lat, lng) {
 /** Reverse geocode: coords -> dirección humana (o null, nunca lanza). */
 export async function direccionDe(lat, lng) {
   try {
+    if (!photonDisponible()) throw new Error("photon en cuarentena");
     return await photonReverse(lat, lng);
-  } catch {
+  } catch (e) {
+    if (e.message !== "photon en cuarentena") marcarPhotonCaido();
     try {
       return await nominatimReverse(lat, lng);
     } catch {
