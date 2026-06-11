@@ -287,7 +287,9 @@ export default function ClienteHome() {
                   ) : estimacion ? (
                     <>
                       <span className="font-display text-lg font-extrabold text-atlantic-dark">
-                        {Math.round(Number(estimacion.duracionMin ?? 0))} min
+                        {estimacion.duracionMin != null && Number(estimacion.duracionMin) > 0 && (
+                          <>{Math.max(1, Math.round(Number(estimacion.duracionMin)))} min</>
+                        )}
                         <span className="ml-1.5 text-xs font-medium text-volcanic/50">
                           {Number(estimacion.distanciaKm).toFixed(1)} km
                         </span>
