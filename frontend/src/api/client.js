@@ -66,4 +66,7 @@ export const api = {
   iniciar: (id) => req("PUT", `/viajes/${id}/iniciar`),
   finalizar: (id) => req("PUT", `/viajes/${id}/finalizar`),
   historialTaxista: () => req("GET", "/taxista/historial"),
+  // foro de taxistas
+  foroHistorial: () => req("GET", "/foro"),
+  foroPublicar: (texto) => req("POST", "/foro", { texto }),
 };

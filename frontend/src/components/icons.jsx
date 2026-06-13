@@ -79,3 +79,13 @@ export const IconChart = (p) => (
     <rect x="17" y="5" width="3" height="13" rx="1" />
   </svg>
 );
+export const IconChat = (p) => (
+  <svg {...base} {...p}>
+    <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7a8.5 8.5 0 0 1-.9-3.8A8.38 8.38 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5Z" />
+  </svg>
+);
+export const IconSend = (p) => (
+  <svg {...base} {...p}>
+    <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" />
+  </svg>
+);

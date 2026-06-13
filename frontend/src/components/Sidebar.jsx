@@ -10,6 +10,7 @@ import {
   IconPlane,
   IconCompass,
   IconChart,
+  IconChat,
 } from "./icons.jsx";
 
 const NAV = {
@@ -22,6 +23,7 @@ const NAV = {
   ],
   TAXISTA: [
     { to: "/", label: "Conducir", icon: IconCar, end: true },
+    { to: "/foro", label: "Foro", icon: IconChat },
     { to: "/historial", label: "Mis carreras", icon: IconList },
     { to: "/estadisticas", label: "Estadísticas", icon: IconChart },
   ],

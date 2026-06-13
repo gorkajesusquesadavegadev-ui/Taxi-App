@@ -8,6 +8,7 @@ import Historial from "./pages/Historial.jsx";
 import Ofertas from "./pages/cliente/Ofertas.jsx";
 import Ajustes from "./pages/Ajustes.jsx";
 import Estadisticas from "./pages/Estadisticas.jsx";
+import Foro from "./pages/Foro.jsx";
 
 function Splash() {
   return (
@@ -79,6 +80,14 @@ export default function App() {
         element={
           <Protected>
             <Estadisticas />
+          </Protected>
+        }
+      />
+      <Route
+        path="/foro"
+        element={
+          <Protected>
+            {user?.rol === "TAXISTA" ? <Foro /> : <Navigate to="/" replace />}
           </Protected>
         }
       />
