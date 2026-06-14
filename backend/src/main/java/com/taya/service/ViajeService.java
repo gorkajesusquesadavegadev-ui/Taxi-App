@@ -144,7 +144,9 @@ public class ViajeService {
                 : tarifa.estimar(v.getOrigenLat(), v.getOrigenLng(),
                     v.getDestinoLat(), v.getDestinoLng()).distanciaKm().doubleValue();
             v.setDistanciaRealKm(BigDecimal.valueOf(kmRuta));
-            v.setPrecioFinal(tarifa.precioFinal(kmRuta));
+            // precio por tarifa oficial según la hora de finalización y la zona
+            v.setPrecioFinal(tarifa.precioPorRuta(v.getOrigenLat(), v.getOrigenLng(),
+                v.getDestinoLat(), v.getDestinoLng(), kmRuta));
         }
         v.setEstado(EstadoViaje.COMPLETADO); v.setCompletadoEn(Instant.now());
         ubicacion.setLibre(taxistaId, v.getDestinoLat(), v.getDestinoLng());
