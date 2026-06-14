@@ -1,6 +1,7 @@
 package com.taya.service;
 import com.taya.dto.response.EstimacionResponse;
 import com.taya.repository.ConfiguracionTarifaRepository;
+import com.taya.util.GeoUtil;
 import org.springframework.stereotype.Service;
 import java.math.*;
 import java.time.*;
@@ -23,9 +24,29 @@ public class TarifaService {
     private static final BigDecimal KM_INCLUIDOS = new BigDecimal("1.032"); // bajada de bandera
     private static final BigDecimal MINIMO_NAVIDAD = new BigDecimal("6.20");
 
-    // bounding box aproximado del municipio de Las Palmas de Gran Canaria
-    private static boolean enLasPalmas(double lat, double lng) {
-        return lat >= 28.04 && lat <= 28.20 && lng >= -15.48 && lng <= -15.36;
+    // término municipal de Las Palmas de Gran Canaria (incluye barrios altos:
+    // Tafira, Marzagán, Tamaraceite, Jinámar…)
+    private static boolean enMunicipioLP(double lat, double lng) {
+        return lat >= 28.00 && lat <= 28.19 && lng >= -15.50 && lng <= -15.36;
+    }
+
+    // centro urbano (Santa Catalina / Mesa y López); el casco bajo es Tarifa 1/2
+    private static final double CENTRO_LAT = 28.128, CENTRO_LNG = -15.432;
+    private static final double RADIO_CASCO_KM = 6.5; // más allá: barrios periféricos (Tarifa 3)
+
+    private static boolean esPeriferia(double lat, double lng) {
+        return GeoUtil.haversineKm(lat, lng, CENTRO_LAT, CENTRO_LNG) > RADIO_CASCO_KM;
+    }
+
+    private enum Zona { URBANA, PERIFERIA, INTERURBANO }
+
+    /** Clasifica el viaje: casco urbano (T1/T2), barrio periférico del término
+     *  (Tarifa 3) o interurbano a otro municipio (aeropuerto, sur, norte…). */
+    private static Zona zonaDe(double oLat, double oLng, double dLat, double dLng) {
+        boolean oLP = enMunicipioLP(oLat, oLng), dLP = enMunicipioLP(dLat, dLng);
+        if (oLP != dLP || (!oLP && !dLP)) return Zona.INTERURBANO; // sale del término o ajeno
+        if (esPeriferia(oLat, oLng) || esPeriferia(dLat, dLng)) return Zona.PERIFERIA;
+        return Zona.URBANA;
     }
 
     // festivos fijos en Canarias/nacionales (sin móviles); domingo siempre festivo
@@ -34,18 +55,18 @@ public class TarifaService {
         MonthDay.of(8, 15), MonthDay.of(10, 12), MonthDay.of(11, 1), MonthDay.of(12, 6),
         MonthDay.of(12, 8), MonthDay.of(12, 25));
 
-    // bandera de la franja, km urbano, km interurbano, mínimo navideño
-    private record Franja(BigDecimal bandera, BigDecimal kmUrbano, BigDecimal kmInter, boolean minimoNavidad) {}
+    // bandera de la franja y precio/km por zona (urbano T1/T2, periferia T3, interurbano)
+    private record Franja(BigDecimal bandera, BigDecimal kmUrbano, BigDecimal kmPeriferia,
+                          BigDecimal kmInter, boolean minimoNavidad) {}
 
-    /** Franja tarifaria LPGC según el momento (horario + festivos + Navidad).
-     *  El km interurbano es mayor: el taxista regresa de vacío fuera del término. */
+    /** Franja tarifaria LPGC según el momento (horario + festivos + Navidad). */
     private Franja franja(ZonedDateTime t) {
         MonthDay md = MonthDay.of(t.getMonthValue(), t.getDayOfMonth());
         int h = t.getHour();
         boolean navidadAlta = (md.equals(MonthDay.of(12, 25)) || md.equals(MonthDay.of(1, 1))
             || md.equals(MonthDay.of(1, 6))) && h >= 9 && h < 22;
         if (navidadAlta)
-            return new Franja(new BigDecimal("4.30"), new BigDecimal("0.85"), new BigDecimal("1.25"), false);
+            return new Franja(new BigDecimal("4.30"), new BigDecimal("0.85"), new BigDecimal("1.15"), new BigDecimal("1.25"), false);
 
         boolean vispera = md.equals(MonthDay.of(12, 24)) || md.equals(MonthDay.of(12, 31))
             || md.equals(MonthDay.of(1, 5));
@@ -54,25 +75,27 @@ public class TarifaService {
         boolean festivo = t.getDayOfWeek() == DayOfWeek.SUNDAY || FESTIVOS.contains(md);
 
         if (nocturna || vispera || festivo) // 3,65 €: noche, festivo/domingo o víspera de Navidad
-            return new Franja(new BigDecimal("3.65"), new BigDecimal("0.85"), new BigDecimal("1.25"), minNav);
-        return new Franja(new BigDecimal("2.95"), new BigDecimal("0.80"), new BigDecimal("1.20"), false); // laborable diurno
+            return new Franja(new BigDecimal("3.65"), new BigDecimal("0.85"), new BigDecimal("1.15"), new BigDecimal("1.25"), minNav);
+        return new Franja(new BigDecimal("2.95"), new BigDecimal("0.80"), new BigDecimal("1.10"), new BigDecimal("1.20"), false); // laborable diurno
     }
 
-    private BigDecimal aplicar(Franja f, double km, boolean interurbano) {
-        BigDecimal precioKm = interurbano ? f.kmInter() : f.kmUrbano();
+    private BigDecimal aplicar(Franja f, double km, Zona zona) {
+        BigDecimal precioKm = switch (zona) {
+            case URBANA -> f.kmUrbano();
+            case PERIFERIA -> f.kmPeriferia(); // Tarifa 3
+            case INTERURBANO -> f.kmInter();
+        };
         BigDecimal cobrable = BigDecimal.valueOf(km).subtract(KM_INCLUIDOS).max(BigDecimal.ZERO);
         BigDecimal precio = f.bandera().add(precioKm.multiply(cobrable));
         if (f.minimoNavidad() && precio.compareTo(MINIMO_NAVIDAD) < 0) precio = MINIMO_NAVIDAD;
         return precio.setScale(2, RoundingMode.HALF_UP);
     }
 
-    /** Precio por km. Urbano si ambos extremos están en Las Palmas; interurbano
-     *  (km más caro) si el viaje sale o entra al municipio (aeropuerto, sur…). */
+    /** Precio por km según zona: casco urbano (T1/T2), barrio periférico de Las
+     *  Palmas (Tarifa 3) o interurbano a otro municipio (aeropuerto, sur, norte). */
     public BigDecimal precioPorRuta(double oLat, double oLng, double dLat, double dLng, double km) {
         var f = franja(ZonedDateTime.now(CANARIAS));
-        boolean oLP = enLasPalmas(oLat, oLng), dLP = enLasPalmas(dLat, dLng);
-        boolean interurbano = oLP != dLP; // uno dentro y otro fuera del término
-        return aplicar(f, km, interurbano);
+        return aplicar(f, km, zonaDe(oLat, oLng, dLat, dLng));
     }
 
     public EstimacionResponse estimar(double oLat, double oLng, double dLat, double dLng) {
