@@ -23,11 +23,22 @@ public class ViajeService {
     private final CatalogoService catalogo;
     private final OsrmClient osrm;
     private final GeocodingService geo;
+    private final com.taya.repository.UsuarioRepository usuarios;
 
     public ViajeService(ViajeRepository v, TarifaService t, UbicacionService u, MatchingService m,
-                        TripWsService ws, CatalogoService c, OsrmClient osrm, GeocodingService geo) {
+                        TripWsService ws, CatalogoService c, OsrmClient osrm, GeocodingService geo,
+                        com.taya.repository.UsuarioRepository usuarios) {
         this.viajes = v; this.tarifa = t; this.ubicacion = u; this.matching = m; this.ws = ws;
-        this.catalogo = c; this.osrm = osrm; this.geo = geo;
+        this.catalogo = c; this.osrm = osrm; this.geo = geo; this.usuarios = usuarios;
+    }
+
+    /** ViajeResponse con datos de contacto del taxista y del cliente. */
+    private ViajeResponse conContacto(Viaje v) {
+        var tax = v.getTaxistaId() != null ? usuarios.findById(v.getTaxistaId()).orElse(null) : null;
+        var cli = v.getClienteId() != null ? usuarios.findById(v.getClienteId()).orElse(null) : null;
+        return ViajeResponse.of(v,
+            tax != null ? tax.getNombre() : null, tax != null ? tax.getTelefono() : null,
+            cli != null ? cli.getNombre() : null, cli != null ? cli.getTelefono() : null);
     }
 
     /** Recorrido completo de una oferta: recogida → paradas → destino. */
@@ -237,12 +248,12 @@ public class ViajeService {
     public List<ViajeResponse> historialCliente(Long clienteId) {
         var lista = viajes.findByClienteIdOrderBySolicitadoEnDesc(clienteId);
         backfillTextosAsync(lista);
-        return lista.stream().map(ViajeResponse::of).toList();
+        return lista.stream().map(this::conContacto).toList();
     }
     public List<ViajeResponse> historialTaxista(Long taxistaId) {
         var lista = viajes.findByTaxistaIdOrderBySolicitadoEnDesc(taxistaId);
         backfillTextosAsync(lista);
-        return lista.stream().map(ViajeResponse::of).toList();
+        return lista.stream().map(this::conContacto).toList();
     }
 
     private static boolean sinTexto(String s) { return s == null || s.isBlank(); }

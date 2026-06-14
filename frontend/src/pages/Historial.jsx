@@ -3,9 +3,10 @@ import Layout from "../components/Layout.jsx";
 import Card from "../components/Card.jsx";
 import Badge from "../components/Badge.jsx";
 import Spinner from "../components/Spinner.jsx";
-import { IconList, IconPlane, IconCompass, IconPin } from "../components/icons.jsx";
+import { IconList, IconPlane, IconCompass, IconPin, IconWhatsapp } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { api } from "../api/client.js";
+import { whatsappLink } from "../utils/reservas.js";
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
 const TIPO = {
@@ -36,13 +37,21 @@ function TramoRuta({ origen, destino }) {
   );
 }
 
-function ViajeCard({ v, index }) {
+function ViajeCard({ v, index, esTaxista }) {
   // los nombres llegan de la BD: el backend los guarda al solicitar y
   // rellena los antiguos al consultar el historial
   const origen = v.origenTexto || "";
   const destino = v.detalle || v.destinoTexto || "";
   const tipo = TIPO[v.tipo];
   const TipoIcon = tipo?.icon || IconPin;
+
+  // contacto con la otra parte (p.ej. te dejaste algo en el taxi)
+  const contactoNombre = esTaxista ? v.clienteNombre : v.taxistaNombre;
+  const contactoTel = esTaxista ? v.clienteTelefono : v.taxistaTelefono;
+  const wa = whatsappLink(
+    contactoTel,
+    `Hola${contactoNombre ? " " + contactoNombre : ""}, te escribo por el viaje de TAYA de ${fmtFecha(v.completadoEn || v.solicitadoEn)}.`
+  );
 
   return (
     <Card className="animate-fade-up" style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}>
@@ -75,6 +84,42 @@ function ViajeCard({ v, index }) {
           {fmtEur(v.precioFinal ?? v.precioEstimado)}
         </span>
       </div>
+
+      {/* contacto: por si te dejaste algo en el taxi */}
+      {contactoNombre && (contactoTel ? (
+        <div className="mt-3 flex items-center justify-between gap-2 rounded-2xl bg-sand px-3 py-2">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-volcanic/45">
+              {esTaxista ? "Cliente" : "Tu taxista"}
+            </p>
+            <p className="truncate text-sm font-semibold">{contactoNombre}</p>
+          </div>
+          <div className="flex shrink-0 gap-1.5">
+            <a
+              href={`tel:${contactoTel}`}
+              aria-label="Llamar"
+              className="grid h-9 w-9 place-items-center rounded-full bg-volcanic text-cream transition-transform active:scale-95"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z" />
+              </svg>
+            </a>
+            <a
+              href={wa}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="WhatsApp"
+              className="grid h-9 w-9 place-items-center rounded-full bg-[#25D366] text-white transition-transform active:scale-95"
+            >
+              <IconWhatsapp width={16} height={16} />
+            </a>
+          </div>
+        </div>
+      ) : (
+        <p className="mt-3 rounded-2xl bg-sand px-3 py-2 text-xs text-volcanic/45">
+          {esTaxista ? "Cliente" : "Taxista"} sin teléfono para contacto.
+        </p>
+      ))}
     </Card>
   );
 }
@@ -114,7 +159,7 @@ export default function Historial() {
         )}
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {viajes?.map((v, i) => (
-            <ViajeCard key={v.id} v={v} index={i} />
+            <ViajeCard key={v.id} v={v} index={i} esTaxista={esTaxista} />
           ))}
         </div>
       </div>

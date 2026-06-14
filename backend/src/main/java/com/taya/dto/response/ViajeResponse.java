@@ -6,12 +6,21 @@ public record ViajeResponse(Long id, Long clienteId, Long taxistaId, String esta
     double origenLat, double origenLng, double destinoLat, double destinoLng,
     BigDecimal distanciaEstimadaKm, BigDecimal precioEstimado,
     BigDecimal distanciaRealKm, BigDecimal precioFinal, String tipo, String detalle,
-    String origenTexto, String destinoTexto, Instant solicitadoEn, Instant completadoEn) {
+    String origenTexto, String destinoTexto, Instant solicitadoEn, Instant completadoEn,
+    String taxistaNombre, String taxistaTelefono, String clienteNombre, String clienteTelefono) {
+
     public static ViajeResponse of(Viaje v) {
+        return of(v, null, null, null, null);
+    }
+
+    /** Con datos de contacto (nombre/teléfono) para el historial. */
+    public static ViajeResponse of(Viaje v, String taxistaNombre, String taxistaTelefono,
+                                   String clienteNombre, String clienteTelefono) {
         return new ViajeResponse(v.getId(), v.getClienteId(), v.getTaxistaId(), v.getEstado().name(),
             v.getOrigenLat(), v.getOrigenLng(), v.getDestinoLat(), v.getDestinoLng(),
             v.getDistanciaEstimadaKm(), v.getPrecioEstimado(), v.getDistanciaRealKm(), v.getPrecioFinal(),
             v.getTipo() != null ? v.getTipo().name() : "NORMAL", v.getDetalle(),
-            v.getOrigenTexto(), v.getDestinoTexto(), v.getSolicitadoEn(), v.getCompletadoEn());
+            v.getOrigenTexto(), v.getDestinoTexto(), v.getSolicitadoEn(), v.getCompletadoEn(),
+            taxistaNombre, taxistaTelefono, clienteNombre, clienteTelefono);
     }
 }
