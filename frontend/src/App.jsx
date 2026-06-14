@@ -10,6 +10,7 @@ import Ajustes from "./pages/Ajustes.jsx";
 import Estadisticas from "./pages/Estadisticas.jsx";
 import Foro from "./pages/Foro.jsx";
 import Reservas from "./pages/Reservas.jsx";
+import TarifaActual from "./pages/TarifaActual.jsx";
 
 function Splash() {
   return (
@@ -89,6 +90,14 @@ export default function App() {
         element={
           <Protected>
             <Reservas />
+          </Protected>
+        }
+      />
+      <Route
+        path="/tarifa"
+        element={
+          <Protected>
+            <TarifaActual />
           </Protected>
         }
       />
