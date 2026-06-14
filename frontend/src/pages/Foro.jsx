@@ -125,7 +125,7 @@ export default function Foro() {
     <Layout title="Foro de taxistas" framed>
       <div className="flex h-full flex-col">
         {/* lista de mensajes */}
-        <div className="slim-scroll flex-1 overflow-y-auto bg-cream px-3 py-4 sm:px-6">
+        <div className="slim-scroll flex-1 overflow-y-auto overflow-x-hidden bg-cream px-3 py-4 sm:px-6">
           <div className="mx-auto max-w-2xl space-y-1.5">
             {!mensajes && !error && (
               <div className="grid place-items-center py-16">

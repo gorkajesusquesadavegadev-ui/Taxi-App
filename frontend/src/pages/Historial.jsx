@@ -94,7 +94,7 @@ export default function Historial() {
 
   return (
     <Layout title={esTaxista ? "Mis carreras" : "Mis viajes"}>
-      <div className="slim-scroll h-full overflow-y-auto px-4 py-4 lg:px-8 lg:py-6">
+      <div className="slim-scroll h-full overflow-y-auto overflow-x-hidden px-4 py-4 lg:px-8 lg:py-6">
         {!viajes && !error && (
           <div className="grid place-items-center py-16">
             <Spinner />

@@ -82,7 +82,7 @@ export default function Ofertas({ tipo }) {
 
   return (
     <Layout title={esTransfer ? "Transfers" : "Excursiones"} framed>
-      <div className="h-full overflow-y-auto slim-scroll">
+      <div className="h-full overflow-y-auto overflow-x-hidden slim-scroll">
         <div className="mx-auto max-w-5xl space-y-4 p-4 lg:p-6">
           <header>
             <h2 className="font-display text-xl font-extrabold tracking-tight lg:text-2xl">

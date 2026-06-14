@@ -92,7 +92,7 @@ export default function Ajustes() {
 
   return (
     <Layout title="Ajustes" framed>
-      <div className="h-full overflow-y-auto slim-scroll">
+      <div className="h-full overflow-y-auto overflow-x-hidden slim-scroll">
         <div className="mx-auto max-w-xl space-y-4 p-4 lg:p-6">
           {/* perfil */}
           <section className="surface p-5">

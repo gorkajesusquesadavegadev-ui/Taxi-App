@@ -145,7 +145,7 @@ export default function Estadisticas() {
 
   return (
     <Layout title="Estadísticas" framed>
-      <div className="h-full overflow-y-auto slim-scroll">
+      <div className="h-full overflow-y-auto overflow-x-hidden slim-scroll">
         <div className="mx-auto max-w-3xl space-y-4 p-4 lg:p-6">
           {error && <p className="rounded-2xl bg-coral/12 p-4 text-sm text-coral">{error}</p>}
           {!stats && !error && (
