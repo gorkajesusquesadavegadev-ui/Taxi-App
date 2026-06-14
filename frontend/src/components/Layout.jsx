@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import Sidebar from "./Sidebar.jsx";
 import ToastHost from "./ToastHost.jsx";
 import ReservaReminders from "./ReservaReminders.jsx";
+import ReservaBell from "./ReservaBell.jsx";
 import { IconMenu } from "./icons.jsx";
 
 export default function Layout({ title, action, children, framed = false }) {
@@ -35,6 +36,7 @@ export default function Layout({ title, action, children, framed = false }) {
               {user?.rol === "TAXISTA" ? "Modo taxista" : "Modo cliente"}
             </p>
           </div>
+          {user?.rol === "TAXISTA" && <ReservaBell />}
           {action}
         </header>
 

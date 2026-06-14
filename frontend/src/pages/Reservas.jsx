@@ -23,6 +23,20 @@ const ESTADO = {
   COMPLETADA: { label: "Completada", cls: "bg-volcanic/10 text-volcanic/55" },
 };
 
+// orden: primero las próximas (futuras más cercanas a su hora), luego las pasadas
+function ordenar(lista) {
+  const ahora = Date.now();
+  return [...(lista || [])].sort((a, b) => {
+    const ta = new Date(a.programadaPara).getTime();
+    const tb = new Date(b.programadaPara).getTime();
+    const fa = ta >= ahora, fb = tb >= ahora;
+    if (fa && fb) return ta - tb;      // ambas futuras: la más cercana primero
+    if (fa) return -1;                 // futuras antes que pasadas
+    if (fb) return 1;
+    return tb - ta;                    // ambas pasadas: la más reciente primero
+  });
+}
+
 function EstadoChip({ estado }) {
   const e = ESTADO[estado] || ESTADO.PENDIENTE;
   return <span className={`pill ${e.cls}`}>{e.label}</span>;
@@ -142,7 +156,7 @@ function ReservaCard({ r, rol, onAceptar, onCancelar, busy }) {
 export default function Reservas() {
   const { user } = useAuth();
   const esTaxista = user?.rol === "TAXISTA";
-  const [tab, setTab] = useState("disponibles"); // taxista: disponibles | mias
+  const [tab, setTab] = useState("mias"); // taxista: mias (primero) | disponibles
   const [lista, setLista] = useState(null);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState(null);
@@ -152,7 +166,7 @@ export default function Reservas() {
       let data;
       if (!esTaxista) data = await api.reservasMias();
       else data = tab === "disponibles" ? await api.reservasDisponibles() : await api.reservasTaxista();
-      setLista(data);
+      setLista(ordenar(data));
     } catch (e) {
       setError(e.message || "No se pudo cargar");
     }
@@ -166,10 +180,7 @@ export default function Reservas() {
   // tiempo real: nuevas reservas / aceptaciones / cancelaciones
   useEffect(() => {
     const ws = connectWs((event, data) => {
-      if (event === "reserva:new" && esTaxista) {
-        avisar("Nueva reserva disponible", `${data.detalle || "Viaje"} · ${fmtFechaReserva(data.programadaPara)}`);
-        cargar();
-      }
+      if (event === "reserva:new" && esTaxista) cargar(); // el aviso lo da la campana global
       if (event === "reserva:accepted") {
         if (!esTaxista) avisar("Reserva confirmada", `Un taxista aceptó tu reserva del ${fmtFechaReserva(data.programadaPara)}`);
         cargar();
@@ -212,11 +223,11 @@ export default function Reservas() {
             <div className="relative grid grid-cols-2 rounded-2xl bg-sand p-1 text-sm font-semibold">
               <span
                 className={`absolute inset-y-1 w-[calc(50%-4px)] rounded-xl bg-white shadow-sm transition-transform duration-300
-                  ${tab === "disponibles" ? "translate-x-1" : "translate-x-[calc(100%+3px)]"}`}
+                  ${tab === "mias" ? "translate-x-1" : "translate-x-[calc(100%+3px)]"}`}
               />
               {[
-                ["disponibles", "Disponibles"],
                 ["mias", "Mis reservas"],
+                ["disponibles", "Aceptar reservas"],
               ].map(([k, l]) => (
                 <button
                   key={k}
