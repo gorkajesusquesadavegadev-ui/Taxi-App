@@ -75,6 +75,19 @@ function Recenter({ center, follow }) {
   return null;
 }
 
+// Encuadra toda la ruta (transfers lejanos, vuelta a la isla…) cuando no se
+// está siguiendo al taxi en vivo. Se reejecuta al cambiar la geometría.
+function FitRoute({ route, follow }) {
+  const map = useMap();
+  const key = route && route.length > 1 ? `${route.length}:${route[0].lat},${route[0].lng},${route[route.length - 1].lat}` : null;
+  useEffect(() => {
+    if (follow || !route || route.length < 2) return;
+    const bounds = L.latLngBounds(route.map((p) => [p.lat, p.lng]));
+    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16, animate: true });
+  }, [key, follow, map]);
+  return null;
+}
+
 export default function MapView({
   center = LPGC,
   zoom = 14,
@@ -102,6 +115,7 @@ export default function MapView({
       />
       {onClick && <ClickHandler onClick={onClick} />}
       <Recenter center={center} follow={follow} />
+      <FitRoute route={routePts ? route : null} follow={follow} />
       {zonas?.map((z, i) => (
         <Circle
           key={`z-${i}`}

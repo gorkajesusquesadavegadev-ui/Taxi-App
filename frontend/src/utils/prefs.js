@@ -9,6 +9,28 @@ export const prefs = {
   setNearby: (v) => set("taya:nearby", v),
 };
 
+/** Aviso completo: pitido + vibración + notificación del navegador. */
+export function avisar(titulo, cuerpo) {
+  if (prefs.getSound()) beep();
+  try {
+    navigator.vibrate?.([120, 60, 120]);
+  } catch {
+    /* sin vibración */
+  }
+  try {
+    if (typeof Notification === "undefined") return;
+    if (Notification.permission === "granted") {
+      new Notification(titulo, { body: cuerpo, icon: "/favicon.svg" });
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then((p) => {
+        if (p === "granted") new Notification(titulo, { body: cuerpo });
+      });
+    }
+  } catch {
+    /* sin notificaciones */
+  }
+}
+
 /** Pitido corto de notificación (sin ficheros de audio). */
 export function beep() {
   try {

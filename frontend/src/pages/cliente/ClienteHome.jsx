@@ -6,10 +6,11 @@ import Button from "../../components/Button.jsx";
 import Badge from "../../components/Badge.jsx";
 import Spinner from "../../components/Spinner.jsx";
 import AddressSearch from "../../components/AddressSearch.jsx";
+import { IconCar } from "../../components/icons.jsx";
 import { api } from "../../api/client.js";
 import { direccionDe } from "../../api/geo.js";
 import { connectWs } from "../../api/ws.js";
-import { prefs } from "../../utils/prefs.js";
+import { prefs, avisar } from "../../utils/prefs.js";
 
 const TIPO_LABEL = { TRANSFER: "Transfer", EXCURSION: "Excursión" };
 
@@ -34,33 +35,54 @@ export default function ClienteHome() {
   const [rutaActiva, setRutaActiva] = useState(null); // ruta servidor del viaje activo (con paradas)
   const [taxiPos, setTaxiPos] = useState(null);
   const [statusMsg, setStatusMsg] = useState("");
+  const [llegada, setLlegada] = useState(false); // banner "tu taxi ha llegado"
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const wsRef = useRef(null);
   const viajeRef = useRef(null);
   viajeRef.current = viaje;
+  const estadoPrev = useRef(null);
+
+  // avisa (sonido + vibración + notificación) en cada cambio de estado relevante
+  function notificarEstado(estado) {
+    if (estado === estadoPrev.current) return;
+    estadoPrev.current = estado;
+    if (estado === "ACEPTADO") avisar("Taxi en camino", "Un taxista aceptó tu viaje.");
+    if (estado === "LLEGADO") {
+      avisar("¡Tu taxi ha llegado!", "El taxista te espera en el punto de recogida.");
+      setLlegada(true);
+    }
+    if (estado === "EN_CURSO") avisar("Viaje iniciado", "¡Buen viaje!");
+    if (estado === "COMPLETADO") avisar("Viaje completado", "Gracias por viajar con TAYA.");
+  }
 
   // live socket for trip events
   useEffect(() => {
     const ws = connectWs((event, data) => {
       if (event === "trip:accepted") {
         setViaje((v) => (v ? { ...v, estado: "ACEPTADO", taxistaId: data.taxistaId } : v));
-        setStatusMsg(`Taxista #${data.taxistaId} en camino`);
+        setStatusMsg("Taxista en camino");
+        notificarEstado("ACEPTADO");
       }
       if (event === "trip:location") setTaxiPos({ lat: data.lat, lng: data.lng });
       if (event === "trip:arrived") {
         setViaje((v) => (v ? { ...v, estado: "LLEGADO" } : v));
         setStatusMsg("Tu taxi ha llegado");
+        notificarEstado("LLEGADO");
       }
       if (event === "trip:status") {
         const map = { ARRIVED: "LLEGADO", IN_PROGRESS: "EN_CURSO", COMPLETED: "COMPLETADO" };
-        setViaje((v) => (v ? { ...v, estado: map[data.status] || v.estado } : v));
+        const est = map[data.status];
+        setViaje((v) => (v ? { ...v, estado: est || v.estado } : v));
         if (data.status === "COMPLETED") setStatusMsg("Viaje completado. ¡Gracias!");
+        if (est) notificarEstado(est);
       }
       if (event === "trip:cancelled") {
         setStatusMsg("El viaje fue cancelado");
         setViaje(null);
         setTaxiPos(null);
+        setLlegada(false);
+        estadoPrev.current = null;
       }
     });
     wsRef.current = ws;
@@ -84,6 +106,7 @@ export default function ClienteHome() {
             : c
         );
         setStatusMsg((m) => MSG_ESTADO[a.estado] || m);
+        notificarEstado(a.estado); // red de seguridad si el evento WS se perdió
       } catch (_) {
         /* keep current state on transient error */
       }
@@ -217,6 +240,8 @@ export default function ClienteHome() {
     setViaje(null);
     setTaxiPos(null);
     setStatusMsg("");
+    setLlegada(false);
+    estadoPrev.current = null;
     reset();
   }
 
@@ -260,10 +285,31 @@ export default function ClienteHome() {
           />
         </div>
 
+        {/* banner prominente: el taxi ha llegado */}
+        {llegada && viaje?.estado === "LLEGADO" && (
+          <div className="absolute inset-x-3 top-3 z-[650] flex animate-fade-up justify-center">
+            <div className="flex items-center gap-3 rounded-2xl bg-taxi px-4 py-3 text-volcanic shadow-float ring-2 ring-volcanic/10">
+              <span className="grid h-9 w-9 shrink-0 animate-pulse place-items-center rounded-xl bg-volcanic text-taxi">
+                <IconCar width={20} height={20} />
+              </span>
+              <div className="min-w-0">
+                <p className="font-display text-sm font-extrabold leading-tight">¡Tu taxi ha llegado!</p>
+                <p className="text-xs text-volcanic/70">Te espera en el punto de recogida.</p>
+              </div>
+              <button
+                onClick={() => setLlegada(false)}
+                className="ml-1 shrink-0 rounded-lg px-2 py-1 text-xs font-bold text-volcanic/60 hover:bg-volcanic/10"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* floating helper chip */}
         {!viaje && (
-          <div className="pointer-events-none absolute left-1/2 top-3 z-[500] -translate-x-1/2">
-            <span className="pill bg-volcanic/90 text-cream shadow-card">
+          <div className="pointer-events-none absolute inset-x-3 top-3 z-[500] flex justify-center">
+            <span className="pill max-w-full bg-volcanic/90 text-center text-cream shadow-card">
               {!origen
                 ? "Busca, dicta o toca el mapa: recogida"
                 : !destino
