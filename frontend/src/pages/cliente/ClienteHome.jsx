@@ -6,7 +6,9 @@ import Button from "../../components/Button.jsx";
 import Badge from "../../components/Badge.jsx";
 import Spinner from "../../components/Spinner.jsx";
 import AddressSearch from "../../components/AddressSearch.jsx";
-import { IconCar } from "../../components/icons.jsx";
+import ReservaModal from "../../components/ReservaModal.jsx";
+import { IconCar, IconCalendar } from "../../components/icons.jsx";
+import { useNavigate } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { direccionDe } from "../../api/geo.js";
 import { connectWs } from "../../api/ws.js";
@@ -38,6 +40,8 @@ export default function ClienteHome() {
   const [llegada, setLlegada] = useState(false); // banner "tu taxi ha llegado"
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [reservando, setReservando] = useState(false);
+  const navigate = useNavigate();
   const wsRef = useRef(null);
   const viajeRef = useRef(null);
   viajeRef.current = viaje;
@@ -226,6 +230,22 @@ export default function ClienteHome() {
     }
   }
 
+  async function confirmarReserva({ programadaPara, notas }) {
+    await api.reservarCrear({
+      tipo: "NORMAL",
+      origenLat: origen.lat,
+      origenLng: origen.lng,
+      origenTexto: origen.label || null,
+      destinoLat: destino.lat,
+      destinoLng: destino.lng,
+      destinoTexto: destino.label || null,
+      programadaPara,
+      notas,
+    });
+    setReservando(false);
+    navigate("/reservas");
+  }
+
   async function cancelar() {
     if (!viaje) return;
     // Only call the API for trips still cancelable. A COMPLETADO/CANCELADO trip
@@ -407,16 +427,43 @@ export default function ClienteHome() {
 
                 {error && <p className="text-sm font-medium text-coral">{error}</p>}
 
-                <Button full size="lg" disabled={!origen || !destino || busy} onClick={pedir}>
-                  {busy ? <Spinner className="border-volcanic/30 border-t-volcanic" /> : null}
-                  Pedir taxi
-                </Button>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    variant="outline"
+                    disabled={!origen || !destino}
+                    onClick={() => setReservando(true)}
+                  >
+                    <IconCalendar width={16} height={16} /> Reservar
+                  </Button>
+                  <Button
+                    full
+                    className="col-span-2"
+                    disabled={!origen || !destino || busy}
+                    onClick={pedir}
+                  >
+                    {busy ? <Spinner className="border-volcanic/30 border-t-volcanic" /> : null}
+                    Pedir ahora
+                  </Button>
+                </div>
                 <p className="text-center text-[11px] text-volcanic/45">
                   El precio final lo marca el taxímetro al llegar.
                 </p>
               </div>
             )}
         </Sheet>
+
+        {reservando && (
+          <ReservaModal
+            titulo="Reservar viaje"
+            subtitulo={
+              estimacion
+                ? `${Number(estimacion.distanciaKm).toFixed(1)} km · ${fmtEur(estimacion.precioEstimado)} estimado`
+                : "Elige cuándo te recogemos"
+            }
+            onConfirm={confirmarReserva}
+            onClose={() => setReservando(false)}
+          />
+        )}
       </div>
     </Layout>
   );

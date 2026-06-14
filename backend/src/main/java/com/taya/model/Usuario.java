@@ -12,6 +12,7 @@ public class Usuario {
     private String licencia;
     @Column(name = "vehiculo_matricula") private String vehiculoMatricula;
     @Column(name = "vehiculo_modelo") private String vehiculoModelo;
+    private String telefono; // contacto WhatsApp para reservas
     private boolean activo = true;
     @Column(name = "creado_en") private Instant creadoEn = Instant.now();
 
@@ -23,6 +24,7 @@ public class Usuario {
     public String getLicencia() { return licencia; } public void setLicencia(String v) { this.licencia = v; }
     public String getVehiculoMatricula() { return vehiculoMatricula; } public void setVehiculoMatricula(String v) { this.vehiculoMatricula = v; }
     public String getVehiculoModelo() { return vehiculoModelo; } public void setVehiculoModelo(String v) { this.vehiculoModelo = v; }
+    public String getTelefono() { return telefono; } public void setTelefono(String v) { this.telefono = v; }
     public boolean isActivo() { return activo; } public void setActivo(boolean v) { this.activo = v; }
     public Instant getCreadoEn() { return creadoEn; } public void setCreadoEn(Instant v) { this.creadoEn = v; }
 }

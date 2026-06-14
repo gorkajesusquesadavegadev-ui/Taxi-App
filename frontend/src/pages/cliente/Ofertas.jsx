@@ -4,12 +4,13 @@ import Layout from "../../components/Layout.jsx";
 import Button from "../../components/Button.jsx";
 import Spinner from "../../components/Spinner.jsx";
 import AddressSearch from "../../components/AddressSearch.jsx";
-import { IconPlane, IconCompass } from "../../components/icons.jsx";
+import ReservaModal from "../../components/ReservaModal.jsx";
+import { IconPlane, IconCompass, IconCalendar } from "../../components/icons.jsx";
 import { api } from "../../api/client.js";
 
 const fmtEur = (v) => `${Number(v).toFixed(2)} €`;
 
-function OfertaCard({ oferta, busy, onSolicitar, icon: Icon }) {
+function OfertaCard({ oferta, busy, onSolicitar, onReservar, icon: Icon }) {
   return (
     <article className="surface flex flex-col p-4 transition-shadow hover:shadow-float">
       <div className="flex items-start gap-3">
@@ -27,14 +28,19 @@ function OfertaCard({ oferta, busy, onSolicitar, icon: Icon }) {
         <span className="pill bg-sand text-volcanic/70">{oferta.duracion}</span>
         <span className="pill bg-sand text-volcanic/70">hasta 4 plazas</span>
       </div>
-      <div className="mt-3 flex items-center justify-between border-t border-sand-deep/60 pt-3">
+      <div className="mt-3 border-t border-sand-deep/60 pt-3">
         <p className="font-display text-xl font-extrabold">
           {fmtEur(oferta.precio)}
           <span className="ml-1 text-xs font-medium text-volcanic/45">precio cerrado</span>
         </p>
-        <Button size="sm" disabled={busy} onClick={onSolicitar}>
-          {busy ? <Spinner className="border-volcanic/30 border-t-volcanic" /> : "Solicitar"}
-        </Button>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <Button size="sm" variant="outline" onClick={onReservar}>
+            <IconCalendar width={15} height={15} /> Reservar
+          </Button>
+          <Button size="sm" disabled={busy} onClick={onSolicitar}>
+            {busy ? <Spinner className="border-volcanic/30 border-t-volcanic" /> : "Ahora"}
+          </Button>
+        </div>
       </div>
     </article>
   );
@@ -52,6 +58,8 @@ export default function Ofertas({ tipo }) {
   const [recogida, setRecogida] = useState(null);
   const [busyId, setBusyId] = useState(null);
   const [error, setError] = useState("");
+  const [reservando, setReservando] = useState(null); // oferta elegida para reservar
+  const [okMsg, setOkMsg] = useState("");
 
   useEffect(() => {
     let alive = true;
@@ -78,6 +86,21 @@ export default function Ofertas({ tipo }) {
       setError(e.message || "No se pudo solicitar");
       setBusyId(null);
     }
+  }
+
+  async function confirmarReserva({ programadaPara, notas }) {
+    await api.reservarCrear({
+      tipo: esTransfer ? "TRANSFER" : "EXCURSION",
+      ofertaId: reservando.id,
+      origenLat: recogida?.lat ?? null,
+      origenLng: recogida?.lng ?? null,
+      origenTexto: recogida?.label ?? null,
+      programadaPara,
+      notas,
+    });
+    setReservando(null);
+    setOkMsg("Reserva enviada. Te avisaremos cuando un taxista la acepte.");
+    setTimeout(() => navigate("/reservas"), 900);
   }
 
   return (
@@ -114,6 +137,11 @@ export default function Ofertas({ tipo }) {
           </div>
 
           {error && <p className="text-sm font-semibold text-coral">{error}</p>}
+          {okMsg && (
+            <p className="rounded-2xl bg-atlantic/12 p-3 text-sm font-semibold text-atlantic-dark">
+              {okMsg}
+            </p>
+          )}
 
           {!items ? (
             <div className="grid place-items-center py-16">
@@ -128,12 +156,22 @@ export default function Ofertas({ tipo }) {
                   icon={esTransfer ? IconPlane : IconCompass}
                   busy={busyId === o.id}
                   onSolicitar={() => solicitar(o)}
+                  onReservar={() => setReservando(o)}
                 />
               ))}
             </div>
           )}
         </div>
       </div>
+
+      {reservando && (
+        <ReservaModal
+          titulo={`Reservar · ${reservando.nombre}`}
+          subtitulo={`${fmtEur(reservando.precio)} precio cerrado · ${reservando.duracion}`}
+          onConfirm={confirmarReserva}
+          onClose={() => setReservando(null)}
+        />
+      )}
     </Layout>
   );
 }

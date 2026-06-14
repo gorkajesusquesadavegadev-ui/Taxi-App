@@ -19,14 +19,15 @@ public class UsuarioController {
 
     /** Campos de vehículo solo se aplican a taxistas; en cliente se ignoran. */
     public record ActualizarMeRequest(@NotBlank @Size(min = 2, max = 60) String nombre,
-                                      String vehiculoModelo, String vehiculoMatricula) {}
+                                      String vehiculoModelo, String vehiculoMatricula,
+                                      String telefono) {}
 
     public record CambiarPasswordRequest(@NotBlank String actual,
                                          @NotBlank @Size(min = 6, max = 100) String nueva) {}
 
     private UsuarioResponse aResponse(com.taya.model.Usuario u) {
         return new UsuarioResponse(u.getId(), u.getNombre(), u.getEmail(), u.getRol().name(),
-            u.getVehiculoMatricula(), u.getVehiculoModelo());
+            u.getVehiculoMatricula(), u.getVehiculoModelo(), u.getTelefono());
     }
 
     @GetMapping("/me")
@@ -39,6 +40,7 @@ public class UsuarioController {
                                       @Valid @RequestBody ActualizarMeRequest r) {
         var u = usuarios.findById(Long.valueOf(userId)).orElseThrow();
         u.setNombre(r.nombre().trim());
+        if (r.telefono() != null) u.setTelefono(r.telefono().isBlank() ? null : r.telefono().trim());
         if (u.getRol() == Rol.TAXISTA) {
             if (r.vehiculoModelo() != null && !r.vehiculoModelo().isBlank())
                 u.setVehiculoModelo(r.vehiculoModelo().trim());

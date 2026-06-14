@@ -25,7 +25,7 @@ public class AuthService {
         u.setNombre(r.nombre()); u.setEmail(r.email());
         u.setPasswordHash(encoder.encode(r.password())); u.setRol(r.rol());
         u.setLicencia(r.licencia()); u.setVehiculoMatricula(r.vehiculoMatricula());
-        u.setVehiculoModelo(r.vehiculoModelo());
+        u.setVehiculoModelo(r.vehiculoModelo()); u.setTelefono(r.telefono());
         u = usuarios.save(u);
         return new AuthResponse(jwt.generate(u.getId(), u.getRol().name()), u.getId(), u.getNombre(), u.getRol().name());
     }

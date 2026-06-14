@@ -40,6 +40,7 @@ export default function Ajustes() {
   const [nombre, setNombre] = useState(user?.nombre || "");
   const [modelo, setModelo] = useState(user?.vehiculoModelo || "");
   const [matricula, setMatricula] = useState(user?.vehiculoMatricula || "");
+  const [telefono, setTelefono] = useState(user?.telefono || "");
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
   const [sound, setSound] = useState(prefs.getSound());
@@ -52,6 +53,7 @@ export default function Ajustes() {
 
   const dirty =
     (nombre.trim() !== (user?.nombre || "") && nombre.trim().length >= 2) ||
+    telefono.trim() !== (user?.telefono || "") ||
     (esTaxista &&
       (modelo.trim() !== (user?.vehiculoModelo || "") ||
         matricula.trim().toUpperCase() !== (user?.vehiculoMatricula || "")));
@@ -62,6 +64,7 @@ export default function Ajustes() {
     try {
       const me = await api.actualizarMe({
         nombre: nombre.trim(),
+        telefono: telefono.trim(),
         vehiculoModelo: esTaxista ? modelo.trim() : null,
         vehiculoMatricula: esTaxista ? matricula.trim() : null,
       });
@@ -116,6 +119,15 @@ export default function Ajustes() {
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
                 placeholder="Tu nombre"
+              />
+              <Input
+                label="Teléfono (WhatsApp)"
+                name="telefono"
+                type="tel"
+                value={telefono}
+                onChange={(e) => setTelefono(e.target.value)}
+                placeholder="612 34 56 78"
+                hint="Para contactar en las reservas"
               />
               {esTaxista && (
                 <div className="grid grid-cols-2 gap-2">

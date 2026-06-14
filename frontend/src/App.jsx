@@ -9,6 +9,7 @@ import Ofertas from "./pages/cliente/Ofertas.jsx";
 import Ajustes from "./pages/Ajustes.jsx";
 import Estadisticas from "./pages/Estadisticas.jsx";
 import Foro from "./pages/Foro.jsx";
+import Reservas from "./pages/Reservas.jsx";
 
 function Splash() {
   return (
@@ -80,6 +81,14 @@ export default function App() {
         element={
           <Protected>
             <Estadisticas />
+          </Protected>
+        }
+      />
+      <Route
+        path="/reservas"
+        element={
+          <Protected>
+            <Reservas />
           </Protected>
         }
       />

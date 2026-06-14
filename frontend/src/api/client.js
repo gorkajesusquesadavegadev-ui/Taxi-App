@@ -69,4 +69,11 @@ export const api = {
   // foro de taxistas
   foroHistorial: () => req("GET", "/foro"),
   foroPublicar: (texto) => req("POST", "/foro", { texto }),
+  // reservas
+  reservarCrear: (d) => req("POST", "/reservas", d),
+  reservasMias: () => req("GET", "/reservas/mias"),
+  reservasDisponibles: () => req("GET", "/reservas/disponibles"),
+  reservasTaxista: () => req("GET", "/reservas/taxista"),
+  reservaAceptar: (id) => req("PUT", `/reservas/${id}/aceptar`),
+  reservaCancelar: (id) => req("PUT", `/reservas/${id}/cancelar`),
 };

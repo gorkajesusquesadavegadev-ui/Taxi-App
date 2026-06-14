@@ -504,6 +504,7 @@ export default function Auth() {
     vehiculoModelo: "",
     vehiculoMatricula: "",
     licencia: "",
+    telefono: "",
   });
   const [touched, setTouched] = useState({});
   const [busy, setBusy] = useState(false);
@@ -542,6 +543,7 @@ export default function Auth() {
           email: form.email,
           password: form.password,
           rol,
+          telefono: form.telefono || null,
           licencia: rol === "TAXISTA" ? form.licencia : null,
           vehiculoModelo: rol === "TAXISTA" ? form.vehiculoModelo : null,
           vehiculoMatricula: rol === "TAXISTA" ? form.vehiculoMatricula : null,
@@ -754,6 +756,16 @@ export default function Auth() {
                 </div>
               )}
             </div>
+            {mode === "register" && (
+              <Input
+                label="Teléfono (WhatsApp)"
+                name="telefono"
+                type="tel"
+                placeholder="612 34 56 78"
+                value={form.telefono}
+                onChange={set("telefono")}
+              />
+            )}
             {mode === "register" && rol === "TAXISTA" && (
               <div className="animate-fade-up space-y-2.5">
                 <Input
