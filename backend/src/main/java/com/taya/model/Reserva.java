@@ -26,6 +26,7 @@ public class Reserva {
     @Column(name = "distancia_km") private BigDecimal distanciaKm;
     private String notas;
     @Enumerated(EnumType.STRING) @Column(nullable = false) private EstadoReserva estado = EstadoReserva.PENDIENTE;
+    @Column(name = "viaje_id") private Long viajeId; // viaje generado al activarse la reserva
     @Column(name = "creado_en", nullable = false) private Instant creadoEn = Instant.now();
 
     public Long getId(){ return id; } public void setId(Long v){ this.id=v; }
@@ -45,5 +46,6 @@ public class Reserva {
     public BigDecimal getDistanciaKm(){ return distanciaKm; } public void setDistanciaKm(BigDecimal v){ this.distanciaKm=v; }
     public String getNotas(){ return notas; } public void setNotas(String v){ this.notas=v; }
     public EstadoReserva getEstado(){ return estado; } public void setEstado(EstadoReserva v){ this.estado=v; }
+    public Long getViajeId(){ return viajeId; } public void setViajeId(Long v){ this.viajeId=v; }
     public Instant getCreadoEn(){ return creadoEn; } public void setCreadoEn(Instant v){ this.creadoEn=v; }
 }

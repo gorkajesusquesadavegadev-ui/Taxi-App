@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import Sidebar from "./Sidebar.jsx";
+import ToastHost from "./ToastHost.jsx";
+import ReservaReminders from "./ReservaReminders.jsx";
 import { IconMenu } from "./icons.jsx";
 
 export default function Layout({ title, action, children, framed = false }) {
@@ -10,6 +12,8 @@ export default function Layout({ title, action, children, framed = false }) {
   return (
     // Full-bleed responsive shell: drawer sidebar on mobile, docked rail on lg+.
     <div className="relative flex h-screen w-full overflow-hidden bg-cream">
+      <ToastHost />
+      {user?.rol === "TAXISTA" && <ReservaReminders />}
       <Sidebar open={open} onClose={() => setOpen(false)} />
 
       <div className="grain mesh-warm relative flex min-w-0 flex-1 flex-col">

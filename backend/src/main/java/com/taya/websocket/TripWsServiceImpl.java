@@ -37,6 +37,14 @@ public class TripWsServiceImpl implements TripWsService {
     @Override public void enviarAceptado(Long clienteId, Viaje v) {
         send(clienteId, "trip:accepted", Map.of("viajeId", v.getId(), "taxistaId", v.getTaxistaId()));
     }
+    @Override public void enviarAsignado(Long taxistaId, Viaje v) {
+        // reserva activada: el taxista recibe el viaje ya asignado para conducirlo
+        Map<String, Object> p = new HashMap<>();
+        p.put("viajeId", v.getId());
+        p.put("detalle", v.getDetalle());
+        p.put("tipo", v.getTipo() != null ? v.getTipo().name() : "NORMAL");
+        send(taxistaId, "trip:assigned", p);
+    }
     @Override public void enviarTomado(List<Long> taxistaIds, Long viajeId) {
         taxistaIds.forEach(id -> send(id, "trip:taken", Map.of("viajeId", viajeId)));
     }

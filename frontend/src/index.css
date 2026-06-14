@@ -295,6 +295,18 @@
   }
 }
 
+/* toast entra deslizando desde arriba */
+@keyframes toast-in {
+  from {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 /* error shake for forms */
 .animate-shake {
   animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;

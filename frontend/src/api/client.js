@@ -55,6 +55,7 @@ export const api = {
   solicitar: (d) => req("POST", "/viajes/solicitar", d),
   activo: () => req("GET", "/viajes/activo"),
   viaje: (id) => req("GET", `/viajes/${id}`),
+  taxistaActivo: () => req("GET", "/viajes/taxista-activo"),
   cancelar: (id) => req("PUT", `/viajes/${id}/cancelar`),
   historialCliente: () => req("GET", "/viajes/historial"),
   cercanos: (lat, lng, radio) =>

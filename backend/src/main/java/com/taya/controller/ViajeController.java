@@ -50,6 +50,11 @@ public class ViajeController {
         return viajes.activoCliente(Long.valueOf(uid));
     }
 
+    @GetMapping("/taxista-activo") @PreAuthorize("hasRole('TAXISTA')")
+    public ViajeResponse taxistaActivo(@AuthenticationPrincipal String uid) {
+        return viajes.activoTaxista(Long.valueOf(uid));
+    }
+
     @GetMapping("/{id}")
     public ViajeResponse uno(@AuthenticationPrincipal String uid, @PathVariable Long id) {
         return viajes.uno(id, Long.valueOf(uid));

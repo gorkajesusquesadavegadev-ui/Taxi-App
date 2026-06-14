@@ -9,8 +9,11 @@ export const prefs = {
   setNearby: (v) => set("taya:nearby", v),
 };
 
-/** Aviso completo: pitido + vibración + notificación del navegador. */
-export function avisar(titulo, cuerpo) {
+import { toast } from "./toast.js";
+
+/** Aviso completo: toast in-app + pitido + vibración + notificación navegador. */
+export function avisar(titulo, cuerpo, tipo = "info") {
+  toast(titulo, cuerpo, tipo);
   if (prefs.getSound()) beep();
   try {
     navigator.vibrate?.([120, 60, 120]);

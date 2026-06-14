@@ -8,7 +8,7 @@ import { IconCar } from "../../components/icons.jsx";
 import { api } from "../../api/client.js";
 import { direccionDe } from "../../api/geo.js";
 import { connectWs } from "../../api/ws.js";
-import { prefs, beep } from "../../utils/prefs.js";
+import { prefs, beep, avisar } from "../../utils/prefs.js";
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
 const TIPO_LABEL = { TRANSFER: "Transfer", EXCURSION: "Excursión" };
@@ -92,6 +92,25 @@ export default function TaxistaHome() {
     };
   }, []);
 
+  // viaje ya asignado (p.ej. una reserva que llegó a su hora): cargar al entrar
+  // y sondear, para que el taxista lo conduzca aunque no estuviera "online".
+  useEffect(() => {
+    let alive = true;
+    const cargar = () =>
+      api
+        .taxistaActivo()
+        .then((v) => {
+          if (alive && v) setViaje((cur) => (cur && cur.id === v.id ? cur : v));
+        })
+        .catch(() => {});
+    cargar();
+    const id = setInterval(cargar, 5000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, []);
+
   // socket lifecycle tied to online state
   useEffect(() => {
     if (!online) return;
@@ -100,6 +119,10 @@ export default function TaxistaHome() {
         if (event === "trip:new") {
           setIncoming(data);
           if (prefs.getSound()) beep();
+        }
+        if (event === "trip:assigned") {
+          avisar("Reserva activa", `${data.detalle || "Tu reserva"} comienza ahora.`, "viaje");
+          api.taxistaActivo().then((v) => v && setViaje(v)).catch(() => {});
         }
         if (event === "trip:cancelled") {
           setViaje(null);

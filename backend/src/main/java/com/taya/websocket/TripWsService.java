@@ -4,6 +4,7 @@ import java.util.List;
 public interface TripWsService {
     void enviarNuevoViaje(List<Long> taxistaIds, Viaje viaje);
     void enviarAceptado(Long clienteId, Viaje viaje);
+    void enviarAsignado(Long taxistaId, Viaje viaje);
     void enviarTomado(List<Long> taxistaIds, Long viajeId);
     void enviarUbicacionTaxi(Long clienteId, double lat, double lng);
     void enviarLlegada(Long clienteId, Long viajeId);

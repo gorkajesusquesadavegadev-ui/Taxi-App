@@ -120,6 +120,19 @@ public class ReservaService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "no participas en la reserva");
         if (v.getEstado() == EstadoReserva.CANCELADA || v.getEstado() == EstadoReserva.COMPLETADA)
             throw new ResponseStatusException(HttpStatus.CONFLICT, "reserva ya cerrada");
+
+        // Política de cancelación: una vez ACEPTADA, no se puede cancelar a última
+        // hora para no dejar tirada a la otra parte. El taxista que se comprometió
+        // tiene un margen mayor (no puede soltarla a <2h); el cliente, hasta 30 min.
+        if (v.getEstado() == EstadoReserva.ACEPTADA) {
+            long minutos = java.time.Duration.between(Instant.now(), v.getProgramadaPara()).toMinutes();
+            boolean esTaxista = usuarioId.equals(v.getTaxistaId());
+            long limite = esTaxista ? 120 : 30;
+            if (minutos < limite)
+                throw new ResponseStatusException(HttpStatus.CONFLICT, esTaxista
+                    ? "No puedes cancelar una reserva aceptada con menos de 2 h de antelación. Contacta al cliente por WhatsApp."
+                    : "No puedes cancelar con menos de 30 min. Contacta al taxista por WhatsApp.");
+        }
         v.setEstado(EstadoReserva.CANCELADA);
         v = reservas.save(v);
         var dto = aResponse(v);

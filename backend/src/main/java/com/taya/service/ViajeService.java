@@ -3,6 +3,7 @@ import com.taya.dto.request.*;
 import com.taya.dto.response.*;
 import com.taya.model.*;
 import com.taya.repository.ViajeRepository;
+// Reserva está en com.taya.model (cubierto por el import *)
 import com.taya.websocket.TripWsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -200,6 +201,35 @@ public class ViajeService {
         return viajes.findFirstByClienteIdAndEstadoInOrderBySolicitadoEnDesc(clienteId,
             List.of(EstadoViaje.SOLICITADO, EstadoViaje.ACEPTADO, EstadoViaje.LLEGADO, EstadoViaje.EN_CURSO))
             .map(ViajeResponse::of).orElse(null);
+    }
+
+    /** Viaje activo asignado al taxista (p.ej. reserva activada a su hora). */
+    public ViajeResponse activoTaxista(Long taxistaId) {
+        return viajes.findFirstByTaxistaIdAndEstadoInOrderBySolicitadoEnDesc(taxistaId,
+            List.of(EstadoViaje.ACEPTADO, EstadoViaje.LLEGADO, EstadoViaje.EN_CURSO))
+            .map(ViajeResponse::of).orElse(null);
+    }
+
+    /** Convierte una reserva (a su hora) en un viaje ACEPTADO ya asignado al
+     *  taxista, y avisa a ambos. El cliente entra en el flujo normal de viaje. */
+    @Transactional
+    public Viaje activarDesdeReserva(Reserva r) {
+        Viaje v = new Viaje();
+        v.setClienteId(r.getClienteId());
+        v.setTaxistaId(r.getTaxistaId());
+        v.setOrigenLat(r.getOrigenLat()); v.setOrigenLng(r.getOrigenLng());
+        v.setDestinoLat(r.getDestinoLat()); v.setDestinoLng(r.getDestinoLng());
+        v.setOrigenTexto(r.getOrigenTexto()); v.setDestinoTexto(r.getDestinoTexto());
+        v.setDistanciaEstimadaKm(r.getDistanciaKm());
+        v.setPrecioEstimado(r.getPrecioEstimado());
+        v.setTipo(r.getTipo()); v.setDetalle(r.getDetalle()); v.setOfertaId(r.getOfertaId());
+        v.setEstado(EstadoViaje.ACEPTADO);
+        v.setAceptadoEn(Instant.now());
+        v = viajes.save(v);
+        if (r.getTaxistaId() != null) ubicacion.setOcupado(r.getTaxistaId());
+        ws.enviarAceptado(v.getClienteId(), v);   // cliente: "Taxista en camino"
+        ws.enviarAsignado(v.getTaxistaId(), v);   // taxista: viaje para conducir
+        return v;
     }
 
     public List<ViajeResponse> historialCliente(Long clienteId) {

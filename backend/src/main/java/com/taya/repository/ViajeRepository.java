@@ -21,6 +21,10 @@ public interface ViajeRepository extends JpaRepository<Viaje, Long> {
     Optional<Viaje> findFirstByClienteIdAndEstadoInOrderBySolicitadoEnDesc(
         Long clienteId, Collection<EstadoViaje> estados);
 
+    // Active trip assigned to a taxista (e.g. an activated reservation).
+    Optional<Viaje> findFirstByTaxistaIdAndEstadoInOrderBySolicitadoEnDesc(
+        Long taxistaId, Collection<EstadoViaje> estados);
+
     // First-accept-wins: only succeeds while still SOLICITADO
     @Modifying
     @Query("update Viaje v set v.estado = com.taya.model.EstadoViaje.ACEPTADO, " +
