@@ -31,7 +31,8 @@ function OnlineToggle({ online, onToggle }) {
 }
 
 export default function TaxistaHome() {
-  const [online, setOnline] = useState(false);
+  // el estado en línea persiste entre recargas; se reafirma en el backend al conectar
+  const [online, setOnline] = useState(() => localStorage.getItem("taya:online") === "1");
   const [pos] = useState(LPGC); // MVP: fixed position (geolocation deferred)
   const [incoming, setIncoming] = useState(null); // trip:new payload
   const [viaje, setViaje] = useState(null);
@@ -114,6 +115,14 @@ export default function TaxistaHome() {
   // socket lifecycle tied to online state
   useEffect(() => {
     if (!online) return;
+    // reafirmar LIBRE al conectar (recarga incluida), salvo que haya un viaje
+    // activo asignado: en ese caso seguimos OCUPADO conduciéndolo
+    api
+      .taxistaActivo()
+      .then((v) => {
+        if (!v) api.estado({ estado: "LIBRE", lat: pos.lat, lng: pos.lng }).catch(() => {});
+      })
+      .catch(() => {});
     const ws = connectWs(
       (event, data) => {
         if (event === "trip:new") {
@@ -151,10 +160,12 @@ export default function TaxistaHome() {
   async function toggleOnline() {
     try {
       if (!online) {
-        await api.estado({ estado: "LIBRE", lat: pos.lat, lng: pos.lng });
+        // el WS effect reafirma LIBRE al activarse; aquí solo persistimos
+        localStorage.setItem("taya:online", "1");
         setOnline(true);
       } else {
         await api.estado({ estado: "DESCONECTADO" });
+        localStorage.setItem("taya:online", "0");
         setOnline(false);
         setMsg("Desconectado.");
       }

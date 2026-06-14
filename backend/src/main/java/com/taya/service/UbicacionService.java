@@ -18,6 +18,13 @@ public class UbicacionService {
 
     public void actualizarUbicacion(Long taxistaId, double lat, double lng) {
         redis.opsForValue().set("taxi:" + taxistaId + ":ubicacion", lat + "," + lng, Duration.ofSeconds(10));
+        // si está libre, mantener su posición fresca en el geo-set: tras finalizar
+        // un viaje quedaba fijado en el destino anterior y dejaba de recibir solicitudes
+        if ("LIBRE".equals(redis.opsForValue().get("taxi:" + taxistaId + ":estado"))) {
+            redis.opsForGeo().add(GEO_LIBRES, new Point(lng, lat), String.valueOf(taxistaId));
+            redis.opsForSet().add(IDS_LIBRES, String.valueOf(taxistaId));
+        }
+        heartbeat(taxistaId);
     }
 
     public void heartbeat(Long taxistaId) {
