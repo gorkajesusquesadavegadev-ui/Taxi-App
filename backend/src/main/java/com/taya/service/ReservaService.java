@@ -109,7 +109,17 @@ public class ReservaService {
         v = reservas.save(v);
         var dto = aResponse(v);
         difundir("reserva:accepted", dto, v.getClienteId()); // avisa al cliente
+        difundir("reserva:taken", dto, null);                // a los taxistas: ya no disponible
         return dto;
+    }
+
+    /** Marca como CADUCADA una reserva pendiente cuya hora ya pasó y avisa a los
+     *  taxistas para que su aviso de la campana refleje "ha caducado". */
+    @org.springframework.transaction.annotation.Transactional
+    public void caducar(Reserva v) {
+        v.setEstado(EstadoReserva.CADUCADA);
+        reservas.save(v);
+        difundir("reserva:expired", aResponse(v), null);
     }
 
     @Transactional

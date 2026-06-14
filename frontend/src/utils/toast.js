@@ -2,8 +2,8 @@
 const subs = new Set();
 let seq = 0;
 
-export function toast(titulo, cuerpo, tipo = "info") {
-  const t = { id: ++seq, titulo, cuerpo, tipo };
+export function toast(titulo, cuerpo, tipo = "info", meta = null) {
+  const t = { id: ++seq, titulo, cuerpo, tipo, meta };
   subs.forEach((fn) => fn(t));
 }
 

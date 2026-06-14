@@ -10,4 +10,6 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     List<Reserva> findByTaxistaIdOrderByProgramadaParaAsc(Long taxistaId);
     // disponibles para taxistas: pendientes y aún en el futuro
     List<Reserva> findByEstadoAndProgramadaParaAfterOrderByProgramadaParaAsc(EstadoReserva estado, Instant ahora);
+    // pendientes cuya hora ya pasó (para caducar) o aceptadas a activar
+    List<Reserva> findByEstado(EstadoReserva estado);
 }

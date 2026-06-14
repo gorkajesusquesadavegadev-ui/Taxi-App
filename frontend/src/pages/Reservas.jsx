@@ -185,7 +185,7 @@ export default function Reservas() {
         if (!esTaxista) avisar("Reserva confirmada", `Un taxista aceptó tu reserva del ${fmtFechaReserva(data.programadaPara)}`);
         cargar();
       }
-      if (event === "reserva:cancelled") cargar();
+      if (event === "reserva:cancelled" || event === "reserva:taken" || event === "reserva:expired") cargar();
     });
     return () => ws.close();
   }, [esTaxista, cargar]);

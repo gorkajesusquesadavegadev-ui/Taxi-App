@@ -18,20 +18,28 @@ import java.time.Instant;
 public class ReservaActivador {
     private final ReservaRepository reservas;
     private final ViajeService viajes;
-    public ReservaActivador(ReservaRepository r, ViajeService v) { this.reservas = r; this.viajes = v; }
+    private final ReservaService reservaService;
+    public ReservaActivador(ReservaRepository r, ViajeService v, ReservaService rs) {
+        this.reservas = r; this.viajes = v; this.reservaService = rs;
+    }
 
     @Scheduled(fixedDelay = 60000, initialDelay = 15000)
     @Transactional
     public void activar() {
-        Instant limite = Instant.now().plus(Duration.ofMinutes(2)); // activa hasta 2 min antes
-        for (Reserva r : reservas.findByEstadoAndProgramadaParaAfterOrderByProgramadaParaAsc(
-                EstadoReserva.ACEPTADA, Instant.now().minus(Duration.ofHours(6)))) {
+        Instant ahora = Instant.now();
+        Instant limite = ahora.plus(Duration.ofMinutes(2)); // activa hasta 2 min antes
+        // 1) aceptadas que ya tocan -> viaje en curso
+        for (Reserva r : reservas.findByEstado(EstadoReserva.ACEPTADA)) {
             if (r.getViajeId() != null) continue;
-            if (r.getProgramadaPara().isAfter(limite)) continue; // aún no toca
+            if (r.getProgramadaPara().isAfter(limite)) continue;
             var viaje = viajes.activarDesdeReserva(r);
             r.setViajeId(viaje.getId());
             r.setEstado(EstadoReserva.COMPLETADA); // la reserva cumplió su función
             reservas.save(r);
+        }
+        // 2) pendientes cuya hora pasó sin que nadie las acepte -> caducan
+        for (Reserva r : reservas.findByEstado(EstadoReserva.PENDIENTE)) {
+            if (r.getProgramadaPara().isBefore(ahora)) reservaService.caducar(r);
         }
     }
 }
