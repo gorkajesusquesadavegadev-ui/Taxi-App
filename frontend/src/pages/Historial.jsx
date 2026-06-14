@@ -112,7 +112,7 @@ export default function Historial() {
             </p>
           </div>
         )}
-        <div className="mx-auto grid max-w-5xl gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {viajes?.map((v, i) => (
             <ViajeCard key={v.id} v={v} index={i} />
           ))}
