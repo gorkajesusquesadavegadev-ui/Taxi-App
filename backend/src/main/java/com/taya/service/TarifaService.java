@@ -34,15 +34,18 @@ public class TarifaService {
         MonthDay.of(8, 15), MonthDay.of(10, 12), MonthDay.of(11, 1), MonthDay.of(12, 6),
         MonthDay.of(12, 8), MonthDay.of(12, 25));
 
-    private record Tarifa(BigDecimal bandera, BigDecimal km, boolean minimoNavidad) {}
+    // bandera de la franja, km urbano, km interurbano, mínimo navideño
+    private record Franja(BigDecimal bandera, BigDecimal kmUrbano, BigDecimal kmInter, boolean minimoNavidad) {}
 
-    /** Tarifa LPGC según el momento (franja horaria + festivos + Navidad). */
-    private Tarifa tarifaLP(ZonedDateTime t) {
+    /** Franja tarifaria LPGC según el momento (horario + festivos + Navidad).
+     *  El km interurbano es mayor: el taxista regresa de vacío fuera del término. */
+    private Franja franja(ZonedDateTime t) {
         MonthDay md = MonthDay.of(t.getMonthValue(), t.getDayOfMonth());
         int h = t.getHour();
         boolean navidadAlta = (md.equals(MonthDay.of(12, 25)) || md.equals(MonthDay.of(1, 1))
             || md.equals(MonthDay.of(1, 6))) && h >= 9 && h < 22;
-        if (navidadAlta) return new Tarifa(new BigDecimal("4.30"), new BigDecimal("0.85"), false);
+        if (navidadAlta)
+            return new Franja(new BigDecimal("4.30"), new BigDecimal("0.85"), new BigDecimal("1.25"), false);
 
         boolean vispera = md.equals(MonthDay.of(12, 24)) || md.equals(MonthDay.of(12, 31))
             || md.equals(MonthDay.of(1, 5));
@@ -50,33 +53,26 @@ public class TarifaService {
         boolean nocturna = h >= 22 || h < 6;
         boolean festivo = t.getDayOfWeek() == DayOfWeek.SUNDAY || FESTIVOS.contains(md);
 
-        if (nocturna) return new Tarifa(new BigDecimal("3.65"), new BigDecimal("0.85"), minNav);
-        if (vispera || festivo) // diurno festivo / víspera de Navidad
-            return new Tarifa(new BigDecimal("3.65"), new BigDecimal("0.85"), minNav);
-        return new Tarifa(new BigDecimal("2.95"), new BigDecimal("0.80"), false); // laborable diurno
+        if (nocturna || vispera || festivo) // 3,65 €: noche, festivo/domingo o víspera de Navidad
+            return new Franja(new BigDecimal("3.65"), new BigDecimal("0.85"), new BigDecimal("1.25"), minNav);
+        return new Franja(new BigDecimal("2.95"), new BigDecimal("0.80"), new BigDecimal("1.20"), false); // laborable diurno
     }
 
-    /** Tarifa estándar fuera de Las Palmas: solo diurna/nocturna. */
-    private Tarifa tarifaEstandar(ZonedDateTime t) {
-        int h = t.getHour();
-        boolean nocturna = h >= 22 || h < 6;
-        return nocturna
-            ? new Tarifa(new BigDecimal("3.65"), new BigDecimal("0.85"), false)
-            : new Tarifa(new BigDecimal("2.95"), new BigDecimal("0.80"), false);
-    }
-
-    private BigDecimal aplicar(Tarifa tar, double km) {
+    private BigDecimal aplicar(Franja f, double km, boolean interurbano) {
+        BigDecimal precioKm = interurbano ? f.kmInter() : f.kmUrbano();
         BigDecimal cobrable = BigDecimal.valueOf(km).subtract(KM_INCLUIDOS).max(BigDecimal.ZERO);
-        BigDecimal precio = tar.bandera().add(tar.km().multiply(cobrable));
-        if (tar.minimoNavidad() && precio.compareTo(MINIMO_NAVIDAD) < 0) precio = MINIMO_NAVIDAD;
+        BigDecimal precio = f.bandera().add(precioKm.multiply(cobrable));
+        if (f.minimoNavidad() && precio.compareTo(MINIMO_NAVIDAD) < 0) precio = MINIMO_NAVIDAD;
         return precio.setScale(2, RoundingMode.HALF_UP);
     }
 
-    /** Precio de una carrera por km, eligiendo tabla según si toca Las Palmas. */
+    /** Precio por km. Urbano si ambos extremos están en Las Palmas; interurbano
+     *  (km más caro) si el viaje sale o entra al municipio (aeropuerto, sur…). */
     public BigDecimal precioPorRuta(double oLat, double oLng, double dLat, double dLng, double km) {
-        var ahora = ZonedDateTime.now(CANARIAS);
-        boolean lp = enLasPalmas(oLat, oLng) || enLasPalmas(dLat, dLng);
-        return aplicar(lp ? tarifaLP(ahora) : tarifaEstandar(ahora), km);
+        var f = franja(ZonedDateTime.now(CANARIAS));
+        boolean oLP = enLasPalmas(oLat, oLng), dLP = enLasPalmas(dLat, dLng);
+        boolean interurbano = oLP != dLP; // uno dentro y otro fuera del término
+        return aplicar(f, km, interurbano);
     }
 
     public EstimacionResponse estimar(double oLat, double oLng, double dLat, double dLng) {
