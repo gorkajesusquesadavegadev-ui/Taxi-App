@@ -76,7 +76,7 @@ export default function ReservaBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-[800] mt-2 w-80 max-w-[85vw] animate-fade-up overflow-hidden rounded-2xl bg-white shadow-float ring-1 ring-sand-deep/60">
+        <div className="fixed inset-x-2 top-[4.25rem] z-[800] animate-fade-up overflow-hidden rounded-2xl bg-white shadow-float ring-1 ring-sand-deep/60 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80">
           <div className="flex items-center justify-between border-b border-sand-deep/60 px-4 py-3">
             <p className="font-display text-sm font-extrabold">Avisos de reservas</p>
             <button
@@ -89,7 +89,7 @@ export default function ReservaBell() {
               Limpiar
             </button>
           </div>
-          <div className="slim-scroll max-h-80 overflow-y-auto">
+          <div className="slim-scroll max-h-[55vh] overflow-y-auto sm:max-h-80">
             {items.length === 0 ? (
               <p className="px-4 py-8 text-center text-sm text-volcanic/45">Sin avisos por ahora.</p>
             ) : (
