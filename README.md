@@ -14,6 +14,12 @@ Las Palmas de Gran Canaria (BOC nº 150, 2023).
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)
 
+![Estado](https://img.shields.io/badge/estado-en%20desarrollo-FFC400)
+![Licencia](https://img.shields.io/badge/licencia-MIT-0B5C9E)
+![Plataforma](https://img.shields.io/badge/plataforma-web%20responsive-1577C2)
+![Región](https://img.shields.io/badge/Gran%20Canaria-%E2%98%80%EF%B8%8F-00A87E)
+![PRs](https://img.shields.io/badge/PRs-welcome-brightgreen)
+
 </div>
 
 ---
@@ -173,6 +179,17 @@ Base: `/api` · Autenticación: JWT (`Authorization: Bearer …`)
 
 `usuarios` · `viajes` · `reservas` · `mensajes_foro` · `eventos` (demanda) ·
 `dias_festivos` · `configuracion_tarifa`. Detalle en [docs/RUN.md](docs/RUN.md).
+
+---
+
+## 🗓️ Roadmap
+
+Estado actual y mejoras priorizadas (GPS real, suplementos del BOC, pagos,
+valoraciones, push…) en **[ROADMAP.md](ROADMAP.md)**.
+
+## 📄 Licencia
+
+Distribuido bajo licencia **MIT**. Ver [LICENSE](LICENSE).
 
 ---
 
