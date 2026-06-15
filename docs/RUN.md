@@ -136,7 +136,9 @@ por defecto (no hace falta `.env`).
 
 ## 7. Las tablas y qué se guarda
 
-Hibernate genera 3 tablas a partir de las entidades (`com.taya.model`):
+Hibernate genera las tablas a partir de las entidades (`com.taya.model`):
+`usuarios`, `viajes`, `reservas`, `mensajes_foro`, `eventos`, `dias_festivos` y
+`configuracion_tarifa`.
 
 ### `usuarios`  (entidad `Usuario`) — clientes y taxistas
 | columna | tipo | qué es |
@@ -149,6 +151,7 @@ Hibernate genera 3 tablas a partir de las entidades (`com.taya.model`):
 | `licencia` | text | nº licencia taxi (solo taxistas) |
 | `vehiculo_matricula` | text | matrícula (solo taxistas) |
 | `vehiculo_modelo` | text | modelo coche (solo taxistas) |
+| `telefono` | text | contacto WhatsApp/llamada (reservas e historial) |
 | `activo` | boolean | cuenta activa |
 | `creado_en` | timestamp | alta |
 
@@ -166,26 +169,66 @@ Hibernate genera 3 tablas a partir de las entidades (`com.taya.model`):
 | `distancia_real_km` | numeric | km reales al finalizar |
 | `precio_final` | numeric | cobro final |
 | `estado` | text | `SOLICITADO`→`ACEPTADO`→`LLEGADO`→`EN_CURSO`→`COMPLETADO`/`CANCELADO` |
+| `tipo` | text | `NORMAL`, `TRANSFER` o `EXCURSION` |
+| `detalle` | text | nombre de la oferta (transfer/excursión) |
+| `oferta_id` | text | id del catálogo (reconstruye paradas de la excursión) |
 | `solicitado_en` … `cancelado_en` | timestamp | sello de cada cambio de estado |
 
-### `configuracion_tarifa`  (entidad `ConfiguracionTarifa`) — parámetros de precio
-| columna | tipo | valor sembrado |
+### `reservas`  (entidad `Reserva`) — viajes programados
+| columna | tipo | qué es |
 |---|---|---|
-| `id` | bigserial PK | 1 |
-| `bajada_bandera` | numeric | `1.50` € (precio fijo de inicio) |
-| `precio_km` | numeric | `0.80` €/km |
-| `radio_busqueda_km` | numeric | `5` km (radio para buscar taxistas) |
+| `id` | bigserial PK | id reserva |
+| `cliente_id` / `taxista_id` | bigint | quién reserva / quién acepta (null hasta aceptar) |
+| `tipo` | text | `NORMAL`, `TRANSFER` o `EXCURSION` |
+| `oferta_id` / `detalle` | text | oferta del catálogo (si aplica) |
+| `origen_*` / `destino_*` / `*_texto` | double/text | puntos y direcciones |
+| `programada_para` | timestamp | día y hora del viaje |
+| `precio_estimado` / `distancia_km` | numeric | estimación al reservar |
+| `estado` | text | `PENDIENTE`→`ACEPTADA`→`COMPLETADA` / `CANCELADA` / `CADUCADA` |
+| `viaje_id` | bigint | viaje generado al activarse a su hora |
+| `notas` | text | indicaciones del cliente |
 
-Fórmula precio: `precio = bajada_bandera + km * precio_km`.
+### `mensajes_foro`  (entidad `MensajeForo`) — chat de taxistas
+| columna | tipo | qué es |
+|---|---|---|
+| `id` | bigserial PK | id mensaje |
+| `autor_id` / `autor_nombre` | bigint/text | taxista que escribe |
+| `texto` | text | mensaje |
+| `creado_en` | timestamp | fecha |
+
+### `eventos`  (entidad `Evento`) — demanda (mapa de zonas calientes)
+| columna | tipo | qué es |
+|---|---|---|
+| `id` | bigserial PK | id evento |
+| `nombre` / `tipo` | text | descripción y `FUTBOL`/`CONCIERTO`/`CRUCERO` |
+| `lat` / `lng` | double | ubicación |
+| `inicio` / `fin` | timestamp | ventana del evento |
+| `magnitud` | int | 1–10, cuánta afluencia genera |
+
+### `dias_festivos`  (entidad `DiaFestivo`) — calendario de tarifa festiva
+| columna | tipo | qué es |
+|---|---|---|
+| `id` | bigserial PK | id |
+| `fecha` | date UNIQUE | día festivo |
+| `nombre` | text | nombre del festivo |
+
+> Se siembra solo cada año (nacionales + Canarias + Semana Santa calculada). Los
+> festivos **locales** de Las Palmas se pueden añadir a mano con un `INSERT`.
+
+### `configuracion_tarifa`  (entidad `ConfiguracionTarifa`)
+Guarda el `radio_busqueda_km` (radio para buscar taxistas, por defecto `5`). Los
+precios oficiales (bandera, €/km por franja y zona) están en el código
+(`TarifaService`), conforme al BOC nº 150/2023 — ver **README.md**.
 
 > **Redis** no usa tablas: guarda la posición en vivo de cada taxista en un índice geoespacial
 > (GEORADIUS) para encontrar los cercanos rápido. Es volátil, no es la BD principal.
 
 ### Ver datos a mano (ejemplos en pgAdmin o psql)
 ```sql
-SELECT id, nombre, email, rol FROM usuarios;
-SELECT id, cliente_id, taxista_id, estado, precio_final FROM viajes ORDER BY id DESC;
-SELECT * FROM configuracion_tarifa;
+SELECT id, nombre, email, rol, telefono FROM usuarios;
+SELECT id, cliente_id, taxista_id, estado, tipo, precio_final FROM viajes ORDER BY id DESC;
+SELECT id, tipo, estado, programada_para FROM reservas ORDER BY programada_para DESC;
+SELECT fecha, nombre FROM dias_festivos ORDER BY fecha;
 ```
 
 ---
