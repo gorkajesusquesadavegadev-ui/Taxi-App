@@ -18,6 +18,35 @@ Las Palmas de Gran Canaria (BOC nº 150, 2023).
 
 ---
 
+## 📱 Capturas (vista móvil)
+
+<div align="center">
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/login.png" width="220" alt="Inicio de sesión"/><br/><sub><b>Bienvenida</b></sub></td>
+    <td align="center"><img src="docs/screenshots/cliente-pedir.png" width="220" alt="Pedir taxi"/><br/><sub><b>Pedir taxi</b></sub></td>
+    <td align="center"><img src="docs/screenshots/cliente-viaje.png" width="220" alt="Viaje en curso"/><br/><sub><b>Viaje en vivo</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/transfers.png" width="220" alt="Transfers y excursiones"/><br/><sub><b>Transfers y excursiones</b></sub></td>
+    <td align="center"><img src="docs/screenshots/reservas.png" width="220" alt="Reservas"/><br/><sub><b>Reservas</b></sub></td>
+    <td align="center"><img src="docs/screenshots/tarifa.png" width="220" alt="Tarifa actual"/><br/><sub><b>Tarifa actual</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/taxista-mapa.png" width="220" alt="Mapa de demanda"/><br/><sub><b>Taxista · demanda</b></sub></td>
+    <td align="center"><img src="docs/screenshots/taxista-solicitud.png" width="220" alt="Solicitud y avisos"/><br/><sub><b>Taxista · avisos</b></sub></td>
+    <td align="center"><img src="docs/screenshots/foro.png" width="220" alt="Foro de taxistas"/><br/><sub><b>Foro de taxistas</b></sub></td>
+  </tr>
+</table>
+
+<sub>📷 ¿Faltan imágenes? Añádelas en <code>docs/screenshots/</code> — guía en
+<a href="docs/screenshots/README.md">docs/screenshots/README.md</a>.</sub>
+
+</div>
+
+---
+
 ## ✨ Qué hace
 
 TAYA conecta a **clientes** que necesitan un taxi con **taxistas** disponibles, en tiempo real,
