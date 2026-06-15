@@ -152,6 +152,7 @@ docker compose up -d        # PostgreSQL + Redis
 ## 📚 Documentación
 
 - **[docs/RUN.md](docs/RUN.md)** — guía de instalación y arranque, tablas de la BD y datos de prueba.
+- **[docs/DEPLOY.md](docs/DEPLOY.md)** — PWA, despliegue (Vercel + Railway) y APK para la Play Store.
 - **[ROADMAP.md](ROADMAP.md)** — estado actual y aspectos de mejora.
 - `docs/superpowers/` — spec y plan del MVP inicial (histórico).
 
