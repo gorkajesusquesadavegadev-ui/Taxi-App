@@ -9,9 +9,9 @@ export default defineConfig({
       registerType: "autoUpdate", // al desplegar nueva web, la app se actualiza sola
       includeAssets: ["favicon-32.png", "icons/apple-touch-icon.png"],
       manifest: {
-        name: "CanaryCab · Taxi de Gran Canaria",
+        name: "CanaryCab · App de Canarias",
         short_name: "CanaryCab",
-        description: "Pide, reserva y viaja por Gran Canaria con tarifas oficiales.",
+        description: "Tu taxi en las Islas Canarias: ruta real, tarifa oficial y seguimiento en vivo.",
         lang: "es",
         theme_color: "#0B2E4F",
         background_color: "#0B2E4F",

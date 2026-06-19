@@ -152,9 +152,14 @@ public class StatsService {
     }
 
     private static void acumular(Map<String, double[]> celdas, double lat, double lng, double peso) {
+        if (!enCanarias(lat, lng)) return; // descartar coords fuera del archipiélago (mar, 0,0…)
         String key = Math.round(lat / CELDA) + ":" + Math.round(lng / CELDA);
         double[] c = celdas.computeIfAbsent(key, k -> new double[4]);
         c[0] += peso; c[1] += lat; c[2] += lng; c[3] += 1;
+    }
+
+    private static boolean enCanarias(double lat, double lng) {
+        return lat >= 27.5 && lat <= 29.4 && lng >= -18.2 && lng <= -13.3;
     }
 
     private static String nivelDe(double peso, double max) {

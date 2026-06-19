@@ -143,9 +143,10 @@ export default function MapView({
           pathOptions={{
             color: ZONA_COLOR[z.nivel] || ZONA_COLOR.BAJO,
             fillColor: ZONA_COLOR[z.nivel] || ZONA_COLOR.BAJO,
-            fillOpacity: z.nivel === "ALTO" ? 0.3 : z.nivel === "MEDIO" ? 0.22 : 0.15,
-            weight: 1.5,
-            opacity: 0.65,
+            fillOpacity: z.nivel === "ALTO" ? 0.28 : z.nivel === "MEDIO" ? 0.20 : 0.13,
+            weight: 2,
+            opacity: 0.8,
+            className: `zona-pulse-${(z.nivel || "BAJO").toLowerCase()}`,
           }}
         >
           {z.motivo && (

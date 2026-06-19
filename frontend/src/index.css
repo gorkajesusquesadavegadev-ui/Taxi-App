@@ -87,6 +87,15 @@
   }
 }
 
+/* ---- Zonas calientes: pulso animado ---- */
+@keyframes zona-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%       { opacity: 1;    }
+}
+.zona-pulse-alto   { animation: zona-pulse 1.6s ease-in-out infinite; }
+.zona-pulse-medio  { animation: zona-pulse 2.4s ease-in-out infinite; }
+.zona-pulse-bajo   { animation: zona-pulse 3.8s ease-in-out infinite; }
+
 /* ---- Leaflet look ---- */
 .leaflet-container {
   font-family: inherit;

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import Button from "../components/Button.jsx";
 import Input from "../components/Input.jsx";
@@ -740,6 +741,11 @@ export default function Auth() {
           >
             Entrar o crear cuenta
           </p>
+          <div className="pointer-events-auto mt-6 animate-fade-up flex gap-4 text-[10px] font-semibold text-volcanic/40" style={{ animationDelay: "950ms" }}>
+            <Link to="/privacidad" className="hover:text-volcanic/70 underline-offset-2 hover:underline">Privacidad</Link>
+            <Link to="/cookies" className="hover:text-volcanic/70 underline-offset-2 hover:underline">Cookies</Link>
+            <Link to="/terminos" className="hover:text-volcanic/70 underline-offset-2 hover:underline">Términos</Link>
+          </div>
         </div>
       )}
 

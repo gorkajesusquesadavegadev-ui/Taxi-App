@@ -11,6 +11,9 @@ import Estadisticas from "./pages/Estadisticas.jsx";
 import Foro from "./pages/Foro.jsx";
 import Reservas from "./pages/Reservas.jsx";
 import TarifaActual from "./pages/TarifaActual.jsx";
+import Privacidad from "./pages/legal/Privacidad.jsx";
+import Cookies from "./pages/legal/Cookies.jsx";
+import Terminos from "./pages/legal/Terminos.jsx";
 
 function Splash() {
   return (
@@ -109,6 +112,9 @@ export default function App() {
           </Protected>
         }
       />
+      <Route path="/privacidad" element={<Privacidad />} />
+      <Route path="/cookies" element={<Cookies />} />
+      <Route path="/terminos" element={<Terminos />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
