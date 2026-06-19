@@ -163,6 +163,25 @@ export default function TaxistaHome() {
     };
   }, []);
 
+  // Polling fallback: every 5s check for trips missed by WS (iOS background, reconnect gap)
+  const incomingRef = useRef(null);
+  incomingRef.current = incoming;
+  useEffect(() => {
+    if (!online) return;
+    const id = setInterval(async () => {
+      if (incomingRef.current || viajeRef.current) return; // already have a trip
+      try {
+        const pend = await api.pendienteCercano();
+        if (pend && !incomingRef.current) {
+          setIncoming(pend);
+          if (prefs.getSound()) beep();
+          if (navigator.vibrate) navigator.vibrate([400, 150, 400]);
+        }
+      } catch (_) {}
+    }, 5000);
+    return () => clearInterval(id);
+  }, [online]);
+
   // socket lifecycle — pos leído de posRef para no reiniciar WS en cada GPS update
   useEffect(() => {
     if (!online) return;
@@ -172,6 +191,9 @@ export default function TaxistaHome() {
         if (event === "trip:new") {
           setIncoming(data);
           if (prefs.getSound()) beep();
+          if (navigator.vibrate) navigator.vibrate([400, 150, 400]);
+          // ACK inmediato: backend sabe que el mensaje llegó
+          wsRef.current?.send("trip:ack", { viajeId: data.viajeId });
         }
         if (event === "trip:assigned") {
           avisar("Reserva activa", `${data.detalle || "Tu reserva"} comienza ahora.`, "viaje");

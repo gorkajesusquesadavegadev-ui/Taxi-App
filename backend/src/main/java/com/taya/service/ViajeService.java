@@ -245,6 +245,39 @@ public class ViajeService {
         return v;
     }
 
+    /**
+     * Polling fallback: returns nearest SOLICITADO trip within search radius.
+     * Used by taxista frontend every 5s to catch any WS-missed dispatch.
+     */
+    public ViajeResponse pendienteCercanoParaTaxista(Long taxistaId) {
+        String ubic = ubicacion.ubicacion(taxistaId);
+        if (ubic == null) return null;
+        String[] parts = ubic.split(",");
+        double tLat = Double.parseDouble(parts[0]);
+        double tLng = Double.parseDouble(parts[1]);
+        double radio = tarifa.radioBusquedaKm().doubleValue();
+
+        // Only consider trips requested in the last 5 minutes
+        Instant ventana = Instant.now().minusSeconds(300);
+        List<Viaje> candidatos = viajes.findByEstadoAndSolicitadoEnBefore(
+            EstadoViaje.SOLICITADO, Instant.now().plusSeconds(1));
+
+        return candidatos.stream()
+            .filter(v -> v.getSolicitadoEn().isAfter(ventana))
+            .filter(v -> {
+                double dlat = Math.toRadians(v.getOrigenLat() - tLat);
+                double dlng = Math.toRadians(v.getOrigenLng() - tLng);
+                double a = Math.sin(dlat / 2) * Math.sin(dlat / 2)
+                    + Math.cos(Math.toRadians(tLat)) * Math.cos(Math.toRadians(v.getOrigenLat()))
+                    * Math.sin(dlng / 2) * Math.sin(dlng / 2);
+                double km = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                return km <= radio * 2; // double radius for poll fallback
+            })
+            .min(java.util.Comparator.comparing(Viaje::getSolicitadoEn))
+            .map(ViajeResponse::of)
+            .orElse(null);
+    }
+
     public List<ViajeResponse> historialCliente(Long clienteId) {
         var lista = viajes.findByClienteIdOrderBySolicitadoEnDesc(clienteId);
         backfillTextosAsync(lista);

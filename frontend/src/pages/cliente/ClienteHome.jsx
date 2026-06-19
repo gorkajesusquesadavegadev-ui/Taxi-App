@@ -77,6 +77,7 @@ export default function ClienteHome() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [reservando, setReservando] = useState(false);
+  const [sinTaxi, setSinTaxi] = useState(false); // true tras 45s sin taxista
   const navigate = useNavigate();
   const wsRef = useRef(null);
   const userPosRef = useRef(LPGC);
@@ -252,17 +253,24 @@ export default function ClienteHome() {
     setError("");
   }
 
+  // Auto-timeout: if SOLICITADO for 45s with no driver, warn the client
+  useEffect(() => {
+    if (!viaje || viaje.estado !== "SOLICITADO") { setSinTaxi(false); return; }
+    const t = setTimeout(() => setSinTaxi(true), 45_000);
+    return () => clearTimeout(t);
+  }, [viaje?.id, viaje?.estado]);
+
   async function pedir() {
     if (!origen || !destino) return;
     setBusy(true);
     setError("");
+    setSinTaxi(false);
     try {
       const v = await api.solicitar({
         origenLat: origen.lat,
         origenLng: origen.lng,
         destinoLat: destino.lat,
         destinoLng: destino.lng,
-        // las direcciones viajan a la BD: historial y estadísticas con nombres
         origenTexto: origen.label || null,
         destinoTexto: destino.label || null,
       });
@@ -273,6 +281,15 @@ export default function ClienteHome() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function reintentar() {
+    if (!viaje) return;
+    try { await api.cancelar(viaje.id); } catch (_) {}
+    setViaje(null);
+    setSinTaxi(false);
+    setStatusMsg("");
+    await pedir();
   }
 
   async function confirmarReserva({ programadaPara, notas }) {
@@ -412,6 +429,19 @@ export default function ClienteHome() {
                     <Spinner className="ml-2 h-4 w-4 align-middle" />
                   )}
                 </p>
+                {/* Sin taxista tras 45s → mostrar opción de reintento */}
+                {sinTaxi && viaje.estado === "SOLICITADO" && (
+                  <div className="rounded-xl bg-taxi/15 px-3 py-2.5 text-sm">
+                    <p className="font-semibold text-volcanic">No hay taxis disponibles cerca ahora mismo.</p>
+                    <p className="mt-0.5 text-xs text-volcanic/60">El sistema sigue buscando automáticamente. Puedes reintentar o esperar.</p>
+                    <button
+                      onClick={reintentar}
+                      className="mt-2 w-full rounded-xl bg-taxi py-2 font-bold text-volcanic transition active:scale-95"
+                    >
+                      Reintentar búsqueda
+                    </button>
+                  </div>
+                )}
                 {viaje.estado === "COMPLETADO" || viaje.estado === "CANCELADO" ? (
                   <Button full variant="dark" onClick={cancelar}>
                     Nuevo viaje
@@ -489,6 +519,15 @@ export default function ClienteHome() {
                 </div>
 
                 {error && <p className="text-sm font-medium text-coral">{error}</p>}
+
+                {/* Taxis disponibles ahora mismo */}
+                {taxisOnline.length > 0 && (
+                  <p className="text-center text-xs font-semibold text-palm">
+                    {taxisOnline.filter(t => !t.enViaje).length > 0
+                      ? `${taxisOnline.filter(t => !t.enViaje).length} taxi${taxisOnline.filter(t => !t.enViaje).length > 1 ? "s" : ""} libre${taxisOnline.filter(t => !t.enViaje).length > 1 ? "s" : ""} cerca`
+                      : `${taxisOnline.length} taxi${taxisOnline.length > 1 ? "s" : ""} cerca (en viaje)`}
+                  </p>
+                )}
 
                 <div className="grid grid-cols-3 gap-2">
                   <Button

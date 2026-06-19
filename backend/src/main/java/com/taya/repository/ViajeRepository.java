@@ -25,6 +25,9 @@ public interface ViajeRepository extends JpaRepository<Viaje, Long> {
     Optional<Viaje> findFirstByTaxistaIdAndEstadoInOrderBySolicitadoEnDesc(
         Long taxistaId, Collection<EstadoViaje> estados);
 
+    // Retry dispatcher: trips stuck as SOLICITADO beyond cutoff (no driver accepted yet)
+    List<Viaje> findByEstadoAndSolicitadoEnBefore(EstadoViaje estado, Instant antes);
+
     // First-accept-wins: only succeeds while still SOLICITADO
     @Modifying
     @Query("update Viaje v set v.estado = com.taya.model.EstadoViaje.ACEPTADO, " +

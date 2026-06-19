@@ -55,6 +55,12 @@ public class ViajeController {
         return viajes.activoTaxista(Long.valueOf(uid));
     }
 
+    /** Polling fallback: nearest SOLICITADO trip near taxista's current location */
+    @GetMapping("/pendiente-cercano") @PreAuthorize("hasRole('TAXISTA')")
+    public ViajeResponse pendienteCercano(@AuthenticationPrincipal String uid) {
+        return viajes.pendienteCercanoParaTaxista(Long.valueOf(uid));
+    }
+
     @GetMapping("/{id}")
     public ViajeResponse uno(@AuthenticationPrincipal String uid, @PathVariable Long id) {
         return viajes.uno(id, Long.valueOf(uid));
