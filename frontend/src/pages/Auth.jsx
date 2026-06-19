@@ -244,6 +244,85 @@ function TimanfayaSvg() {
   );
 }
 
+function FaroSvg() {
+  return (
+    <svg width="46" height="110" viewBox="0 0 46 110" fill="none" className="block">
+      <rect x="14" y="22" width="18" height="78" fill="#FFFFFF" stroke="#0B2E4F" strokeWidth="1.5" />
+      {[0, 1, 2, 3].map((i) => (
+        <rect key={i} x="14" y={40 + i * 16} width="18" height="7" fill="#E03131" opacity="0.65" />
+      ))}
+      <rect x="10" y="12" width="26" height="12" rx="3" fill="#FFC400" />
+      <rect x="8" y="10" width="30" height="4" rx="2" fill="#0B2E4F" />
+      <circle cx="23" cy="18" r="4" fill="white" opacity="0.9" />
+      <rect x="8" y="98" width="30" height="12" rx="2" fill="#0B2E4F" />
+      <rect x="16" y="2" width="1.5" height="10" fill="#0B2E4F" />
+      <path d="M17.5 2 l10 3.5 l-10 3.5 Z" fill="#FFC400" />
+    </svg>
+  );
+}
+
+function JameosSvg() {
+  return (
+    <svg width="112" height="82" viewBox="0 0 112 82" fill="none" className="block">
+      <path d="M0 82 Q12 44 32 32 Q56 20 80 32 Q100 44 112 82 Z" fill="#1a0a05" />
+      <path d="M24 82 Q24 44 56 40 Q88 44 88 82 Z" fill="#0B2E4F" />
+      <ellipse cx="56" cy="70" rx="24" ry="8" fill="#4AA3DD" opacity="0.85" />
+      <ellipse cx="56" cy="70" rx="14" ry="4" fill="#BFE0F5" opacity="0.55" />
+      <text x="56" y="78" textAnchor="middle" fontSize="7" fill="white" opacity="0.5" fontStyle="italic">lago</text>
+    </svg>
+  );
+}
+
+function GarajonayTrees() {
+  return (
+    <svg width="130" height="90" viewBox="0 0 130 90" fill="none" className="block">
+      <rect x="8" y="55" width="9" height="35" rx="3" fill="#0B3D1C" />
+      <ellipse cx="12" cy="44" rx="19" ry="22" fill="#155724" />
+      <rect x="44" y="40" width="10" height="50" rx="3" fill="#0B3D1C" />
+      <ellipse cx="49" cy="28" rx="24" ry="27" fill="#198754" />
+      <rect x="82" y="50" width="9" height="40" rx="3" fill="#0B3D1C" />
+      <ellipse cx="86" cy="38" rx="20" ry="23" fill="#155724" />
+      <rect x="111" y="58" width="8" height="32" rx="3" fill="#0B3D1C" />
+      <ellipse cx="115" cy="48" rx="16" ry="18" fill="#198754" />
+      <ellipse cx="65" cy="74" rx="62" ry="11" fill="white" opacity="0.2" />
+    </svg>
+  );
+}
+
+function CastilloSvg() {
+  return (
+    <svg width="104" height="92" viewBox="0 0 104 92" fill="none" className="block">
+      <rect x="0" y="30" width="24" height="62" fill="#F7FBFE" stroke="#0B2E4F" strokeWidth="1.5" />
+      {[0, 1].map((i) => (
+        <rect key={i} x={i * 12} y="18" width="10" height="14" rx="1.5" fill="#F7FBFE" stroke="#0B2E4F" strokeWidth="1.5" />
+      ))}
+      <rect x="80" y="30" width="24" height="62" fill="#F7FBFE" stroke="#0B2E4F" strokeWidth="1.5" />
+      {[0, 1].map((i) => (
+        <rect key={i} x={80 + i * 12} y="18" width="10" height="14" rx="1.5" fill="#F7FBFE" stroke="#0B2E4F" strokeWidth="1.5" />
+      ))}
+      <rect x="6" y="50" width="92" height="42" fill="#FFFFFF" stroke="#0B2E4F" strokeWidth="1.5" />
+      {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+        <rect key={i} x={6 + i * 13} y="38" width="9" height="14" rx="1.5" fill="#F7FBFE" stroke="#0B2E4F" strokeWidth="1.5" />
+      ))}
+      <path d="M38 92 v-22 q14 -14 28 0 v22 Z" fill="#0B2E4F" />
+      <rect x="50" y="2" width="1.5" height="18" fill="#0B2E4F" />
+      <path d="M51.5 2 l14 5 l-14 5 Z" fill="#FFC400" />
+    </svg>
+  );
+}
+
+function TaburienterSvg() {
+  return (
+    <svg width="130" height="88" viewBox="0 0 130 88" fill="none" className="block">
+      <path d="M0 88 Q18 30 65 18 Q112 30 130 88 Z" fill="#5B3A29" />
+      <path d="M30 88 Q50 48 65 18 L65 88 Z" fill="#7A4A34" opacity="0.35" />
+      <path d="M65 18 Q30 40 10 60 Q30 50 65 30 Q100 50 120 60 Q100 40 65 18 Z" fill="#3d2010" opacity="0.4" />
+      <ellipse cx="65" cy="28" rx="30" ry="10" fill="#11395F" opacity="0.6" />
+      <text x="65" y="34" textAnchor="middle" fontSize="7" fill="white" opacity="0.7" fontWeight="bold">CALDERA</text>
+    </svg>
+  );
+}
+
 function PalmSvg({ h = 92 }) {
   return (
     <svg width={h * 0.72} height={h} viewBox="0 0 72 100" fill="none" className="block">
@@ -360,7 +439,7 @@ function Billboard({ title, children }) {
 // un tramo de costa; se pinta dos veces para el bucle sin costuras
 function CostaSegment() {
   return (
-    <div className="flex shrink-0 items-end gap-14 px-8">
+    <div className="flex shrink-0 items-end gap-12 px-8">
       <Hito label="Dunas de Maspalomas">
         <DunasSvg />
       </Hito>
@@ -368,31 +447,48 @@ function CostaSegment() {
         <TirmaAd />
       </Billboard>
       <PalmSvg />
-      <Hito label="Catedral de Santa Ana">
-        <CatedralSvg />
+      <Hito label="Teide · Tenerife">
+        <TeideSvg />
       </Hito>
       <Billboard title="Clipper · el sabor de la isla">
         <ClipperAd />
       </Billboard>
-      <Hito label="Roque Nublo">
-        <RoqueSvg />
+      <Hito label="Catedral de Santa Ana">
+        <CatedralSvg />
+      </Hito>
+      <PalmSvg h={78} />
+      <Hito label="Faro de Maspalomas">
+        <FaroSvg />
       </Hito>
       <Billboard title="Kalise · helados de Canarias">
         <KaliseAd />
       </Billboard>
-      <PalmSvg h={78} />
-      <Hito label="Teide · Tenerife">
-        <TeideSvg />
+      <Hito label="Roque Nublo">
+        <RoqueSvg />
+      </Hito>
+      <Hito label="Timanfaya · Lanzarote">
+        <TimanfayaSvg />
       </Hito>
       <Billboard title="UD Las Palmas · ¡Pío pío!">
         <UdlpAd />
       </Billboard>
-      <Hito label="Timanfaya · Lanzarote">
-        <TimanfayaSvg />
+      <PalmSvg />
+      <Hito label="Jameos del Agua · Lanzarote">
+        <JameosSvg />
       </Hito>
       <Billboard title="Restaurante El Carretón · huevos fritos">
         <CarretonAd />
       </Billboard>
+      <Hito label="Garajonay · La Gomera">
+        <GarajonayTrees />
+      </Hito>
+      <PalmSvg h={78} />
+      <Hito label="Castillo de la Luz · Las Palmas">
+        <CastilloSvg />
+      </Hito>
+      <Hito label="Caldera de Taburiente · La Palma">
+        <TaburienterSvg />
+      </Hito>
     </div>
   );
 }
