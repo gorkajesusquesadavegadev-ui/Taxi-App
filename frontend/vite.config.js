@@ -49,5 +49,17 @@ export default defineConfig({
       devOptions: { enabled: false }, // PWA solo en build (dev queda limpio)
     }),
   ],
-  server: { port: 5173, host: true }, // host:true → accesible desde el móvil por IP
+  server: { port: 5173, host: true },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("leaflet") || id.includes("react-leaflet")) return "leaflet";
+          if (id.includes("node_modules/react-dom") || id.includes("node_modules/react/") || id.includes("scheduler")) return "react";
+          if (id.includes("react-router")) return "router";
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
+  },
 });

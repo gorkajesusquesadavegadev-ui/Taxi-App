@@ -13,6 +13,9 @@ export default function Layout({ title, action, children, framed = false }) {
   return (
     // Full-bleed responsive shell: drawer sidebar on mobile, docked rail on lg+.
     <div className="relative flex h-screen w-full overflow-hidden bg-cream">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[9999] focus:rounded-xl focus:bg-taxi focus:px-4 focus:py-2 focus:font-bold focus:text-volcanic focus:shadow-float">
+        Saltar al contenido
+      </a>
       <ToastHost />
       {user?.rol === "TAXISTA" && <ReservaReminders />}
       <Sidebar open={open} onClose={() => setOpen(false)} />
@@ -41,7 +44,7 @@ export default function Layout({ title, action, children, framed = false }) {
         </header>
 
         {/* content */}
-        <main className={`relative isolate flex-1 overflow-hidden ${framed ? "map-vignette" : ""}`}>
+        <main id="main-content" className={`relative isolate flex-1 overflow-hidden ${framed ? "map-vignette" : ""}`}>
           {children}
         </main>
       </div>

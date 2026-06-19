@@ -5,18 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#0B2E4F" />
     <title>CanaryCab · App de Canarias</title>
+
+    <!-- SEO -->
+    <meta name="description" content="CanaryCab — Tu taxi en las Islas Canarias. Pide, reserva y viaja con tarifas oficiales del BOC. Seguimiento en vivo, ruta real y app nativa." />
+    <meta name="keywords" content="taxi Canarias, taxi Gran Canaria, taxi Tenerife, taxi Lanzarote, taxi Fuerteventura, taxi La Palma, taxi La Gomera, taxi El Hierro, CanaryCab, app taxi canarias" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://canarycab.com/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://canarycab.com/" />
+    <meta property="og:title" content="CanaryCab · Tu taxi en las Islas Canarias" />
+    <meta property="og:description" content="Pide tu taxi en cualquier isla canaria. Tarifas oficiales, seguimiento en vivo y ruta real. Proyecto de cohesión territorial." />
+    <meta property="og:image" content="https://canarycab.com/icons/pwa-512.png" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:site_name" content="CanaryCab" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CanaryCab · App de Canarias" />
+    <meta name="twitter:description" content="Tu taxi en las Islas Canarias: tarifa oficial, ruta real y seguimiento en vivo." />
+    <meta name="twitter:image" content="https://canarycab.com/icons/pwa-512.png" />
+
+    <!-- Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+
+    <!-- PWA / iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="CanaryCab" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400..900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap"
-      rel="stylesheet"
-    />
+
+    <!-- Fonts: preconnect + async load (no render-blocking) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
+      href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400..900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" />
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400..900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" />
+    </noscript>
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "MobileApplication",
+      "name": "CanaryCab",
+      "description": "App de taxi para las Islas Canarias. Tarifas oficiales, seguimiento en vivo y ruta real.",
+      "url": "https://canarycab.com",
+      "applicationCategory": "TravelApplication",
+      "operatingSystem": "Web, iOS, Android",
+      "inLanguage": "es",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+      "areaServed": { "@type": "Place", "name": "Islas Canarias, España" },
+      "author": { "@type": "Organization", "name": "CanaryCab", "url": "https://canarycab.com" }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>

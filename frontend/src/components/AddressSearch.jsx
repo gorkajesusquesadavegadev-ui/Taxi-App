@@ -36,7 +36,9 @@ export default function AddressSearch({ placeholder, value, onSelect, dotClass =
   const [editing, setEditing] = useState(false);
   const [searching, setSearching] = useState(false);
   const [listening, setListening] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(-1);
   const recRef = useRef(null);
+  const listId = useRef(`addr-${Math.random().toString(36).slice(2)}`).current;
 
   // reflect outside changes (map click reverse-geocode, reset)
   useEffect(() => {
@@ -68,12 +70,32 @@ export default function AddressSearch({ placeholder, value, onSelect, dotClass =
     setQ(r.label);
     setEditing(false);
     setResults([]);
+    setActiveIdx(-1);
   }
 
   function clear() {
     onSelect(null);
     setQ("");
     setResults([]);
+    setActiveIdx(-1);
+  }
+
+  function handleKeyDown(e) {
+    if (!results.length) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIdx((i) => Math.min(i + 1, results.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIdx((i) => Math.max(i - 1, -1));
+    } else if (e.key === "Enter" && activeIdx >= 0) {
+      e.preventDefault();
+      choose(results[activeIdx]);
+    } else if (e.key === "Escape") {
+      setEditing(false);
+      setResults([]);
+      setActiveIdx(-1);
+    }
   }
 
   function toggleMic() {
@@ -105,11 +127,19 @@ export default function AddressSearch({ placeholder, value, onSelect, dotClass =
         <input
           value={q}
           placeholder={placeholder}
+          aria-label={placeholder}
+          aria-autocomplete="list"
+          aria-controls={listId}
+          aria-expanded={editing && results.length > 0}
+          aria-activedescendant={activeIdx >= 0 ? `${listId}-opt-${activeIdx}` : undefined}
+          role="combobox"
           onChange={(e) => {
             setQ(e.target.value);
             setEditing(true);
+            setActiveIdx(-1);
           }}
           onFocus={() => setEditing(true)}
+          onKeyDown={handleKeyDown}
           className="min-w-0 flex-1 bg-transparent text-sm font-medium outline-none placeholder:text-volcanic/40"
         />
         {searching && <Spinner className="h-3.5 w-3.5 shrink-0" />}
@@ -141,13 +171,18 @@ export default function AddressSearch({ placeholder, value, onSelect, dotClass =
 
       {/* inline result list (no overlay: safe inside the bottom sheet) */}
       {editing && results.length > 0 && (
-        <ul className="mt-1.5 max-h-44 overflow-y-auto rounded-2xl border border-sand-deep bg-white py-1 shadow-card slim-scroll">
-          {results.map((r) => (
-            <li key={`${r.lat},${r.lng}`}>
+        <ul
+          id={listId}
+          role="listbox"
+          aria-label={`Resultados para ${placeholder}`}
+          className="mt-1.5 max-h-44 overflow-y-auto rounded-2xl border border-sand-deep bg-white py-1 shadow-card slim-scroll"
+        >
+          {results.map((r, i) => (
+            <li key={`${r.lat},${r.lng}`} role="option" aria-selected={i === activeIdx} id={`${listId}-opt-${i}`}>
               <button
                 type="button"
                 onClick={() => choose(r)}
-                className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm hover:bg-sand"
+                className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm ${i === activeIdx ? "bg-sand" : "hover:bg-sand"}`}
               >
                 <span className="shrink-0 text-atlantic"><IconPinSmall /></span>
                 <span className="truncate font-medium">{r.label}</span>

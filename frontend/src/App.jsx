@@ -1,19 +1,21 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import Spinner from "./components/Spinner.jsx";
-import Auth from "./pages/Auth.jsx";
-import ClienteHome from "./pages/cliente/ClienteHome.jsx";
-import TaxistaHome from "./pages/taxista/TaxistaHome.jsx";
-import Historial from "./pages/Historial.jsx";
-import Ofertas from "./pages/cliente/Ofertas.jsx";
-import Ajustes from "./pages/Ajustes.jsx";
-import Estadisticas from "./pages/Estadisticas.jsx";
-import Foro from "./pages/Foro.jsx";
-import Reservas from "./pages/Reservas.jsx";
-import TarifaActual from "./pages/TarifaActual.jsx";
-import Privacidad from "./pages/legal/Privacidad.jsx";
-import Cookies from "./pages/legal/Cookies.jsx";
-import Terminos from "./pages/legal/Terminos.jsx";
+
+const Auth = lazy(() => import("./pages/Auth.jsx"));
+const ClienteHome = lazy(() => import("./pages/cliente/ClienteHome.jsx"));
+const TaxistaHome = lazy(() => import("./pages/taxista/TaxistaHome.jsx"));
+const Historial = lazy(() => import("./pages/Historial.jsx"));
+const Ofertas = lazy(() => import("./pages/cliente/Ofertas.jsx"));
+const Ajustes = lazy(() => import("./pages/Ajustes.jsx"));
+const Estadisticas = lazy(() => import("./pages/Estadisticas.jsx"));
+const Foro = lazy(() => import("./pages/Foro.jsx"));
+const Reservas = lazy(() => import("./pages/Reservas.jsx"));
+const TarifaActual = lazy(() => import("./pages/TarifaActual.jsx"));
+const Privacidad = lazy(() => import("./pages/legal/Privacidad.jsx"));
+const Cookies = lazy(() => import("./pages/legal/Cookies.jsx"));
+const Terminos = lazy(() => import("./pages/legal/Terminos.jsx"));
 
 function Splash() {
   return (
@@ -40,82 +42,49 @@ export default function App() {
   if (loading) return <Splash />;
 
   return (
-    <Routes>
-      <Route path="/login" element={user ? <Navigate to="/" replace /> : <Auth />} />
-      <Route
-        path="/"
-        element={
-          <Protected>{user?.rol === "TAXISTA" ? <TaxistaHome /> : <ClienteHome />}</Protected>
-        }
-      />
-      <Route
-        path="/historial"
-        element={
-          <Protected>
-            <Historial />
-          </Protected>
-        }
-      />
-      <Route
-        path="/transfers"
-        element={
-          <Protected>
-            {user?.rol === "TAXISTA" ? <Navigate to="/" replace /> : <Ofertas tipo="transfers" />}
-          </Protected>
-        }
-      />
-      <Route
-        path="/excursiones"
-        element={
-          <Protected>
-            {user?.rol === "TAXISTA" ? <Navigate to="/" replace /> : <Ofertas tipo="excursiones" />}
-          </Protected>
-        }
-      />
-      <Route
-        path="/ajustes"
-        element={
-          <Protected>
-            <Ajustes />
-          </Protected>
-        }
-      />
-      <Route
-        path="/estadisticas"
-        element={
-          <Protected>
-            <Estadisticas />
-          </Protected>
-        }
-      />
-      <Route
-        path="/reservas"
-        element={
-          <Protected>
-            <Reservas />
-          </Protected>
-        }
-      />
-      <Route
-        path="/tarifa"
-        element={
-          <Protected>
-            <TarifaActual />
-          </Protected>
-        }
-      />
-      <Route
-        path="/foro"
-        element={
-          <Protected>
-            {user?.rol === "TAXISTA" ? <Foro /> : <Navigate to="/" replace />}
-          </Protected>
-        }
-      />
-      <Route path="/privacidad" element={<Privacidad />} />
-      <Route path="/cookies" element={<Cookies />} />
-      <Route path="/terminos" element={<Terminos />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <Suspense fallback={<Splash />}>
+      <Routes>
+        <Route path="/login" element={user ? <Navigate to="/" replace /> : <Auth />} />
+        <Route
+          path="/"
+          element={
+            <Protected>{user?.rol === "TAXISTA" ? <TaxistaHome /> : <ClienteHome />}</Protected>
+          }
+        />
+        <Route path="/historial" element={<Protected><Historial /></Protected>} />
+        <Route
+          path="/transfers"
+          element={
+            <Protected>
+              {user?.rol === "TAXISTA" ? <Navigate to="/" replace /> : <Ofertas tipo="transfers" />}
+            </Protected>
+          }
+        />
+        <Route
+          path="/excursiones"
+          element={
+            <Protected>
+              {user?.rol === "TAXISTA" ? <Navigate to="/" replace /> : <Ofertas tipo="excursiones" />}
+            </Protected>
+          }
+        />
+        <Route path="/ajustes" element={<Protected><Ajustes /></Protected>} />
+        <Route path="/estadisticas" element={<Protected><Estadisticas /></Protected>} />
+        <Route path="/reservas" element={<Protected><Reservas /></Protected>} />
+        <Route path="/tarifa" element={<Protected><TarifaActual /></Protected>} />
+        <Route
+          path="/foro"
+          element={
+            <Protected>
+              {user?.rol === "TAXISTA" ? <Foro /> : <Navigate to="/" replace />}
+            </Protected>
+          }
+        />
+        <Route path="/privacidad" element={<Privacidad />} />
+        <Route path="/cookies" element={<Cookies />} />
+        <Route path="/terminos" element={<Terminos />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
   );
 }

@@ -420,7 +420,12 @@
   .auth-taxi,
   .auth-bob,
   .auth-honk,
-  .auth-road::before {
+  .auth-road::before,
+  .zona-pulse-alto,
+  .zona-pulse-medio,
+  .zona-pulse-bajo,
+  .taya-pin__ring,
+  .taya-car {
     animation: none !important;
   }
 }
