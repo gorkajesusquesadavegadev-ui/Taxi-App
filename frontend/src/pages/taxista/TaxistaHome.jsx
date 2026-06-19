@@ -68,6 +68,8 @@ export default function TaxistaHome() {
   const wsRef = useRef(null);
   const viajeRef = useRef(null);
   viajeRef.current = viaje;
+  const posRef = useRef(pos);
+  posRef.current = pos;
 
   // Fetch the real road route (OSRM) for the active trip so the taxista sees the
   // same street-following line as the client, not a straight segment.
@@ -154,24 +156,17 @@ export default function TaxistaHome() {
         })
         .catch(() => {});
     cargar();
-    const id = setInterval(cargar, 5000);
+    const id = setInterval(cargar, 2000);
     return () => {
       alive = false;
       clearInterval(id);
     };
   }, []);
 
-  // socket lifecycle tied to online state
+  // socket lifecycle — pos leído de posRef para no reiniciar WS en cada GPS update
   useEffect(() => {
     if (!online) return;
-    // reafirmar LIBRE al conectar (recarga incluida), salvo que haya un viaje
-    // activo asignado: en ese caso seguimos OCUPADO conduciéndolo
-    api
-      .taxistaActivo()
-      .then((v) => {
-        if (!v) api.estado({ estado: "LIBRE", lat: pos.lat, lng: pos.lng }).catch(() => {});
-      })
-      .catch(() => {});
+
     const ws = connectWs(
       (event, data) => {
         if (event === "trip:new") {
@@ -189,22 +184,29 @@ export default function TaxistaHome() {
         }
       },
       (state) => {
-        if (state === "open") setMsg("Conectado. Esperando viajes…");
+        if (state === "open") {
+          setMsg("Conectado. Esperando viajes…");
+          // re-afirmar LIBRE en cada (re)conexión, salvo viaje activo
+          api.taxistaActivo()
+            .then((v) => {
+              if (!v) api.estado({ estado: "LIBRE", lat: posRef.current.lat, lng: posRef.current.lng }).catch(() => {});
+            })
+            .catch(() => {});
+          ws.send("location:update", { lat: posRef.current.lat, lng: posRef.current.lng });
+        }
       }
     );
     wsRef.current = ws;
 
-    // stream location + heartbeat while online
-    const locId = setInterval(() => ws.send("location:update", { lat: pos.lat, lng: pos.lng }), 3000);
-    const hbId = setInterval(() => ws.send("heartbeat", {}), 30000);
-    ws.send("location:update", { lat: pos.lat, lng: pos.lng });
+    const locId = setInterval(() => ws.send("location:update", { lat: posRef.current.lat, lng: posRef.current.lng }), 3000);
+    const hbId = setInterval(() => ws.send("heartbeat", {}), 25_000);
 
     return () => {
       clearInterval(locId);
       clearInterval(hbId);
       ws.close();
     };
-  }, [online, pos]);
+  }, [online]); // pos via posRef — nunca cierra el WS por cambio de GPS
 
   async function toggleOnline() {
     try {
