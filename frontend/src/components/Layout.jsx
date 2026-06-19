@@ -19,7 +19,7 @@ export default function Layout({ title, action, children, framed = false }) {
 
       <div className="grain mesh-warm relative flex min-w-0 flex-1 flex-col">
         {/* top bar */}
-        <header className="glass relative z-30 flex items-center gap-3 border-b border-sand-deep/60 px-3 py-3 lg:px-6">
+        <header className="glass relative z-[1001] flex items-center gap-3 border-b border-sand-deep/60 px-3 py-3 lg:px-6">
           <button
             onClick={() => setOpen(true)}
             className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-volcanic text-cream shadow-card transition-transform active:scale-90 lg:hidden"
@@ -41,7 +41,7 @@ export default function Layout({ title, action, children, framed = false }) {
         </header>
 
         {/* content */}
-        <main className={`relative z-10 flex-1 overflow-hidden ${framed ? "map-vignette" : ""}`}>
+        <main className={`relative isolate flex-1 overflow-hidden ${framed ? "map-vignette" : ""}`}>
           {children}
         </main>
       </div>
