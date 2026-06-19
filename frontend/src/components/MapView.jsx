@@ -45,15 +45,20 @@ const flagIcon = L.divIcon({
   iconAnchor: [16, 38],
 });
 
-const carIcon = L.divIcon({
-  className: "",
-  html: `<div class="taya-car"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#FFC400" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.5-4.2A2 2 0 0 1 8.4 5.5h7.2a2 2 0 0 1 1.9 1.3L19 11"/><path d="M3 16v-2.2A2 2 0 0 1 4.4 12h15.2A2 2 0 0 1 21 13.8V16a1 1 0 0 1-1 1h-1"/><path d="M6 17v1.5M18 17v1.5M5 17h14"/><circle cx="7.5" cy="16.5" r="1.3"/><circle cx="16.5" cy="16.5" r="1.3"/></svg></div>`,
-  iconSize: [40, 40],
-  iconAnchor: [20, 20],
-});
+function makeCarIcon(stroke) {
+  return L.divIcon({
+    className: "",
+    html: `<div class="taya-car"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.5-4.2A2 2 0 0 1 8.4 5.5h7.2a2 2 0 0 1 1.9 1.3L19 11"/><path d="M3 16v-2.2A2 2 0 0 1 4.4 12h15.2A2 2 0 0 1 21 13.8V16a1 1 0 0 1-1 1h-1"/><path d="M6 17v1.5M18 17v1.5M5 17h14"/><circle cx="7.5" cy="16.5" r="1.3"/><circle cx="16.5" cy="16.5" r="1.3"/></svg></div>`,
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+  });
+}
+const carIcon = makeCarIcon("#FFC400");
+const carOcupadoIcon = makeCarIcon("#94a3b8"); // slate — en viaje
 
 function iconFor(kind) {
   if (kind === "taxi") return carIcon;
+  if (kind === "carOcupado") return carOcupadoIcon;
   if (kind === "destino") return flagIcon;
   return dotIcon(kind);
 }

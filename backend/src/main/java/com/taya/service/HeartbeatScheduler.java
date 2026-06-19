@@ -12,14 +12,21 @@ public class HeartbeatScheduler {
         this.redis = redis; this.ubicacion = ubicacion;
     }
 
-    /** Drop free taxistas whose heartbeat expired (no last_ping key). */
+    /** Drop taxistas cuyo heartbeat expiró de todos los geo-sets. */
     @Scheduled(fixedRate = 15000)
     public void limpiarDesconectados() {
-        Set<String> ids = redis.opsForSet().members("taxis:libres:ids");
-        if (ids == null) return;
-        for (String id : ids) {
-            if (!ubicacion.tienePing(Long.valueOf(id))) {
-                ubicacion.setDesconectado(Long.valueOf(id)); // also removes from taxis:libres:ids
+        Set<String> libres = redis.opsForSet().members("taxis:libres:ids");
+        if (libres != null) {
+            for (String id : libres) {
+                if (!ubicacion.tienePing(Long.valueOf(id)))
+                    ubicacion.setDesconectado(Long.valueOf(id));
+            }
+        }
+        Set<String> online = ubicacion.idsOnline();
+        if (online != null) {
+            for (String id : online) {
+                if (!ubicacion.tienePing(Long.valueOf(id)))
+                    ubicacion.limpiarOnline(Long.valueOf(id));
             }
         }
     }

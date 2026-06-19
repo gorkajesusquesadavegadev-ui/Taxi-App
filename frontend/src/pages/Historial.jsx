@@ -50,7 +50,7 @@ function ViajeCard({ v, index, esTaxista }) {
   const contactoTel = esTaxista ? v.clienteTelefono : v.taxistaTelefono;
   const wa = whatsappLink(
     contactoTel,
-    `Hola${contactoNombre ? " " + contactoNombre : ""}, te escribo por el viaje de TAYA de ${fmtFecha(v.completadoEn || v.solicitadoEn)}.`
+    `Hola${contactoNombre ? " " + contactoNombre : ""}, te escribo por el viaje de CanaryCab de ${fmtFecha(v.completadoEn || v.solicitadoEn)}.`
   );
 
   return (

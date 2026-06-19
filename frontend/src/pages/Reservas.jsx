@@ -67,7 +67,7 @@ function ReservaCard({ r, rol, onAceptar, onCancelar, busy }) {
   const contactoTel = esCliente ? r.taxistaTelefono : r.clienteTelefono;
   const wa = whatsappLink(
     contactoTel,
-    `Hola${contactoNombre ? " " + contactoNombre : ""}, soy ${esCliente ? "tu cliente" : "tu taxista"} de la reserva TAYA de ${tipo.label.toLowerCase()} del ${fmtFechaReserva(r.programadaPara)}.`
+    `Hola${contactoNombre ? " " + contactoNombre : ""}, soy ${esCliente ? "tu cliente" : "tu taxista"} de la reserva CanaryCab de ${tipo.label.toLowerCase()} del ${fmtFechaReserva(r.programadaPara)}.`
   );
   const cancelable = r.estado === "PENDIENTE" || r.estado === "ACEPTADA";
 

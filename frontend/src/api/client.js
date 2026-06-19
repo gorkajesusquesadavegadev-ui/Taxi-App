@@ -61,6 +61,8 @@ export const api = {
   historialCliente: () => req("GET", "/viajes/historial"),
   cercanos: (lat, lng, radio) =>
     req("GET", `/taxistas/cercanos?lat=${lat}&lng=${lng}${radio ? `&radio=${radio}` : ""}`),
+  taxistasOnline: (lat, lng) =>
+    req("GET", `/taxistas/online?lat=${lat}&lng=${lng}`),
   // viajes (taxista)
   estado: (d) => req("PUT", "/taxista/estado", d),
   aceptar: (id) => req("PUT", `/viajes/${id}/aceptar`),

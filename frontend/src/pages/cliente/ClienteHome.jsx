@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import Layout from "../../components/Layout.jsx";
 import MapView, { LPGC } from "../../components/MapView.jsx";
 import Sheet from "../../components/Sheet.jsx";
@@ -12,11 +12,22 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { direccionDe } from "../../api/geo.js";
 import { connectWs } from "../../api/ws.js";
-import { prefs, avisar } from "../../utils/prefs.js";
+import { avisar } from "../../utils/prefs.js";
 
 const TIPO_LABEL = { TRANSFER: "Transfer", EXCURSION: "Excursión" };
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
+
+// Espeja la lógica del backend TarifaService para mostrar la tarifa sin depender
+// de que el backend envíe el campo zona (fallback si el backend es antiguo).
+function calcZona(oLat, oLng, dLat, dLng) {
+  const enLP = (lat, lng) => lat >= 28.00 && lat <= 28.19 && lng >= -15.50 && lng <= -15.36;
+  const dist = (lat, lng) => Math.sqrt((lat - 28.128) ** 2 + (lng - (-15.432)) ** 2) * 111;
+  const oLP = enLP(oLat, oLng), dLP = enLP(dLat, dLng);
+  if (oLP !== dLP || (!oLP && !dLP)) return "Interurbano · Fuera del municipio";
+  if (dist(oLat, oLng) > 6.5 || dist(dLat, dLng) > 6.5) return "Tarifa 3 · Barrios";
+  return "Tarifa 1 · Casco urbano";
+}
 
 const MSG_ESTADO = {
   SOLICITADO: "Buscando un taxi cercano…",
@@ -30,7 +41,8 @@ const MSG_ESTADO = {
 export default function ClienteHome() {
   const [origen, setOrigen] = useState(null);
   const [destino, setDestino] = useState(null);
-  const [nearby, setNearby] = useState([]);
+  const [userPos, setUserPos] = useState(LPGC);
+  const [taxisOnline, setTaxisOnline] = useState([]);
   const [estimacion, setEstimacion] = useState(null);
   const [estimando, setEstimando] = useState(false);
   const [viaje, setViaje] = useState(null);
@@ -43,6 +55,8 @@ export default function ClienteHome() {
   const [reservando, setReservando] = useState(false);
   const navigate = useNavigate();
   const wsRef = useRef(null);
+  const userPosRef = useRef(LPGC);
+  userPosRef.current = userPos;
   const viajeRef = useRef(null);
   viajeRef.current = viaje;
   const estadoPrev = useRef(null);
@@ -57,7 +71,7 @@ export default function ClienteHome() {
       setLlegada(true);
     }
     if (estado === "EN_CURSO") avisar("Viaje iniciado", "¡Buen viaje!");
-    if (estado === "COMPLETADO") avisar("Viaje completado", "Gracias por viajar con TAYA.");
+    if (estado === "COMPLETADO") avisar("Viaje completado", "Gracias por viajar con CanaryCab.");
   }
 
   // live socket for trip events
@@ -140,22 +154,29 @@ export default function ClienteHome() {
     };
   }, [viaje?.id]);
 
-  // nearby free taxis around city center on load
-  const loadNearby = useCallback(async () => {
-    if (!prefs.getNearby()) {
-      setNearby([]);
-      return;
-    }
-    try {
-      const t = await api.cercanos(LPGC.lat, LPGC.lng);
-      setNearby(t || []);
-    } catch (_) {
-      /* offline-tolerant */
-    }
-  }, []);
+  // GPS real del cliente: centra el mapa en su posición
   useEffect(() => {
-    loadNearby();
-  }, [loadNearby]);
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (p) => setUserPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => {},
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, []);
+
+  // taxis online (libres + en viaje) — refresca cada 8 s
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      try {
+        const t = await api.taxistasOnline(userPosRef.current.lat, userPosRef.current.lng);
+        if (alive) setTaxisOnline(t || []);
+      } catch (_) {}
+    };
+    load();
+    const id = setInterval(load, 8000);
+    return () => { alive = false; clearInterval(id); };
+  }, []);
 
   // auto-estimate when both points set (keyed on coords: label updates must not refetch)
   useEffect(() => {
@@ -266,7 +287,13 @@ export default function ClienteHome() {
   }
 
   const markers = [
-    ...nearby.map((t) => ({ id: `n-${t.taxistaId}`, lat: t.lat, lng: t.lng, kind: "nearby" })),
+    // taxis online: amarillo = libre, gris = en viaje
+    ...taxisOnline.map((t) => ({
+      id: `t-${t.taxistaId}`,
+      lat: t.lat,
+      lng: t.lng,
+      kind: t.enViaje ? "carOcupado" : "taxi",
+    })),
     // con viaje activo los puntos salen del propio viaje (cubre transfers/excursiones)
     ...(viaje
       ? [
@@ -277,9 +304,8 @@ export default function ClienteHome() {
           ...(origen ? [{ id: "o", ...origen, kind: "origin" }] : []),
           ...(destino ? [{ id: "d", ...destino, kind: "destino" }] : []),
         ]),
-    ...(taxiPos ? [{ id: "taxi", ...taxiPos, kind: "taxi" }] : []),
+    ...(taxiPos ? [{ id: "taxi-activo", ...taxiPos, kind: "taxi" }] : []),
   ];
-  // Real road geometry from OSRM (list of [lat,lng]); straight line only as fallback.
   const route =
     viaje && rutaActiva
       ? rutaActiva.puntos.map(([lat, lng]) => ({ lat, lng }))
@@ -289,7 +315,7 @@ export default function ClienteHome() {
           ? [origen, destino]
           : null;
   const center =
-    taxiPos || (viaje ? { lat: viaje.origenLat, lng: viaje.origenLng } : origen) || LPGC;
+    taxiPos || (viaje ? { lat: viaje.origenLat, lng: viaje.origenLng } : origen) || userPos;
 
   return (
     <Layout title="Pedir taxi" framed>
@@ -404,19 +430,30 @@ export default function ClienteHome() {
                       <Spinner className="h-4 w-4" />
                     </>
                   ) : estimacion ? (
-                    <>
-                      <span className="font-display text-lg font-extrabold text-atlantic-dark">
-                        {estimacion.duracionMin != null && Number(estimacion.duracionMin) > 0 && (
-                          <>{Math.max(1, Math.round(Number(estimacion.duracionMin)))} min</>
-                        )}
-                        <span className="ml-1.5 text-xs font-medium text-volcanic/50">
-                          {Number(estimacion.distanciaKm).toFixed(1)} km
+                    <div className="flex w-full flex-col gap-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-display text-lg font-extrabold text-atlantic-dark">
+                          {estimacion.duracionMin != null && Number(estimacion.duracionMin) > 0 && (
+                            <>{Math.max(1, Math.round(Number(estimacion.duracionMin)))} min</>
+                          )}
+                          <span className="ml-1.5 text-xs font-medium text-volcanic/50">
+                            {Number(estimacion.distanciaKm).toFixed(1)} km
+                          </span>
                         </span>
-                      </span>
-                      <span className="font-display text-lg font-extrabold">
-                        {fmtEur(estimacion.precioEstimado)}
-                      </span>
-                    </>
+                        <span className="font-display text-lg font-extrabold">
+                          {fmtEur(estimacion.precioEstimado)}
+                        </span>
+                      </div>
+                      {/* tarifa aplicada */}
+                      {(estimacion.zona || (origen && destino)) && (
+                        <div className="flex items-center gap-1.5 rounded-xl bg-atlantic/10 px-3 py-1.5">
+                          <span className="text-base">🏷️</span>
+                          <span className="text-[12px] font-extrabold text-atlantic-dark">
+                            {estimacion.zona || calcZona(origen.lat, origen.lng, destino.lat, destino.lng)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <>
                       <span className="text-sm font-semibold text-volcanic/70">Estimado</span>

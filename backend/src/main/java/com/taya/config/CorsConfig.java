@@ -7,14 +7,19 @@ import java.util.List;
 
 @Configuration
 public class CorsConfig {
-    // Orígenes permitidos, configurables por entorno (coma-separados).
-    // En local valen los puertos de Vite; en producción se pasa la URL de la web.
-    @Value("${taya.cors.origins:http://localhost:5173,http://localhost:5174}")
+    // Patrones de orígenes permitidos (admiten comodín *), configurables por
+    // entorno. Por defecto: local + cualquier subdominio de Vercel y del túnel
+    // de Cloudflare, para que la web desplegada pueda llamar al backend.
+    @Value("${taya.cors.origins:*}")
     private String origins;
 
     @Bean CorsConfigurationSource corsConfigurationSource() {
         var cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(Arrays.stream(origins.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList());
+        if ("*".equals(origins.trim())) {
+            cfg.addAllowedOriginPattern("*");
+        } else {
+            cfg.setAllowedOriginPatterns(Arrays.stream(origins.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList());
+        }
         cfg.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
         cfg.setAllowedHeaders(List.of("*"));
         var src = new UrlBasedCorsConfigurationSource();

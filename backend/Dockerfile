@@ -4,7 +4,7 @@ WORKDIR /app
 COPY pom.xml .
 RUN mvn -q dependency:go-offline
 COPY src ./src
-RUN mvn -q clean package -DskipTests
+RUN mvn -q clean package -Dmaven.test.skip=true
 
 # ---- run ----
 FROM eclipse-temurin:17-jre

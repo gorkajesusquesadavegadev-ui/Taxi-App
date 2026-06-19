@@ -4,6 +4,7 @@ import Button from "../components/Button.jsx";
 import Input from "../components/Input.jsx";
 import Spinner from "../components/Spinner.jsx";
 import { IconBolt, IconPin, IconCar } from "../components/icons.jsx";
+import { LogoWordmark, LogoFull } from "../components/Logo.jsx";
 
 /* ---------- live validation ---------- */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -510,6 +511,7 @@ export default function Auth() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [shake, setShake] = useState(false);
+  const [logoPop, setLogoPop] = useState(false);
 
   const errs = validate(form, mode);
   const fieldError = (k) => (touched[k] ? errs[k] : "");
@@ -569,38 +571,25 @@ export default function Auth() {
 
       {/* brand chip (solo con el formulario abierto; en portada manda el logo gigante) */}
       {open && (
-        <div className="absolute left-5 top-4 z-20 flex items-center gap-2.5 lg:left-10 lg:top-7">
-          <span className="grid h-10 w-10 place-items-center rounded-2xl bg-taxi font-display text-lg font-extrabold text-volcanic shadow-sun">
-            T
-          </span>
-          <div className="leading-tight">
-            <p className="font-display text-lg font-extrabold tracking-tight text-volcanic drop-shadow-sm">
-              TAYA
-            </p>
-            <p className="text-[10px] uppercase tracking-[0.24em] text-volcanic/60">
-              Taxi · Canarias
-            </p>
+        <div className="absolute left-4 top-4 z-20 lg:left-8 lg:top-6">
+          <div className="rounded-2xl bg-white/85 px-4 py-2 shadow-sm backdrop-blur-md">
+            <LogoWordmark height={26} />
           </div>
         </div>
       )}
 
-      {/* ---------- portada: TAYA gigante + CTA, la postal entera a la vista ---------- */}
+      {/* ---------- portada: logo + CanaryCab gigante + CTA ---------- */}
       {!open && (
         <div className="pointer-events-none relative z-10 flex min-h-screen flex-col items-center justify-center px-6 pb-[38vh] text-center lg:pb-[26vh]">
           <p className="animate-fade-up rounded-full bg-cream/80 px-4 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.3em] text-volcanic/70 shadow-sm backdrop-blur-sm">
             Gran Canaria · app de taxis
           </p>
-          <h1 className="mt-4 font-display text-[19vw] font-extrabold leading-none tracking-tight text-volcanic drop-shadow-[0_6px_24px_rgba(247,251,254,0.6)] sm:text-7xl lg:text-8xl">
-            {"TAYA".split("").map((c, i) => (
-              <span
-                key={i}
-                className="inline-block animate-fade-up"
-                style={{ animationDelay: `${120 + i * 90}ms` }}
-              >
-                {c}
-              </span>
-            ))}
-          </h1>
+          <div
+            className="mt-5 animate-fade-up rounded-3xl bg-white/80 px-8 py-5 shadow-sm backdrop-blur-md"
+            style={{ animationDelay: "80ms" }}
+          >
+            <LogoFull />
+          </div>
           <p
             className="mt-3 max-w-xs animate-fade-up text-sm font-semibold text-volcanic/75 lg:max-w-sm lg:text-base"
             style={{ animationDelay: "520ms" }}
@@ -635,15 +624,29 @@ export default function Auth() {
             ${shake ? "animate-shake" : ""}`}
           style={{ animationDelay: "60ms", maxHeight: "86vh", overflowY: "auto" }}
         >
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-base font-extrabold tracking-tight lg:text-lg">
-              {mode === "login" ? "Hola de nuevo" : "Súbete a TAYA"}
-            </h2>
+          {/* logo interactivo — click = mensaje bienvenida */}
+          <div className="relative flex items-start justify-between">
+            <button
+              type="button"
+              onClick={() => { setLogoPop(true); setTimeout(() => setLogoPop(false), 1800); }}
+              className={`relative flex flex-1 flex-col items-center pb-1 pt-1 transition-transform duration-150 active:scale-95 ${logoPop ? "animate-honk" : ""}`}
+              aria-label="CanaryCab"
+            >
+              {logoPop && (
+                <span className="absolute -top-7 left-1/2 -translate-x-1/2 animate-pop whitespace-nowrap rounded-full bg-taxi px-3 py-1 text-[11px] font-extrabold text-volcanic shadow-card">
+                  {mode === "login" ? "¡Bienvenido de nuevo! 🌴" : "¡Bienvenido a bordo! 🚕"}
+                </span>
+              )}
+              <LogoWordmark height={40} className="transition-transform duration-150 hover:scale-105" />
+              <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-volcanic/40">
+                {mode === "login" ? "Inicia sesión" : "Crea tu cuenta"}
+              </p>
+            </button>
             <button
               type="button"
               onClick={() => setOpen(false)}
               aria-label="Volver a la portada"
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-sand text-volcanic/60 transition-colors hover:bg-taxi hover:text-volcanic"
+              className="ml-1 mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-sand text-volcanic/60 transition-colors hover:bg-taxi hover:text-volcanic"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
                 <path d="M6 6 18 18 M18 6 6 18" />

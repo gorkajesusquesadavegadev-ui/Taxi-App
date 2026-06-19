@@ -14,6 +14,7 @@ import {
   IconCalendar,
   IconCoin,
 } from "./icons.jsx";
+import { LogoWordmark } from "./Logo.jsx";
 
 const NAV = {
   CLIENTE: [
@@ -62,16 +63,8 @@ export default function Sidebar({ open, onClose }) {
 
         {/* header */}
         <div className="flex items-center justify-between px-5 pt-6 pb-4">
-          <div className="flex items-center gap-2.5">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-taxi font-display text-lg font-extrabold text-volcanic shadow-sun">
-              T
-            </span>
-            <div className="leading-tight">
-              <p className="font-display text-lg font-extrabold tracking-tight">TAYA</p>
-              <p className="text-[10px] uppercase tracking-[0.24em] text-taxi-soft/80">
-                Taxi · Canarias
-              </p>
-            </div>
+          <div className="flex flex-col gap-0.5">
+            <LogoWordmark height={28} className="brightness-[5]" />
           </div>
           <button
             onClick={onClose}
@@ -136,7 +129,7 @@ export default function Sidebar({ open, onClose }) {
               <IconGear />
             </NavLink>
           </div>
-          <p className="mt-3 px-4 text-[11px] text-cream/30">TAYA MVP · v0.1</p>
+          <p className="mt-3 px-4 text-[11px] text-cream/30">CanaryCab MVP · v0.1</p>
         </div>
       </aside>
     </>

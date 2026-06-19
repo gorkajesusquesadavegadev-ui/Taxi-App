@@ -166,7 +166,7 @@ export default function Estadisticas() {
                       {esTaxista ? "Tu actividad al volante" : "Tus viajes en datos"}
                     </h2>
                     <p className="text-sm text-volcanic/55">
-                      Análisis de tu historial guardado en TAYA.
+                      Análisis de tu historial guardado en CanaryCab.
                     </p>
                   </div>
                 </div>

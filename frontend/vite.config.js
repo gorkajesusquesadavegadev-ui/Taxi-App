@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: "autoUpdate", // al desplegar nueva web, la app se actualiza sola
       includeAssets: ["favicon-32.png", "icons/apple-touch-icon.png"],
       manifest: {
-        name: "TAYA · Taxi de Gran Canaria",
-        short_name: "TAYA",
+        name: "CanaryCab · Taxi de Gran Canaria",
+        short_name: "CanaryCab",
         description: "Pide, reserva y viaja por Gran Canaria con tarifas oficiales.",
         lang: "es",
         theme_color: "#0B2E4F",

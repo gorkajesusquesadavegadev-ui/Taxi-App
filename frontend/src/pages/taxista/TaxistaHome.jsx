@@ -13,6 +13,16 @@ import { prefs, beep, avisar } from "../../utils/prefs.js";
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
 const TIPO_LABEL = { TRANSFER: "Transfer", EXCURSION: "Excursión" };
 
+function calcZona(oLat, oLng, dLat, dLng) {
+  if (oLat == null) return null;
+  const enLP = (lat, lng) => lat >= 28.00 && lat <= 28.19 && lng >= -15.50 && lng <= -15.36;
+  const dist = (lat, lng) => Math.sqrt((lat - 28.128) ** 2 + (lng - (-15.432)) ** 2) * 111;
+  const oLP = enLP(oLat, oLng), dLP = enLP(dLat, dLng);
+  if (oLP !== dLP || (!oLP && !dLP)) return "Interurbano · Fuera del municipio";
+  if (dist(oLat, oLng) > 6.5 || dist(dLat, dLng) > 6.5) return "Tarifa 3 · Barrios";
+  return "Tarifa 1 · Casco urbano";
+}
+
 // Toggle pill for online/offline.
 function OnlineToggle({ online, onToggle }) {
   return (
@@ -31,14 +41,14 @@ function OnlineToggle({ online, onToggle }) {
 }
 
 export default function TaxistaHome() {
-  // el estado en línea persiste entre recargas; se reafirma en el backend al conectar
   const [online, setOnline] = useState(() => localStorage.getItem("taya:online") === "1");
-  const [pos] = useState(LPGC); // MVP: fixed position (geolocation deferred)
+  const [pos, setPos] = useState(LPGC);
   const [incoming, setIncoming] = useState(null); // trip:new payload
   const [viaje, setViaje] = useState(null);
   const [routeGeo, setRouteGeo] = useState(null); // real road geometry for the active trip
   const [rutaInfo, setRutaInfo] = useState(null); // {min, km} via OSRM
-  const [dirs, setDirs] = useState(null); // {o, d} reverse-geocoded addresses
+  const [dirs, setDirs] = useState(null); // {o, d} reverse-geocoded addresses for active trip
+  const [incomingDirs, setIncomingDirs] = useState(null); // {o, d} for incoming offer
   const [zonas, setZonas] = useState(null); // demanda: zonas calientes del big data
   const [msg, setMsg] = useState("Conéctate para recibir viajes.");
   const wsRef = useRef(null);
@@ -76,6 +86,31 @@ export default function TaxistaHome() {
       alive = false;
     };
   }, [viaje?.id]);
+
+  // reverse-geocode origin + destination when a new trip offer arrives
+  useEffect(() => {
+    if (!incoming) { setIncomingDirs(null); return; }
+    let alive = true;
+    setIncomingDirs(null);
+    Promise.all([
+      direccionDe(incoming.origenLat, incoming.origenLng),
+      direccionDe(incoming.destinoLat, incoming.destinoLng),
+    ])
+      .then(([o, d]) => alive && setIncomingDirs({ o, d }))
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [incoming?.viajeId]);
+
+  // GPS real del taxista
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    const id = navigator.geolocation.watchPosition(
+      (p) => setPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 }
+    );
+    return () => navigator.geolocation.clearWatch(id);
+  }, []);
 
   // demand heatmap: refreshed every 60s (history decay + live events)
   useEffect(() => {
@@ -245,23 +280,70 @@ export default function TaxistaHome() {
         {incoming && (
           <div className="absolute inset-0 z-[700] grid place-items-end bg-volcanic/40 p-3 backdrop-blur-sm sm:place-items-center">
             <div className="w-full max-w-md animate-pop rounded-[1.7rem] bg-cream p-5 shadow-float ring-4 ring-taxi/70 lg:p-6">
-              <p className="text-xs font-semibold uppercase tracking-wider text-atlantic-dark">
-                {TIPO_LABEL[incoming.tipo] ? `Solicitud de ${TIPO_LABEL[incoming.tipo]}` : "Nuevo viaje"}
-              </p>
+
+              {/* tipo + badge */}
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold uppercase tracking-wider text-atlantic-dark">
+                  {TIPO_LABEL[incoming.tipo] ? `Solicitud de ${TIPO_LABEL[incoming.tipo]}` : "Nuevo viaje"}
+                </p>
+                <span className="rounded-full bg-taxi/20 px-2.5 py-0.5 text-[11px] font-extrabold text-volcanic">
+                  #{incoming.viajeId}
+                </span>
+              </div>
+
               {incoming.detalle && (
                 <p className="mt-0.5 font-display text-base font-extrabold text-volcanic">
                   {incoming.detalle}
                 </p>
               )}
-              <p className="mt-1 font-display text-2xl font-extrabold">
+
+              {/* precio */}
+              <p className="mt-2 font-display text-3xl font-extrabold text-volcanic">
                 {fmtEur(incoming.precioEstimado)}
-                <span className="ml-2 text-sm font-medium text-volcanic/50">
+                <span className="ml-2 text-sm font-medium text-volcanic/45">
                   {TIPO_LABEL[incoming.tipo] ? "precio cerrado" : "estimado"}
                 </span>
               </p>
-              <p className="mt-1 text-sm text-volcanic/60">
-                Recogida marcada en el mapa · viaje #{incoming.viajeId}
-              </p>
+
+              {/* zona tarifaria — badge prominente */}
+              <div className="mt-2 flex items-center gap-2 rounded-xl bg-atlantic/10 px-3 py-2">
+                <span className="text-lg">🏷️</span>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-volcanic/40">Tarifa aplicada</p>
+                  <p className="text-sm font-extrabold text-atlantic-dark">
+                    {incoming.zona || calcZona(incoming.origenLat, incoming.origenLng, incoming.destinoLat, incoming.destinoLng) || "—"}
+                  </p>
+                </div>
+              </div>
+
+              {/* origen → destino */}
+              <div className="mt-3 rounded-2xl bg-sand px-4 py-3">
+                {incomingDirs ? (
+                  <div className="flex items-start gap-3">
+                    <div className="flex flex-col items-center pt-1 shrink-0">
+                      <span className="h-2.5 w-2.5 rounded-full bg-taxi shadow-sun" />
+                      <span className="my-1 h-6 w-px border-l-2 border-dashed border-volcanic/25" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-atlantic-dark" />
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-2 text-sm">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-volcanic/40">Recogida</p>
+                        <p className="font-semibold text-volcanic leading-tight">{incomingDirs.o || "Punto de recogida"}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-volcanic/40">Destino</p>
+                        <p className="font-semibold text-volcanic leading-tight">{incomingDirs.d || "Destino"}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-sm text-volcanic/50">
+                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-volcanic/20 border-t-volcanic/60" />
+                    Cargando ruta…
+                  </div>
+                )}
+              </div>
+
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <Button variant="outline" onClick={() => setIncoming(null)}>
                   Rechazar

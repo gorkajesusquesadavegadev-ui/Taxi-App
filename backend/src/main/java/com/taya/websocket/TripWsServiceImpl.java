@@ -1,6 +1,7 @@
 package com.taya.websocket;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.taya.model.Viaje;
+import com.taya.service.TarifaService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -11,8 +12,11 @@ import java.util.Map;
 @Service
 public class TripWsServiceImpl implements TripWsService {
     private final WsSessionRegistry registry;
+    private final TarifaService tarifa;
     private final ObjectMapper mapper = new ObjectMapper();
-    public TripWsServiceImpl(WsSessionRegistry registry) { this.registry = registry; }
+    public TripWsServiceImpl(WsSessionRegistry registry, TarifaService tarifa) {
+        this.registry = registry; this.tarifa = tarifa;
+    }
 
     private void send(Long userId, String event, Object data) {
         WebSocketSession s = registry.get(userId);
@@ -32,6 +36,7 @@ public class TripWsServiceImpl implements TripWsService {
         payload.put("precioEstimado", v.getPrecioEstimado());
         payload.put("tipo", v.getTipo() != null ? v.getTipo().name() : "NORMAL");
         payload.put("detalle", v.getDetalle());
+        payload.put("zona", tarifa.zonaLabel(v.getOrigenLat(), v.getOrigenLng(), v.getDestinoLat(), v.getDestinoLng()));
         taxistaIds.forEach(id -> send(id, "trip:new", payload));
     }
     @Override public void enviarAceptado(Long clienteId, Viaje v) {
