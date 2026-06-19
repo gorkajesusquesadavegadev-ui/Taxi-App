@@ -129,7 +129,7 @@ export default function Sidebar({ open, onClose }) {
               <IconGear />
             </NavLink>
           </div>
-          <p className="mt-3 px-4 text-[11px] text-cream/30">CanaryCab MVP · v0.1</p>
+          <p className="mt-3 px-4 text-[11px] text-cream/30">CanaryCab · Proyecto de cohesión territorial</p>
         </div>
       </aside>
     </>

@@ -14,8 +14,10 @@ import L from "leaflet";
 // semáforo de demanda (zonas calientes)
 const ZONA_COLOR = { ALTO: "#E03131", MEDIO: "#F08C00", BAJO: "#FFC400" };
 
-// Las Palmas de Gran Canaria
+// Las Palmas de Gran Canaria (fallback GPS)
 export const LPGC = { lat: 28.1235, lng: -15.4363 };
+// Centro del archipiélago canario
+export const CANARIAS = { lat: 28.25, lng: -15.6 };
 
 const DOT_COLORS = {
   origin: "#FFC400", // amarillo
@@ -56,10 +58,22 @@ function makeCarIcon(stroke) {
 const carIcon = makeCarIcon("#FFC400");
 const carOcupadoIcon = makeCarIcon("#94a3b8"); // slate — en viaje
 
+const poiIcon = L.divIcon({
+  className: "",
+  html: `<div style="display:flex;flex-direction:column;align-items:center;gap:1px">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="#10b981" stroke="white" stroke-width="1.5">
+      <polygon points="12 2 15.5 8.5 23 9.5 17.5 14.8 19 22 12 18.3 5 22 6.5 14.8 1 9.5 8.5 8.5"/>
+    </svg>
+  </div>`,
+  iconSize: [22, 22],
+  iconAnchor: [11, 11],
+});
+
 function iconFor(kind) {
   if (kind === "taxi") return carIcon;
   if (kind === "carOcupado") return carOcupadoIcon;
   if (kind === "destino") return flagIcon;
+  if (kind === "poi") return poiIcon;
   return dotIcon(kind);
 }
 
@@ -163,7 +177,13 @@ export default function MapView({
           key={m.id ?? `${m.kind}-${m.lat}-${m.lng}`}
           position={[m.lat, m.lng]}
           icon={iconFor(m.kind)}
-        />
+        >
+          {m.label && (
+            <Tooltip direction="top" offset={[0, -8]} opacity={0.95}>
+              <span style={{ fontSize: "11px", fontWeight: 700 }}>{m.label}</span>
+            </Tooltip>
+          )}
+        </Marker>
       ))}
     </MapContainer>
   );

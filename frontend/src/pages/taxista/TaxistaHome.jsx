@@ -13,14 +13,28 @@ import { prefs, beep, avisar } from "../../utils/prefs.js";
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
 const TIPO_LABEL = { TRANSFER: "Transfer", EXCURSION: "Excursión" };
 
+const _ISLAS = [
+  { id: "GC", latMin: 27.70, latMax: 28.20, lngMin: -15.85, lngMax: -15.30 },
+  { id: "TF", latMin: 27.90, latMax: 28.60, lngMin: -16.95, lngMax: -16.10 },
+  { id: "LZ", latMin: 28.75, latMax: 29.25, lngMin: -13.95, lngMax: -13.40 },
+  { id: "FV", latMin: 27.60, latMax: 28.75, lngMin: -14.55, lngMax: -13.70 },
+  { id: "LP", latMin: 28.40, latMax: 28.95, lngMin: -17.95, lngMax: -17.60 },
+  { id: "GO", latMin: 28.00, latMax: 28.30, lngMin: -17.45, lngMax: -17.00 },
+  { id: "EH", latMin: 27.60, latMax: 27.95, lngMin: -18.20, lngMax: -17.85 },
+];
+const _CENTROS = [
+  [28.123, -15.432, 7.0], [28.463, -16.251, 7.0], [28.487, -16.313, 5.0],
+  [28.963, -13.548, 5.0], [28.499, -13.862, 5.0], [28.684, -17.764, 4.0],
+  [28.091, -17.113, 3.5], [27.807, -17.912, 3.0],
+];
 function calcZona(oLat, oLng, dLat, dLng) {
   if (oLat == null) return null;
-  const enLP = (lat, lng) => lat >= 28.00 && lat <= 28.19 && lng >= -15.50 && lng <= -15.36;
-  const dist = (lat, lng) => Math.sqrt((lat - 28.128) ** 2 + (lng - (-15.432)) ** 2) * 111;
-  const oLP = enLP(oLat, oLng), dLP = enLP(dLat, dLng);
-  if (oLP !== dLP || (!oLP && !dLP)) return "Interurbano · Fuera del municipio";
-  if (dist(oLat, oLng) > 6.5 || dist(dLat, dLng) > 6.5) return "Tarifa 3 · Barrios";
-  return "Tarifa 1 · Casco urbano";
+  const islaDeL = (lat, lng) => _ISLAS.find(i => lat >= i.latMin && lat <= i.latMax && lng >= i.lngMin && lng <= i.lngMax)?.id;
+  const urbano = (lat, lng) => _CENTROS.some(([cLat, cLng, r]) => Math.hypot((lat - cLat) * 111, (lng - cLng) * 96) <= r);
+  const oI = islaDeL(oLat, oLng), dI = islaDeL(dLat, dLng);
+  if (!oI || !dI || oI !== dI) return "Interinsular · Fuera del municipio";
+  if (urbano(oLat, oLng) && urbano(dLat, dLng)) return "Tarifa 1 · Zona urbana";
+  return "Tarifa 3 · Zona periférica";
 }
 
 // Toggle pill for online/offline.

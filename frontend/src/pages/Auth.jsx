@@ -220,6 +220,30 @@ function CatedralSvg() {
   );
 }
 
+function TeideSvg() {
+  return (
+    <svg width="90" height="100" viewBox="0 0 90 100" fill="none" className="block">
+      <path d="M0 100 Q20 55 45 8 Q70 55 90 100 Z" fill="#5B3A29" />
+      <path d="M24 100 Q38 62 45 8 L45 100 Z" fill="#7A4A34" opacity="0.4" />
+      <path d="M45 8 Q40 18 37 24 Q45 18 53 24 Q50 18 45 8 Z" fill="#FFFFFF" />
+      <ellipse cx="66" cy="42" rx="15" ry="6" fill="white" opacity="0.6" />
+    </svg>
+  );
+}
+
+function TimanfayaSvg() {
+  return (
+    <svg width="100" height="72" viewBox="0 0 100 72" fill="none" className="block">
+      <path d="M0 72 Q20 38 50 28 Q80 38 100 72 Z" fill="#1a0a05" />
+      <path d="M18 72 Q36 45 50 28 L50 72 Z" fill="#3d1505" opacity="0.5" />
+      <ellipse cx="33" cy="50" rx="10" ry="6" fill="#8B2500" opacity="0.85" />
+      <ellipse cx="67" cy="45" rx="8" ry="5" fill="#B83000" opacity="0.8" />
+      <path d="M33 44 C30 34 34 26 33 22" stroke="#888" strokeWidth="2.5" strokeLinecap="round" opacity="0.5" />
+      <path d="M67 39 C65 28 70 20 69 16" stroke="#888" strokeWidth="2" strokeLinecap="round" opacity="0.5" />
+    </svg>
+  );
+}
+
 function PalmSvg({ h = 92 }) {
   return (
     <svg width={h * 0.72} height={h} viewBox="0 0 72 100" fill="none" className="block">
@@ -357,9 +381,15 @@ function CostaSegment() {
         <KaliseAd />
       </Billboard>
       <PalmSvg h={78} />
+      <Hito label="Teide · Tenerife">
+        <TeideSvg />
+      </Hito>
       <Billboard title="UD Las Palmas · ¡Pío pío!">
         <UdlpAd />
       </Billboard>
+      <Hito label="Timanfaya · Lanzarote">
+        <TimanfayaSvg />
+      </Hito>
       <Billboard title="Restaurante El Carretón · huevos fritos">
         <CarretonAd />
       </Billboard>
@@ -371,9 +401,12 @@ function CostaSegment() {
 const ADS = [
   "Vuela entre islas con BINTER",
   "Canarias en barco · Fred. Olsen",
-  "Visita las Dunas de Maspalomas",
-  "Sube al Roque Nublo",
-  "Gran Canaria te espera",
+  "Sube al Teide · Tenerife",
+  "Timanfaya · La ruta del fuego",
+  "Dunas de Maspalomas · Gran Canaria",
+  "Garajonay · La Gomera te espera",
+  "Caldera de Taburiente · La Palma",
+  "Corralejo · Fuerteventura",
   "¡CARRETOOOON! · El Carretón, huevos fritos",
 ];
 
@@ -582,7 +615,7 @@ export default function Auth() {
       {!open && (
         <div className="pointer-events-none relative z-10 flex min-h-screen flex-col items-center justify-center px-6 pb-[38vh] text-center lg:pb-[26vh]">
           <p className="animate-fade-up rounded-full bg-cream/80 px-4 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.3em] text-volcanic/70 shadow-sm backdrop-blur-sm">
-            Gran Canaria · app de taxis
+            Islas Canarias · Proyecto de cohesión territorial
           </p>
           <div
             className="mt-5 animate-fade-up rounded-3xl bg-white/80 px-8 py-5 shadow-sm backdrop-blur-md"
@@ -594,7 +627,7 @@ export default function Auth() {
             className="mt-3 max-w-xs animate-fade-up text-sm font-semibold text-volcanic/75 lg:max-w-sm lg:text-base"
             style={{ animationDelay: "520ms" }}
           >
-            Tu taxi en la isla: ruta real por calles, tarifa clara y tu taxi en vivo en el mapa.
+            Tu taxi en el archipiélago canario: ruta real, tarifa clara y tu taxi en vivo en el mapa.
           </p>
           <span className="mt-7 inline-block animate-fade-up" style={{ animationDelay: "680ms" }}>
             <button

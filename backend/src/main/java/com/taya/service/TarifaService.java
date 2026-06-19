@@ -25,29 +25,48 @@ public class TarifaService {
         this.repo = repo; this.osrm = osrm; this.festivos = festivos;
     }
 
-    private static final ZoneId    CANARIAS     = ZoneId.of("Atlantic/Canary");
-    private static final BigDecimal KM_INCLUIDOS = new BigDecimal("0.500"); // 500 m en bajada de bandera
+    private static final ZoneId     CANARIAS     = ZoneId.of("Atlantic/Canary");
+    private static final BigDecimal KM_INCLUIDOS = new BigDecimal("0.500");
 
-    // Área del término municipal de Las Palmas de Gran Canaria
-    private static boolean enMunicipioLP(double lat, double lng) {
-        return lat >= 28.00 && lat <= 28.19 && lng >= -15.50 && lng <= -15.36;
+    private enum Isla { GRAN_CANARIA, TENERIFE, LANZAROTE, FUERTEVENTURA, LA_PALMA, LA_GOMERA, EL_HIERRO, UNKNOWN }
+
+    private static Isla islaDeL(double lat, double lng) {
+        if (lat >= 27.70 && lat <= 28.20 && lng >= -15.85 && lng <= -15.30) return Isla.GRAN_CANARIA;
+        if (lat >= 27.90 && lat <= 28.60 && lng >= -16.95 && lng <= -16.10) return Isla.TENERIFE;
+        if (lat >= 28.75 && lat <= 29.25 && lng >= -13.95 && lng <= -13.40) return Isla.LANZAROTE;
+        if (lat >= 27.60 && lat <= 28.75 && lng >= -14.55 && lng <= -13.70) return Isla.FUERTEVENTURA;
+        if (lat >= 28.40 && lat <= 28.95 && lng >= -17.95 && lng <= -17.60) return Isla.LA_PALMA;
+        if (lat >= 28.00 && lat <= 28.30 && lng >= -17.45 && lng <= -17.00) return Isla.LA_GOMERA;
+        if (lat >= 27.60 && lat <= 27.95 && lng >= -18.20 && lng <= -17.85) return Isla.EL_HIERRO;
+        return Isla.UNKNOWN;
     }
 
-    // Centro urbano: más allá de 6,5 km → barrios periféricos (Tarifa 3)
-    private static final double CENTRO_LAT    = 28.128, CENTRO_LNG = -15.432;
-    private static final double RADIO_CASCO_KM = 6.5;
+    // [lat, lng, radioKm] capitales/núcleos urbanos de cada isla
+    private static final double[][] CENTROS_URBANOS = {
+        {28.123, -15.432, 7.0},  // Las Palmas de Gran Canaria
+        {28.463, -16.251, 7.0},  // Santa Cruz de Tenerife
+        {28.487, -16.313, 5.0},  // San Cristóbal de La Laguna
+        {28.963, -13.548, 5.0},  // Arrecife (Lanzarote)
+        {28.499, -13.862, 5.0},  // Puerto del Rosario (Fuerteventura)
+        {28.684, -17.764, 4.0},  // Santa Cruz de La Palma
+        {28.091, -17.113, 3.5},  // San Sebastián de La Gomera
+        {27.807, -17.912, 3.0},  // Valverde (El Hierro)
+    };
 
-    private static boolean esPeriferia(double lat, double lng) {
-        return GeoUtil.haversineKm(lat, lng, CENTRO_LAT, CENTRO_LNG) > RADIO_CASCO_KM;
+    private static boolean esUrbano(double lat, double lng) {
+        for (double[] c : CENTROS_URBANOS) {
+            if (GeoUtil.haversineKm(lat, lng, c[0], c[1]) <= c[2]) return true;
+        }
+        return false;
     }
 
     private enum Zona { URBANA, PERIFERIA, INTERURBANO }
 
     private static Zona zonaDe(double oLat, double oLng, double dLat, double dLng) {
-        boolean oLP = enMunicipioLP(oLat, oLng), dLP = enMunicipioLP(dLat, dLng);
-        if (oLP != dLP || (!oLP && !dLP)) return Zona.INTERURBANO;
-        if (esPeriferia(oLat, oLng) || esPeriferia(dLat, dLng)) return Zona.PERIFERIA;
-        return Zona.URBANA;
+        Isla oIsla = islaDeL(oLat, oLng), dIsla = islaDeL(dLat, dLng);
+        if (oIsla == Isla.UNKNOWN || dIsla == Isla.UNKNOWN || oIsla != dIsla) return Zona.INTERURBANO;
+        if (esUrbano(oLat, oLng) && esUrbano(dLat, dLng)) return Zona.URBANA;
+        return Zona.PERIFERIA;
     }
 
     /**
@@ -138,9 +157,9 @@ public class TarifaService {
     /** Etiqueta legible de la zona tarifaria aplicada al viaje. */
     public String zonaLabel(double oLat, double oLng, double dLat, double dLng) {
         return switch (zonaDe(oLat, oLng, dLat, dLng)) {
-            case URBANA      -> "Tarifa 1 · Casco urbano";
-            case PERIFERIA   -> "Tarifa 3 · Barrios";
-            case INTERURBANO -> "Interurbano · Fuera del municipio";
+            case URBANA      -> "Tarifa 1 · Zona urbana";
+            case PERIFERIA   -> "Tarifa 3 · Zona periférica";
+            case INTERURBANO -> "Interinsular · Fuera del municipio";
         };
     }
 
