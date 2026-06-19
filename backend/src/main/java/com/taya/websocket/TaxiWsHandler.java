@@ -44,7 +44,13 @@ public class TaxiWsHandler extends TextWebSocketHandler {
 
     @Override public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         Long userId = userIdOf(session);
-        if (userId != null) registry.remove(userId, session);
+        if (userId == null) return;
+        registry.remove(userId, session);
+        // Limpia GEO sets solo si NO hay otra sesión activa (reconexión rápida del mismo usuario)
+        WebSocketSession current = registry.get(userId);
+        if (current == null || !current.isOpen()) {
+            ubicacion.setDesconectado(userId);
+        }
     }
 
     private String tokenFromUri(URI uri) {

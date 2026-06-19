@@ -25,6 +25,8 @@ public class UbicacionService {
         if ("LIBRE".equals(estado)) {
             redis.opsForGeo().add(GEO_LIBRES, new Point(lng, lat), String.valueOf(taxistaId));
             redis.opsForSet().add(IDS_LIBRES, String.valueOf(taxistaId));
+            // Renovar TTL del estado (cada location:update = cada 3 s)
+            redis.expire("taxi:" + taxistaId + ":estado", ESTADO_TTL);
         }
         if ("LIBRE".equals(estado) || "OCUPADO".equals(estado)) {
             redis.opsForGeo().add(GEO_ONLINE, new Point(lng, lat), String.valueOf(taxistaId));
@@ -37,8 +39,12 @@ public class UbicacionService {
         redis.opsForValue().set("taxi:" + taxistaId + ":last_ping", Instant.now().toString(), Duration.ofSeconds(30));
     }
 
+    // TTL del estado: 60 s, renovado por location:update (cada 3 s) y heartbeat (cada 25 s).
+    // Si el taxi desaparece sin cerrar la app, el estado expira y deja de recibir viajes.
+    private static final Duration ESTADO_TTL = Duration.ofSeconds(60);
+
     public void setLibre(Long taxistaId, double lat, double lng) {
-        redis.opsForValue().set("taxi:" + taxistaId + ":estado", "LIBRE");
+        redis.opsForValue().set("taxi:" + taxistaId + ":estado", "LIBRE", ESTADO_TTL);
         redis.opsForGeo().add(GEO_LIBRES, new Point(lng, lat), String.valueOf(taxistaId));
         redis.opsForSet().add(IDS_LIBRES, String.valueOf(taxistaId));
         redis.opsForGeo().add(GEO_ONLINE, new Point(lng, lat), String.valueOf(taxistaId));
@@ -47,14 +53,14 @@ public class UbicacionService {
     }
 
     public void setOcupado(Long taxistaId) {
-        redis.opsForValue().set("taxi:" + taxistaId + ":estado", "OCUPADO");
+        redis.opsForValue().set("taxi:" + taxistaId + ":estado", "OCUPADO", ESTADO_TTL);
         redis.opsForGeo().remove(GEO_LIBRES, String.valueOf(taxistaId));
         redis.opsForSet().remove(IDS_LIBRES, String.valueOf(taxistaId));
         // mantener en GEO_ONLINE: sigue visible como taxi en viaje
     }
 
     public void setDesconectado(Long taxistaId) {
-        redis.opsForValue().set("taxi:" + taxistaId + ":estado", "DESCONECTADO");
+        redis.opsForValue().set("taxi:" + taxistaId + ":estado", "DESCONECTADO", ESTADO_TTL);
         redis.opsForGeo().remove(GEO_LIBRES, String.valueOf(taxistaId));
         redis.opsForSet().remove(IDS_LIBRES, String.valueOf(taxistaId));
         redis.opsForGeo().remove(GEO_ONLINE, String.valueOf(taxistaId));
