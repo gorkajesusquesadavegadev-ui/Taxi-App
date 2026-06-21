@@ -664,6 +664,12 @@ export default function Auth() {
           >
             <LogoFull />
           </div>
+          <p
+            className="mt-3 max-w-xs animate-fade-up text-sm font-semibold text-volcanic/75 lg:max-w-sm lg:text-base"
+            style={{ animationDelay: "400ms" }}
+          >
+            Ruta real, tarifa clara y tu taxi en vivo en el mapa.
+          </p>
           <span className="mt-7 inline-block animate-fade-up" style={{ animationDelay: "520ms" }}>
             <button
               type="button"

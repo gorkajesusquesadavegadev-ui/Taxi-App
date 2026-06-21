@@ -18,14 +18,16 @@ export function LogoIcon({ size = 40, className = "" }) {
   return <LogoWordmark height={size} className={className} />;
 }
 
-/* Splash — wordmark grande centrado */
+/* Splash — wordmark grande centrado con subtítulo editable */
 export function LogoFull({ className = "" }) {
   return (
-    <img
-      src={LOGO_SRC}
-      alt="CanaryCab"
-      className={`w-64 sm:w-72 ${className}`}
-      style={{ objectFit: "contain" }}
-    />
+    <div className={`flex flex-col items-center gap-1.5 ${className}`}>
+      <p className="font-display text-4xl font-black tracking-tight text-volcanic sm:text-5xl">
+        CanaryCab
+      </p>
+      <p className="font-sans text-[11px] font-bold uppercase tracking-[0.22em] text-volcanic/50">
+        Tu app de taxis de Canarias
+      </p>
+    </div>
   );
 }
