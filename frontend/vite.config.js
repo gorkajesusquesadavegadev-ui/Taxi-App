@@ -9,7 +9,7 @@ export default defineConfig({
       registerType: "autoUpdate", // al desplegar nueva web, la app se actualiza sola
       includeAssets: ["favicon-32.png", "icons/apple-touch-icon.png"],
       manifest: {
-        name: "CanaryCab · App de Canarias",
+        name: "CanaryCab · Tu App de Taxis de Canarias",
         short_name: "CanaryCab",
         description: "Tu taxi en las Islas Canarias: ruta real, tarifa oficial y seguimiento en vivo.",
         lang: "es",
