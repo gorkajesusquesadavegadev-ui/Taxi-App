@@ -106,7 +106,7 @@ function FerrySvg({ width = 250 }) {
         fill="#0B5C9E"
         fontFamily="Georgia, 'Times New Roman', serif"
       >
-        Fred. Olsen Express
+        Islas Canarias
       </text>
     </svg>
   );
@@ -124,38 +124,26 @@ function FarFerrySvg() {
   );
 }
 
-/* ---- cielo: ATR-72 de Binter, librea real (blanco + verde Binter) ---- */
+/* ---- cielo: avión de pasajeros genérico ---- */
 function PlaneSvg({ width = 150 }) {
   return (
     <svg width={width} viewBox="0 0 170 64" fill="none" className="block">
-      {/* cola verde con destello */}
-      <path d="M16 32 L2 6 H26 L38 30 Z" fill="#00A87E" />
-      <path d="M10 12 q8 -3 14 6 l-4 8 q-8 -4 -10 -14 Z" fill="#5FCDA4" opacity="0.7" />
+      {/* cola azul atlántico */}
+      <path d="M16 32 L2 6 H26 L38 30 Z" fill="#1577C2" />
+      <path d="M10 12 q8 -3 14 6 l-4 8 q-8 -4 -10 -14 Z" fill="#4AA3DD" opacity="0.7" />
       {/* fuselaje */}
       <rect x="10" y="27" width="132" height="17" rx="8.5" fill="#FFFFFF" />
       <path d="M142 27 q20 4.5 24 8.5 q-4 4 -24 8.5 Z" fill="#FFFFFF" />
-      <rect x="14" y="40" width="126" height="3.4" rx="1.7" fill="#00A87E" />
+      <rect x="14" y="40" width="126" height="3.4" rx="1.7" fill="#1577C2" />
       {/* cabina */}
-      <path d="M152 31 q8 2.5 11 4.5 l-11 3.5 Z" fill="#143C2E" />
-      {/* ala alta + motor verde + hélice */}
-      <path d="M64 27 L40 10 H62 L90 27 Z" fill="#EAF6F1" />
-      <rect x="66" y="21" width="20" height="9" rx="4.5" fill="#00A87E" />
-      <path d="M88 14 v22" stroke="#143C2E" strokeWidth="1.6" opacity="0.4" />
-      {/* canario verde + wordmark */}
-      <circle cx="100" cy="34" r="3.2" fill="#00A87E" />
-      <path d="M100 31 q4 -3 6 0 l-4 3 Z" fill="#00A87E" />
-      <text
-        x="122"
-        y="38"
-        textAnchor="middle"
-        fontSize="11"
-        fontWeight="800"
-        fill="#3F4A52"
-        fontFamily="Arial, sans-serif"
-        letterSpacing="0.5"
-      >
-        binter
-      </text>
+      <path d="M152 31 q8 2.5 11 4.5 l-11 3.5 Z" fill="#0B2E4F" />
+      {/* ala + motor */}
+      <path d="M64 27 L40 10 H62 L90 27 Z" fill="#E8F3FB" />
+      <rect x="66" y="21" width="20" height="9" rx="4.5" fill="#1577C2" />
+      <path d="M88 14 v22" stroke="#0B2E4F" strokeWidth="1.6" opacity="0.4" />
+      {/* sol canario en fuselaje */}
+      <circle cx="100" cy="35" r="5" fill="#FFC400" />
+      <path d="M100 29 v-3 M100 44 v-3 M94 35 h-3 M109 35 h-3 M96 31 l-2-2 M106 39 l-2-2 M104 31 l2-2 M98 39 l-2 2" stroke="#FFC400" strokeWidth="1.2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -351,76 +339,32 @@ function Hito({ label, children }) {
   );
 }
 
-/* ---- anuncios minimalistas: logos reales en /ads/ + dibujos limpios ---- */
-// Tirma: wordmark oficial (crema) sobre el rosa de la marca
-function TirmaAd() {
-  return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-1" style={{ background: "#E84A9A" }}>
-      <img src="/ads/tirma.svg" alt="Tirma" className="h-10" draggable="false" />
-      <p className="text-[7px] font-bold tracking-[0.28em] text-white/90">CHOCOLATE CON LECHE</p>
-    </div>
-  );
-}
+/* ---- Espacios publicitarios disponibles ---- */
+const IconAd = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
+  </svg>
+);
 
-// Clipper: logo oficial sobre blanco
-function ClipperAd() {
+function AdSlot({ bg = "#0B2E4F", color = "#FFC400", label = "Tu marca aquí" }) {
   return (
-    <div className="flex h-full w-full items-center justify-center bg-white">
-      <img src="/ads/clipper.jpg" alt="Clipper" className="h-full w-full object-contain" draggable="false" />
-    </div>
-  );
-}
-
-// Kalise: wordmark limpio sobre azul de marca
-function KaliseAd() {
-  return (
-    <div className="flex h-full w-full flex-col items-center justify-center" style={{ background: "#0066B3" }}>
-      <p className="text-2xl font-extrabold italic leading-none text-white" style={{ fontFamily: "Georgia, serif" }}>
-        Kalise<span style={{ color: "#FFC400" }}>.</span>
+    <div className="flex h-full w-full flex-col items-center justify-center gap-1.5" style={{ background: bg }}>
+      <span style={{ color, opacity: 0.7 }}><IconAd /></span>
+      <p className="text-[8px] font-extrabold uppercase tracking-[0.25em]" style={{ color }}>
+        Espacio publicitario
       </p>
-      <p className="mt-1 text-[7px] font-bold tracking-[0.3em] text-white/80">HELADOS DE CANARIAS</p>
+      <p className="text-[7px] font-semibold" style={{ color, opacity: 0.6 }}>
+        {label}
+      </p>
     </div>
   );
 }
 
-// UD Las Palmas: escudo real + texto
-function UdlpAd() {
-  return (
-    <div className="flex h-full w-full items-center justify-center gap-2.5 bg-white">
-      <img src="/ads/udlp.svg" alt="UD Las Palmas" className="h-16" draggable="false" />
-      <div className="text-left leading-tight">
-        <p className="text-[11px] font-extrabold" style={{ color: "#004B9B" }}>
-          UD LAS
-          <br />
-          PALMAS
-        </p>
-        <p className="mt-0.5 text-[8px] font-bold italic" style={{ color: "#F3C100" }}>
-          ¡Pío pío!
-        </p>
-      </div>
-    </div>
-  );
-}
-
-// El Carretón: huevo frito limpio + nombre
-function CarretonAd() {
-  return (
-    <div className="flex h-full w-full items-center justify-center gap-2.5 bg-[#FFF8E3]">
-      <svg width="42" height="36" viewBox="0 0 40 34" className="shrink-0">
-        <path d="M4 20 Q2 6 16 4 Q32 1 36 14 Q39 26 26 30 Q8 34 4 20 Z" fill="#FFFFFF" stroke="#F0E1B9" strokeWidth="2" />
-        <circle cx="18" cy="16" r="7" fill="#FFC400" />
-        <circle cx="15.5" cy="13.5" r="2" fill="#FFF3C4" />
-      </svg>
-      <div className="text-left leading-tight">
-        <p className="text-[13px] font-extrabold" style={{ color: "#0B5C9E" }}>¡Carretooooon!</p>
-        <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-volcanic/55">
-          Rest. El Carretón
-        </p>
-        <p className="text-[8px] italic text-volcanic/50">huevos fritos con papas</p>
-      </div>
-    </div>
-  );
-}
+function Ad1() { return <AdSlot bg="#0B2E4F" color="#FFC400" label="contacto@canarycab.com" />; }
+function Ad2() { return <AdSlot bg="#1577C2" color="#ffffff" label="Tu negocio en Canarias" />; }
+function Ad3() { return <AdSlot bg="#FFC400" color="#0B2E4F" label="Anúnciate con CanaryCab" />; }
+function Ad4() { return <AdSlot bg="#F7FBFE" color="#0B2E4F" label="Llega a miles de usuarios" />; }
+function Ad5() { return <AdSlot bg="#11395F" color="#4AA3DD" label="Patrocina la app canaria" />; }
 
 // valla publicitaria: marco + patas, el anuncio va dentro
 function Billboard({ title, children }) {
@@ -444,15 +388,15 @@ function CostaSegment() {
       <Hito label="Dunas de Maspalomas">
         <DunasSvg />
       </Hito>
-      <Billboard title="Tirma · chocolate canario">
-        <TirmaAd />
+      <Billboard title="Espacio publicitario">
+        <Ad1 />
       </Billboard>
       <PalmSvg />
       <Hito label="Teide · Tenerife">
         <TeideSvg />
       </Hito>
-      <Billboard title="Clipper · el sabor de la isla">
-        <ClipperAd />
+      <Billboard title="Espacio publicitario">
+        <Ad2 />
       </Billboard>
       <Hito label="Catedral de Santa Ana">
         <CatedralSvg />
@@ -461,8 +405,8 @@ function CostaSegment() {
       <Hito label="Faro de Maspalomas">
         <FaroSvg />
       </Hito>
-      <Billboard title="Kalise · helados de Canarias">
-        <KaliseAd />
+      <Billboard title="Espacio publicitario">
+        <Ad3 />
       </Billboard>
       <Hito label="Roque Nublo">
         <RoqueSvg />
@@ -470,15 +414,15 @@ function CostaSegment() {
       <Hito label="Timanfaya · Lanzarote">
         <TimanfayaSvg />
       </Hito>
-      <Billboard title="UD Las Palmas · ¡Pío pío!">
-        <UdlpAd />
+      <Billboard title="Espacio publicitario">
+        <Ad4 />
       </Billboard>
       <PalmSvg />
       <Hito label="Jameos del Agua · Lanzarote">
         <JameosSvg />
       </Hito>
-      <Billboard title="Restaurante El Carretón · huevos fritos">
-        <CarretonAd />
+      <Billboard title="Espacio publicitario">
+        <Ad5 />
       </Billboard>
       <Hito label="Garajonay · La Gomera">
         <GarajonayTrees />
@@ -494,17 +438,17 @@ function CostaSegment() {
   );
 }
 
-// anuncios que remolca la avioneta
+// pancarta avioneta: mensajes turísticos sin marcas
 const ADS = [
-  "Vuela entre islas con BINTER",
-  "Canarias en barco · Fred. Olsen",
+  "Tu taxi en las Islas Canarias",
   "Sube al Teide · Tenerife",
   "Timanfaya · La ruta del fuego",
   "Dunas de Maspalomas · Gran Canaria",
   "Garajonay · La Gomera te espera",
   "Caldera de Taburiente · La Palma",
   "Corralejo · Fuerteventura",
-  "¡CARRETOOOON! · El Carretón, huevos fritos",
+  "Jameos del Agua · Lanzarote",
+  "Espacio publicitario · contacto@canarycab.com",
 ];
 
 function Scene() {
@@ -534,9 +478,9 @@ function Scene() {
         <Cloud scale={0.7} />
       </div>
 
-      {/* Binter alto y rápido */}
+      {/* avión entre islas */}
       <div className="auth-cross bottom-[15.5rem] lg:bottom-auto lg:top-[8%]" style={{ animationDuration: "42s", animationDelay: "-12s" }}>
-        <div className="scene-item auth-bob" title="Binter · vuela entre islas">
+        <div className="scene-item auth-bob" title="Vuelo entre islas">
           <PlaneSvg width={110} />
         </div>
       </div>
@@ -574,9 +518,9 @@ function Scene() {
       <Wave className="bottom-[8rem] h-14 lg:bottom-[10rem] lg:h-20" fill="#CDE7F7" opacity="0.5" duration="13s" />
       <Wave className="bottom-[7.2rem] h-14 lg:bottom-[9rem] lg:h-20" fill="#4AA3DD" opacity="0.65" duration="9s" delay="-3s" />
 
-      {/* ferry Fred. Olsen en primer plano */}
+      {/* ferry interinsular */}
       <div className="auth-cross bottom-[6.6rem] lg:bottom-[8.4rem]" style={{ animationDuration: "90s", animationDelay: "-35s" }}>
-        <div className="scene-item auth-bob" title="Fred. Olsen Express · Canarias en barco" style={{ animationDuration: "5s" }}>
+        <div className="scene-item auth-bob" title="Ferry interinsular" style={{ animationDuration: "5s" }}>
           <FerrySvg width={210} />
         </div>
       </div>
