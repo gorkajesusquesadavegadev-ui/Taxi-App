@@ -64,7 +64,14 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Shell estático: pinta al instante (sin esperar JS/CSS/fuentes).
+           React lo sustituye al montar. Mejora FCP/LCP en la SPA. -->
+      <div style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#0B2E4F;font-family:system-ui,-apple-system,sans-serif">
+        <div style="font-size:44px;font-weight:900;letter-spacing:-1.5px;color:#FFC400">CanaryCab</div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(247,251,254,.55)">Tu app de taxis de Canarias</div>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
