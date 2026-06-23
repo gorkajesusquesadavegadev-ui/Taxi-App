@@ -173,7 +173,9 @@ export default function TaxistaHome() {
       try {
         const pend = await api.pendienteCercano();
         if (pend && !incomingRef.current) {
-          setIncoming(pend);
+          // pendienteCercano devuelve ViajeResponse (campo `id`); el resto del
+          // componente espera el shape del payload WS trip:new (campo `viajeId`).
+          setIncoming({ ...pend, viajeId: pend.viajeId ?? pend.id });
           if (prefs.getSound()) beep();
           if (navigator.vibrate) navigator.vibrate([400, 150, 400]);
         }
@@ -249,8 +251,10 @@ export default function TaxistaHome() {
 
   async function aceptar() {
     if (!incoming) return;
+    const id = incoming.viajeId ?? incoming.id;
+    if (!id) { setIncoming(null); setMsg("Solicitud inválida."); return; }
     try {
-      const v = await api.aceptar(incoming.viajeId);
+      const v = await api.aceptar(id);
       setViaje(v);
       setIncoming(null);
       setMsg("Viaje aceptado. Dirígete a la recogida.");

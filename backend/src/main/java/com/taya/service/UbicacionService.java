@@ -85,6 +85,13 @@ public class UbicacionService {
         if (res != null) {
             for (var loc : res.getContent()) {
                 Long id = Long.valueOf(loc.getContent().getName());
+                // El set GEO no caduca: si el estado expiró (taxi desaparecido),
+                // la posición es un fantasma. Limpiar y saltar.
+                if (!"LIBRE".equals(redis.opsForValue().get("taxi:" + id + ":estado"))) {
+                    redis.opsForGeo().remove(GEO_LIBRES, String.valueOf(id));
+                    redis.opsForSet().remove(IDS_LIBRES, String.valueOf(id));
+                    continue;
+                }
                 Point p = loc.getContent().getPoint();
                 out.add(new TaxiCercano(id, p.getY(), p.getX())); // y=lat, x=lng
             }
@@ -102,9 +109,15 @@ public class UbicacionService {
         if (res != null) {
             for (var loc : res.getContent()) {
                 Long id = Long.valueOf(loc.getContent().getName());
+                String estado = redis.opsForValue().get("taxi:" + id + ":estado");
+                // Estado expirado => taxi fantasma: limpiar GEO y omitir del mapa.
+                if (estado == null) {
+                    redis.opsForGeo().remove(GEO_ONLINE, String.valueOf(id));
+                    redis.opsForSet().remove(IDS_ONLINE, String.valueOf(id));
+                    continue;
+                }
                 Point p = loc.getContent().getPoint();
-                boolean enViaje = "OCUPADO".equals(redis.opsForValue().get("taxi:" + id + ":estado"));
-                out.add(new TaxiOnline(id, p.getY(), p.getX(), enViaje));
+                out.add(new TaxiOnline(id, p.getY(), p.getX(), "OCUPADO".equals(estado)));
             }
         }
         return out;
