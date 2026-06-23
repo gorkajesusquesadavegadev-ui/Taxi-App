@@ -56,7 +56,7 @@ function OnlineToggle({ online, onToggle }) {
 
 export default function TaxistaHome() {
   const [online, setOnline] = useState(() => localStorage.getItem("taya:online") === "1");
-  const [pos, setPos] = useState(LPGC);
+  const [pos, setPos] = useState(null); // null = sin fix GPS real todavía
   const [incoming, setIncoming] = useState(null); // trip:new payload
   const [viaje, setViaje] = useState(null);
   const [routeGeo, setRouteGeo] = useState(null); // real road geometry for the active trip
@@ -117,16 +117,39 @@ export default function TaxistaHome() {
     return () => { alive = false; };
   }, [incoming?.viajeId]);
 
-  // GPS real del taxista
+  // GPS real del taxista. Rechaza fixes basura (geolocalización por IP da
+  // accuracy de miles de m): un taxi DEBE publicar su posición real, no una
+  // aproximación de ciudad — si no, el cliente lo ve donde no está.
   useEffect(() => {
     if (!navigator.geolocation) return;
     const id = navigator.geolocation.watchPosition(
-      (p) => setPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      (p) => {
+        if (p.coords.accuracy > 1000) return; // IP-based garbage, ignorar
+        setPos({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy });
+      },
       () => {},
-      { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 }
+      { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
     );
     return () => navigator.geolocation.clearWatch(id);
   }, []);
+
+  // Si el taxista se puso online antes de tener GPS, el handler "open" no pudo
+  // afirmar LIBRE. En cuanto llega el primer fix, lo afirmamos (una sola vez).
+  const libreAfirmado = useRef(false);
+  useEffect(() => {
+    if (!online) { libreAfirmado.current = false; return; }
+    if (!pos || libreAfirmado.current) return;
+    libreAfirmado.current = true;
+    api.taxistaActivo()
+      .then((v) => {
+        if (!v) {
+          api.estado({ estado: "LIBRE", lat: pos.lat, lng: pos.lng }).catch(() => {});
+          wsRef.current?.send("location:update", { lat: pos.lat, lng: pos.lng });
+          setMsg("Conectado. Esperando viajes…");
+        }
+      })
+      .catch(() => {});
+  }, [online, pos]);
 
   // demand heatmap: refreshed every 60s (history decay + live events)
   useEffect(() => {
@@ -209,20 +232,26 @@ export default function TaxistaHome() {
       },
       (state) => {
         if (state === "open") {
+          const p = posRef.current;
+          if (!p) { setMsg("Conectado. Buscando señal GPS…"); return; }
           setMsg("Conectado. Esperando viajes…");
           // re-afirmar LIBRE en cada (re)conexión, salvo viaje activo
           api.taxistaActivo()
             .then((v) => {
-              if (!v) api.estado({ estado: "LIBRE", lat: posRef.current.lat, lng: posRef.current.lng }).catch(() => {});
+              if (!v) api.estado({ estado: "LIBRE", lat: p.lat, lng: p.lng }).catch(() => {});
             })
             .catch(() => {});
-          ws.send("location:update", { lat: posRef.current.lat, lng: posRef.current.lng });
+          ws.send("location:update", { lat: p.lat, lng: p.lng });
         }
       }
     );
     wsRef.current = ws;
 
-    const locId = setInterval(() => ws.send("location:update", { lat: posRef.current.lat, lng: posRef.current.lng }), 3000);
+    // Solo publica posición con fix GPS real (posRef no-null): nunca una posición falsa.
+    const locId = setInterval(() => {
+      const p = posRef.current;
+      if (p) ws.send("location:update", { lat: p.lat, lng: p.lng });
+    }, 3000);
     const hbId = setInterval(() => ws.send("heartbeat", {}), 25_000);
 
     return () => {
@@ -286,7 +315,7 @@ export default function TaxistaHome() {
   }
 
   const markers = [
-    { id: "me", ...pos, kind: "taxi" },
+    ...(pos ? [{ id: "me", ...pos, kind: "taxi" }] : []),
     ...(viaje ? [{ id: "o", lat: viaje.origenLat, lng: viaje.origenLng, kind: "origin" }] : []),
     ...(viaje ? [{ id: "d", lat: viaje.destinoLat, lng: viaje.destinoLng, kind: "destino" }] : []),
   ];
@@ -301,7 +330,7 @@ export default function TaxistaHome() {
     <Layout title="Conducir" framed action={<OnlineToggle online={online} onToggle={toggleOnline} />}>
       <div className="relative h-full">
         <div className="absolute inset-0">
-          <MapView center={pos} markers={markers} route={route} zonas={zonas} />
+          <MapView center={pos ?? LPGC} markers={markers} route={route} zonas={zonas} />
         </div>
 
         {/* leyenda de demanda */}
