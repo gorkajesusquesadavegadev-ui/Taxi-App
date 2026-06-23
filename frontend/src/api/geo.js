@@ -19,6 +19,36 @@ function title(str) {
     (_, sep, c) => sep + c.toUpperCase());
 }
 
+/**
+ * GPS de alta precisión: el primer fix del navegador suele venir desviado
+ * 100-500 m. Recoge varios fixes durante ~7 s y devuelve el de menor radio de
+ * error (accuracy). Resuelve antes si ya hay un fix muy bueno (<25 m).
+ * @returns {Promise<{lat, lng, accuracy} | null>}
+ */
+export function ubicacionPrecisa({ maxWaitMs = 7000, buenaPrecision = 25 } = {}) {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) return resolve(null);
+    let mejor = null;
+    let watchId = null;
+    let timer = null;
+    const finish = () => {
+      if (watchId != null) navigator.geolocation.clearWatch(watchId);
+      if (timer) clearTimeout(timer);
+      resolve(mejor);
+    };
+    watchId = navigator.geolocation.watchPosition(
+      (p) => {
+        const fix = { lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy };
+        if (!mejor || fix.accuracy < mejor.accuracy) mejor = fix;
+        if (fix.accuracy <= buenaPrecision) finish(); // ya es suficientemente preciso
+      },
+      () => { if (!mejor) finish(); },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: maxWaitMs }
+    );
+    timer = setTimeout(finish, maxWaitMs);
+  });
+}
+
 /** Autocomplete: query → [{lat, lng, label}] con números de portal exactos */
 export async function buscarDirecciones(q) {
   // ── 1. Cartociudad (IGN) — todos los portales de España ──────────────────

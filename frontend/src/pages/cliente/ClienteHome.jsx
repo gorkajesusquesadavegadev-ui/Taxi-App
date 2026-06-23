@@ -10,7 +10,7 @@ import ReservaModal from "../../components/ReservaModal.jsx";
 import { IconCar, IconCalendar } from "../../components/icons.jsx";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/client.js";
-import { direccionDe } from "../../api/geo.js";
+import { direccionDe, ubicacionPrecisa } from "../../api/geo.js";
 import { connectWs } from "../../api/ws.js";
 import { avisar } from "../../utils/prefs.js";
 
@@ -78,6 +78,7 @@ export default function ClienteHome() {
   const [error, setError] = useState("");
   const [reservando, setReservando] = useState(false);
   const [sinTaxi, setSinTaxi] = useState(false); // true tras 45s sin taxista
+  const [localizando, setLocalizando] = useState(false); // GPS en curso para "mi ubicación"
   const navigate = useNavigate();
   const wsRef = useRef(null);
   const userPosRef = useRef(LPGC);
@@ -179,14 +180,13 @@ export default function ClienteHome() {
     };
   }, [viaje?.id]);
 
-  // GPS real del cliente: centra el mapa en su posición
+  // GPS real del cliente: centra el mapa en su mejor posición disponible
   useEffect(() => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (p) => setUserPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
-      () => {},
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
+    let alive = true;
+    ubicacionPrecisa({ maxWaitMs: 6000 }).then((fix) => {
+      if (alive && fix) setUserPos({ lat: fix.lat, lng: fix.lng });
+    });
+    return () => { alive = false; };
   }, []);
 
   // taxis online (libres + en viaje) — refresca cada 8 s
@@ -232,6 +232,29 @@ export default function ClienteHome() {
       if (!label) return;
       setter((cur) => (cur && cur.lat === p.lat && cur.lng === p.lng ? { ...cur, label } : cur));
     });
+  }
+
+  // "Usar mi ubicación": GPS de alta precisión → origen con calle reverse-geocodeada
+  async function usarMiUbicacion() {
+    if (viaje || localizando) return;
+    setLocalizando(true);
+    setError("");
+    try {
+      const fix = await ubicacionPrecisa();
+      if (!fix) { setError("No se pudo obtener tu ubicación. Activa el GPS."); return; }
+      const punto = { lat: fix.lat, lng: fix.lng, label: "" };
+      setOrigen(punto);
+      setUserPos({ lat: fix.lat, lng: fix.lng });
+      etiquetar(punto, setOrigen);
+      // Aviso honesto si el GPS es impreciso (interiores, primer fix flojo)
+      if (fix.accuracy > 80) {
+        setError(`Ubicación aproximada (±${Math.round(fix.accuracy)} m). Ajusta el punto en el mapa si hace falta.`);
+      }
+    } catch (_) {
+      setError("No se pudo obtener tu ubicación.");
+    } finally {
+      setLocalizando(false);
+    }
   }
 
   function onMapClick(latlng) {
@@ -456,6 +479,18 @@ export default function ClienteHome() {
               <div className="space-y-3">
                 {/* address search: type, dictate or tap the map */}
                 <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={usarMiUbicacion}
+                    disabled={localizando}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-atlantic/10 px-3 py-2.5 text-sm font-extrabold text-atlantic-dark transition-colors hover:bg-atlantic/20 disabled:opacity-60"
+                  >
+                    {localizando ? (
+                      <><Spinner className="h-4 w-4" /> Localizando…</>
+                    ) : (
+                      <>📍 Usar mi ubicación</>
+                    )}
+                  </button>
                   <AddressSearch
                     placeholder="¿Dónde te recogemos?"
                     value={origen}
