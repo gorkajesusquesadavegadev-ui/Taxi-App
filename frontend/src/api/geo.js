@@ -78,7 +78,10 @@ export async function buscarDirecciones(q) {
 
 /** Reverse geocode: coords → dirección humana (nunca lanza) */
 export async function direccionDe(lat, lng) {
-  // ── 1. Cartociudad reverse ────────────────────────────────────────────────
+  // ── 1. Cartociudad reverse — solo si devuelve un PORTAL/CALLE real ────────
+  // Para coords imprecisas, Cartociudad hace snap al lugar más cercano y puede
+  // devolver type "poblacion"/"municipio" (p.ej. "Almatriche Bajo"). Eso NO es
+  // la calle del usuario: en ese caso caemos a Nominatim, que sí da la vía.
   try {
     const r = await fetch(
       `${CARTOCIUDAD}/reverseGeocode?lat=${lat}&lon=${lng}`,
@@ -86,18 +89,23 @@ export async function direccionDe(lat, lng) {
     );
     if (r.ok) {
       const d = await r.json();
-      if (d && d.address) {
-        const addr = title(d.address || "");
+      const tipo = (d?.type || "").toLowerCase();
+      const esVia = tipo === "portal" || tipo === "callejero" || tipo === "via";
+      if (d && d.address && esVia) {
+        // Componer "Calle Jamat 71": tip_via + nombre + número de portal
+        const via = title(`${d.tip_via || ""} ${d.address}`.trim());
+        const num = d.portalNumber && !d.noNumber ? ` ${d.portalNumber}` : "";
         const zona = title(d.poblacion || d.muni || "");
-        return [addr, zona].filter(Boolean).join(", ") || null;
+        const calle = (via + num).trim();
+        if (calle) return [calle, zona].filter(Boolean).join(", ");
       }
     }
   } catch (_) {}
 
-  // ── 2. Nominatim fallback ─────────────────────────────────────────────────
+  // ── 2. Nominatim fallback (zoom 18 = precisión de calle) ──────────────────
   try {
     const r = await fetch(
-      `${NOMINATIM}/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=es&zoom=17&addressdetails=1`,
+      `${NOMINATIM}/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=es&zoom=18&addressdetails=1`,
       { headers: { "User-Agent": "CanaryCab/1.0 gorquesadave@gmail.com" } }
     );
     if (!r.ok) return null;
