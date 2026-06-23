@@ -38,7 +38,10 @@ public class ViajeService {
         var cli = v.getClienteId() != null ? usuarios.findById(v.getClienteId()).orElse(null) : null;
         return ViajeResponse.of(v,
             tax != null ? tax.getNombre() : null, tax != null ? tax.getTelefono() : null,
-            cli != null ? cli.getNombre() : null, cli != null ? cli.getTelefono() : null);
+            cli != null ? cli.getNombre() : null, cli != null ? cli.getTelefono() : null,
+            tax != null ? tax.getVehiculoMatricula() : null,
+            tax != null ? tax.getVehiculoModelo() : null,
+            tax != null ? tax.getLicencia() : null);
     }
 
     /** Recorrido completo de una oferta: recogida → paradas → destino. */
@@ -108,7 +111,7 @@ public class ViajeService {
         // Notify the client their trip was accepted. The losing taxistas learn via the 409
         // they receive when calling /aceptar, so trip:taken push is optional for MVP.
         ws.enviarAceptado(v.getClienteId(), v);
-        return ViajeResponse.of(v);
+        return conContacto(v);
     }
 
     private Viaje cargarDelTaxista(Long viajeId, Long taxistaId, EstadoViaje requerido) {
@@ -189,7 +192,7 @@ public class ViajeService {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "viaje no existe"));
         if (!usuarioId.equals(v.getClienteId()) && !usuarioId.equals(v.getTaxistaId()))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "no participas en el viaje");
-        return ViajeResponse.of(v);
+        return conContacto(v);
     }
 
     /** Ruta por calles del viaje. Para ofertas reconstruye las paradas del
@@ -213,7 +216,7 @@ public class ViajeService {
     public ViajeResponse activoCliente(Long clienteId) {
         return viajes.findFirstByClienteIdAndEstadoInOrderBySolicitadoEnDesc(clienteId,
             List.of(EstadoViaje.SOLICITADO, EstadoViaje.ACEPTADO, EstadoViaje.LLEGADO, EstadoViaje.EN_CURSO))
-            .map(ViajeResponse::of).orElse(null);
+            .map(this::conContacto).orElse(null);
     }
 
     /** Viaje activo asignado al taxista (p.ej. reserva activada a su hora). */

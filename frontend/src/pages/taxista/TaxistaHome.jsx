@@ -42,6 +42,8 @@ function OnlineToggle({ online, onToggle }) {
   return (
     <button
       onClick={onToggle}
+      aria-pressed={online}
+      aria-label={online ? "En línea, toca para desconectar" : "Desconectado, toca para conectar"}
       className={`pill border-2 transition-colors ${
         online
           ? "border-palm bg-palm/15 text-palm"

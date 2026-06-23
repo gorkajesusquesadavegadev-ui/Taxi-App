@@ -7,20 +7,29 @@ public record ViajeResponse(Long id, Long clienteId, Long taxistaId, String esta
     BigDecimal distanciaEstimadaKm, BigDecimal precioEstimado,
     BigDecimal distanciaRealKm, BigDecimal precioFinal, String tipo, String detalle,
     String origenTexto, String destinoTexto, Instant solicitadoEn, Instant completadoEn,
-    String taxistaNombre, String taxistaTelefono, String clienteNombre, String clienteTelefono) {
+    String taxistaNombre, String taxistaTelefono, String clienteNombre, String clienteTelefono,
+    String taxistaMatricula, String taxistaModelo, String taxistaLicencia) {
 
     public static ViajeResponse of(Viaje v) {
-        return of(v, null, null, null, null);
+        return of(v, null, null, null, null, null, null, null);
     }
 
     /** Con datos de contacto (nombre/teléfono) para el historial. */
     public static ViajeResponse of(Viaje v, String taxistaNombre, String taxistaTelefono,
                                    String clienteNombre, String clienteTelefono) {
+        return of(v, taxistaNombre, taxistaTelefono, clienteNombre, clienteTelefono, null, null, null);
+    }
+
+    /** Con contacto + datos del vehículo (matrícula/modelo/licencia) para el cliente. */
+    public static ViajeResponse of(Viaje v, String taxistaNombre, String taxistaTelefono,
+                                   String clienteNombre, String clienteTelefono,
+                                   String taxistaMatricula, String taxistaModelo, String taxistaLicencia) {
         return new ViajeResponse(v.getId(), v.getClienteId(), v.getTaxistaId(), v.getEstado().name(),
             v.getOrigenLat(), v.getOrigenLng(), v.getDestinoLat(), v.getDestinoLng(),
             v.getDistanciaEstimadaKm(), v.getPrecioEstimado(), v.getDistanciaRealKm(), v.getPrecioFinal(),
             v.getTipo() != null ? v.getTipo().name() : "NORMAL", v.getDetalle(),
             v.getOrigenTexto(), v.getDestinoTexto(), v.getSolicitadoEn(), v.getCompletadoEn(),
-            taxistaNombre, taxistaTelefono, clienteNombre, clienteTelefono);
+            taxistaNombre, taxistaTelefono, clienteNombre, clienteTelefono,
+            taxistaMatricula, taxistaModelo, taxistaLicencia);
     }
 }

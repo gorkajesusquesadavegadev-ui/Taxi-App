@@ -586,6 +586,14 @@ export default function Auth() {
   const [error, setError] = useState("");
   const [shake, setShake] = useState(false);
   const [logoPop, setLogoPop] = useState(false);
+  // La escena decorativa (aviones, ferries, vallas) es pesada: la montamos
+  // tras el primer pintado para que logo + CTA aparezcan al instante (mejor FCP/LCP).
+  const [mostrarEscena, setMostrarEscena] = useState(false);
+  useEffect(() => {
+    const cb = window.requestIdleCallback || ((f) => setTimeout(f, 200));
+    const id = cb(() => setMostrarEscena(true));
+    return () => (window.cancelIdleCallback || clearTimeout)(id);
+  }, []);
 
   const errs = validate(form, mode);
   const fieldError = (k) => (touched[k] ? errs[k] : "");
@@ -641,7 +649,7 @@ export default function Auth() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-volcanic">
-      <Scene />
+      {mostrarEscena && <Scene />}
 
       {/* brand chip (solo con el formulario abierto; en portada manda el logo gigante) */}
       {open && (
@@ -654,7 +662,7 @@ export default function Auth() {
 
       {/* ---------- portada: logo + CanaryCab gigante + CTA ---------- */}
       {!open && (
-        <div className="pointer-events-none relative z-10 flex min-h-screen flex-col items-center justify-center px-6 pb-[38vh] text-center lg:pb-[26vh]">
+        <main id="main-content" className="pointer-events-none relative z-10 flex min-h-screen flex-col items-center justify-center px-6 pb-[38vh] text-center lg:pb-[26vh]">
           <p className="animate-fade-up rounded-full bg-cream/80 px-4 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.3em] text-volcanic/70 shadow-sm backdrop-blur-sm">
             Islas Canarias · Proyecto de cohesión territorial
           </p>
@@ -690,12 +698,12 @@ export default function Auth() {
             <Link to="/cookies" className="hover:text-volcanic/70 underline-offset-2 hover:underline">Cookies</Link>
             <Link to="/terminos" className="hover:text-volcanic/70 underline-offset-2 hover:underline">Términos</Link>
           </div>
-        </div>
+        </main>
       )}
 
       {/* compact form card: top on mobile, right on desktop, scene stays visible */}
       {open && (
-      <div className="pointer-events-none relative z-10 flex min-h-screen items-start justify-center px-4 pt-16 lg:items-center lg:justify-end lg:px-[5vw] lg:pt-0">
+      <main id="main-content" className="pointer-events-none relative z-10 flex min-h-screen items-start justify-center px-4 pt-16 lg:items-center lg:justify-end lg:px-[5vw] lg:pt-0">
         <form
           onSubmit={submit}
           noValidate
@@ -888,7 +896,7 @@ export default function Auth() {
             {mode === "login" ? "Entrar" : "Crear cuenta"}
           </Button>
         </form>
-      </div>
+      </main>
       )}
     </div>
   );

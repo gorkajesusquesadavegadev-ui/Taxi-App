@@ -107,6 +107,9 @@ export default function ClienteHome() {
         setViaje((v) => (v ? { ...v, estado: "ACEPTADO", taxistaId: data.taxistaId } : v));
         setStatusMsg("Taxista en camino");
         notificarEstado("ACEPTADO");
+        // recarga el viaje completo: trae matrícula, modelo y licencia del taxista
+        const vid = viajeRef.current?.id ?? data.viajeId;
+        if (vid) api.viaje(vid).then((full) => full && setViaje(full)).catch(() => {});
       }
       if (event === "trip:location") setTaxiPos({ lat: data.lat, lng: data.lng });
       if (event === "trip:arrived") {
@@ -452,6 +455,44 @@ export default function ClienteHome() {
                     <Spinner className="ml-2 h-4 w-4 align-middle" />
                   )}
                 </p>
+                {/* Taxista asignado: matrícula + licencia + contacto */}
+                {viaje.taxistaId && ["ACEPTADO", "LLEGADO", "EN_CURSO"].includes(viaje.estado) && (
+                  <div className="rounded-2xl border-2 border-taxi/40 bg-taxi/10 p-3">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-volcanic/55">
+                      Tu taxi
+                    </p>
+                    <div className="mt-1.5 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate font-display text-base font-extrabold text-volcanic">
+                          {viaje.taxistaNombre || "Taxista"}
+                        </p>
+                        {viaje.taxistaModelo && (
+                          <p className="truncate text-sm font-medium text-volcanic/65">{viaje.taxistaModelo}</p>
+                        )}
+                      </div>
+                      {viaje.taxistaMatricula && (
+                        <span className="shrink-0 rounded-lg border-2 border-volcanic bg-white px-2.5 py-1 font-mono text-base font-black tracking-wider text-volcanic">
+                          {viaje.taxistaMatricula}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-2 flex items-center gap-2">
+                      {viaje.taxistaLicencia && (
+                        <span className="rounded-md bg-volcanic/10 px-2 py-1 text-xs font-bold text-volcanic/70">
+                          Licencia {viaje.taxistaLicencia}
+                        </span>
+                      )}
+                      {viaje.taxistaTelefono && (
+                        <a
+                          href={`tel:${viaje.taxistaTelefono}`}
+                          className="ml-auto inline-flex items-center gap-1.5 rounded-xl bg-volcanic px-3 py-1.5 text-sm font-extrabold text-cream transition active:scale-95"
+                        >
+                          📞 Llamar
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
                 {/* Sin taxista tras 45s → mostrar opción de reintento */}
                 {sinTaxi && viaje.estado === "SOLICITADO" && (
                   <div className="rounded-xl bg-taxi/15 px-3 py-2.5 text-sm">
