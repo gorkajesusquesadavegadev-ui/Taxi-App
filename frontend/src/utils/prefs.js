@@ -2,12 +2,40 @@
 const get = (k) => localStorage.getItem(k) !== "off";
 const set = (k, v) => localStorage.setItem(k, v ? "on" : "off");
 
+// Tonos de notificación disponibles. "beep" = sintético; el resto, ficheros.
+export const TONOS = [
+  { id: "tono1", label: "Tono 1", src: "/sounds/tono1.ogg" },
+  { id: "tono2", label: "Tono 2", src: "/sounds/tono2.ogg" },
+  { id: "tono3", label: "Tono 3", src: "/sounds/tono3.ogg" },
+  { id: "beep", label: "Pitido clásico", src: null },
+];
+const TONO_DEFAULT = "tono1";
+
 export const prefs = {
   getSound: () => get("taya:sound"),
   setSound: (v) => set("taya:sound", v),
   getNearby: () => get("taya:nearby"),
   setNearby: (v) => set("taya:nearby", v),
+  getTono: () => localStorage.getItem("taya:tono") || TONO_DEFAULT,
+  setTono: (id) => localStorage.setItem("taya:tono", id),
 };
+
+export function srcDeTono(id) {
+  return TONOS.find((t) => t.id === id)?.src || null;
+}
+
+/** Reproduce un tono concreto (para previsualizar en Ajustes). */
+export function reproducirTono(id) {
+  const src = srcDeTono(id);
+  if (!src) return beepSintetico();
+  try {
+    const a = new Audio(src);
+    a.volume = 1;
+    a.play().catch(() => beepSintetico());
+  } catch {
+    beepSintetico();
+  }
+}
 
 import { toast } from "./toast.js";
 
@@ -34,8 +62,21 @@ export function avisar(titulo, cuerpo, tipo = "info") {
   }
 }
 
-/** Pitido corto de notificación (sin ficheros de audio). */
+/** Aviso sonoro: reproduce el tono elegido por el usuario (default tono1). */
 export function beep() {
+  const src = srcDeTono(prefs.getTono());
+  if (!src) return beepSintetico();
+  try {
+    const a = new Audio(src);
+    a.volume = 1;
+    a.play().catch(() => beepSintetico());
+  } catch {
+    beepSintetico();
+  }
+}
+
+/** Pitido sintético de respaldo (sin ficheros de audio). */
+export function beepSintetico() {
   try {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     const ctx = new Ctx();

@@ -6,7 +6,7 @@ import Spinner from "../components/Spinner.jsx";
 import { IconLogout } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { api } from "../api/client.js";
-import { prefs } from "../utils/prefs.js";
+import { prefs, TONOS, reproducirTono } from "../utils/prefs.js";
 import { pushSoportado, pushActivo, activarPush, desactivarPush } from "../api/push.js";
 
 function Toggle({ checked, onChange, label, hint }) {
@@ -46,6 +46,7 @@ export default function Ajustes() {
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
   const [sound, setSound] = useState(prefs.getSound());
+  const [tono, setTono] = useState(prefs.getTono());
   const [nearby, setNearby] = useState(prefs.getNearby());
   const [push, setPush] = useState(false);
   const [pushMsg, setPushMsg] = useState("");
@@ -194,8 +195,40 @@ export default function Ajustes() {
                   prefs.setSound(v);
                 }}
                 label="Sonido de notificaciones"
-                hint="Pitido al recibir una solicitud de viaje (taxista)"
+                hint="Suena al recibir una solicitud de viaje (taxista)"
               />
+              {sound && (
+                <div className="py-3">
+                  <p className="text-sm font-semibold text-volcanic">Tono de aviso</p>
+                  <div className="mt-2 space-y-1.5">
+                    {TONOS.map((t) => (
+                      <div
+                        key={t.id}
+                        className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2 transition-colors ${
+                          tono === t.id ? "border-taxi bg-taxi/10" : "border-sand-deep bg-white"
+                        }`}
+                      >
+                        <button
+                          onClick={() => { setTono(t.id); prefs.setTono(t.id); reproducirTono(t.id); }}
+                          className="flex flex-1 items-center gap-2 text-left text-sm font-semibold text-volcanic"
+                        >
+                          <span className={`grid h-4 w-4 place-items-center rounded-full border-2 ${tono === t.id ? "border-taxi" : "border-volcanic/30"}`}>
+                            {tono === t.id && <span className="h-2 w-2 rounded-full bg-taxi" />}
+                          </span>
+                          {t.label}
+                        </button>
+                        <button
+                          onClick={() => reproducirTono(t.id)}
+                          aria-label={`Escuchar ${t.label}`}
+                          className="rounded-lg bg-sand px-2.5 py-1 text-xs font-bold text-volcanic hover:bg-sand-deep"
+                        >
+                          ▶ Probar
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <Toggle
                 checked={nearby}
                 onChange={(v) => {
