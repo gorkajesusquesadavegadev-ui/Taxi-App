@@ -110,6 +110,8 @@ public class ViajeService {
         if (updated == 0)
             throw new ResponseStatusException(HttpStatus.CONFLICT, "viaje ya no disponible");
         ubicacion.setOcupado(taxistaId);
+        // Ocupado: deja de ser elegible para PUSH de nuevos viajes.
+        usuarios.findById(taxistaId).ifPresent(u -> { u.setDisponible(false); usuarios.save(u); });
         Viaje v = viajes.findById(viajeId).orElseThrow();
         // Notify the client their trip was accepted. The losing taxistas learn via the 409
         // they receive when calling /aceptar, so trip:taken push is optional for MVP.
@@ -166,7 +168,14 @@ public class ViajeService {
                 v.getDestinoLat(), v.getDestinoLng(), kmRuta));
         }
         v.setEstado(EstadoViaje.COMPLETADO); v.setCompletadoEn(Instant.now());
-        ubicacion.setLibre(taxistaId, v.getDestinoLat(), v.getDestinoLng());
+        final double finLat = v.getDestinoLat(), finLng = v.getDestinoLng();
+        ubicacion.setLibre(taxistaId, finLat, finLng);
+        // Vuelve a estar disponible para PUSH de nuevos viajes.
+        usuarios.findById(taxistaId).ifPresent(u -> {
+            u.setDisponible(true);
+            u.setUltimaLat(finLat); u.setUltimaLng(finLng);
+            usuarios.save(u);
+        });
         v = viajes.save(v);
         ws.enviarEstado(v.getClienteId(), "COMPLETED");
         return ViajeResponse.of(v);

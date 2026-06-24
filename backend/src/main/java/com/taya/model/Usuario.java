@@ -25,6 +25,12 @@ public class Usuario {
     // Reputación: media y nº de valoraciones recibidas (denormalizado para lectura rápida).
     @Column(name = "rating_media") private Double ratingMedia = 0.0;
     @Column(name = "rating_count") private Integer ratingCount = 0;
+    // Disponibilidad para PUSH: persiste hasta que el taxista pulsa "Desconectar"
+    // (no caduca al cerrar la app, a diferencia del estado Redis). Última posición
+    // conocida para dirigir el push a los taxistas cercanos. Wrappers nullable.
+    private Boolean disponible = Boolean.FALSE;
+    @Column(name = "ultima_lat") private Double ultimaLat;
+    @Column(name = "ultima_lng") private Double ultimaLng;
 
     public Long getId() { return id; } public void setId(Long id) { this.id = id; }
     public String getNombre() { return nombre; } public void setNombre(String v) { this.nombre = v; }
@@ -42,4 +48,7 @@ public class Usuario {
     public boolean isBloqueado() { return Boolean.TRUE.equals(bloqueado); } public void setBloqueado(boolean v) { this.bloqueado = v; }
     public double getRatingMedia() { return ratingMedia == null ? 0 : ratingMedia; } public void setRatingMedia(double v) { this.ratingMedia = v; }
     public int getRatingCount() { return ratingCount == null ? 0 : ratingCount; } public void setRatingCount(int v) { this.ratingCount = v; }
+    public boolean isDisponible() { return Boolean.TRUE.equals(disponible); } public void setDisponible(boolean v) { this.disponible = v; }
+    public Double getUltimaLat() { return ultimaLat; } public void setUltimaLat(Double v) { this.ultimaLat = v; }
+    public Double getUltimaLng() { return ultimaLng; } public void setUltimaLng(Double v) { this.ultimaLng = v; }
 }

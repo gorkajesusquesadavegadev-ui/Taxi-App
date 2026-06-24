@@ -12,7 +12,10 @@ import java.util.Set;
 @Service
 public class UbicacionService {
     private final StringRedisTemplate redis;
-    public UbicacionService(StringRedisTemplate redis) { this.redis = redis; }
+    private final com.taya.repository.UsuarioRepository usuarios;
+    public UbicacionService(StringRedisTemplate redis, com.taya.repository.UsuarioRepository usuarios) {
+        this.redis = redis; this.usuarios = usuarios;
+    }
 
     private static final String GEO_LIBRES  = "taxis:libres";
     private static final String IDS_LIBRES  = "taxis:libres:ids";
@@ -32,7 +35,21 @@ public class UbicacionService {
             redis.opsForGeo().add(GEO_ONLINE, new Point(lng, lat), String.valueOf(taxistaId));
             redis.opsForSet().add(IDS_ONLINE, String.valueOf(taxistaId));
         }
+        // Refresca la última posición en BD (para PUSH) con throttle de 30 s,
+        // así un taxi que se mueve con la app abierta deja su posición fresca
+        // por si luego cierra la app.
+        if ("LIBRE".equals(estado)) refrescarPosicionBd(taxistaId, lat, lng);
         heartbeat(taxistaId);
+    }
+
+    private void refrescarPosicionBd(Long taxistaId, double lat, double lng) {
+        String throttle = "taxi:" + taxistaId + ":dbpos";
+        Boolean nuevo = redis.opsForValue().setIfAbsent(throttle, "1", Duration.ofSeconds(30));
+        if (Boolean.TRUE.equals(nuevo)) {
+            usuarios.findById(taxistaId).ifPresent(u -> {
+                if (u.isDisponible()) { u.setUltimaLat(lat); u.setUltimaLng(lng); usuarios.save(u); }
+            });
+        }
     }
 
     public void heartbeat(Long taxistaId) {

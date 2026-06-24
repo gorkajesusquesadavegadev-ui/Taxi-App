@@ -10,4 +10,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     long countByRol(Rol rol);
     List<Usuario> findByRolOrderByCreadoEnDesc(Rol rol);
     List<Usuario> findByRolAndVerificadoFalseOrderByCreadoEnDesc(Rol rol);
+    // Taxistas disponibles para PUSH (persistente, no caduca al cerrar la app).
+    List<Usuario> findByRolAndDisponibleTrue(Rol rol);
 }

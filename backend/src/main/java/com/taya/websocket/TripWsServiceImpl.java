@@ -38,12 +38,10 @@ public class TripWsServiceImpl implements TripWsService {
         payload.put("precioEstimado", v.getPrecioEstimado());
         payload.put("tipo", v.getTipo() != null ? v.getTipo().name() : "NORMAL");
         payload.put("detalle", v.getDetalle());
-        String zona = tarifa.zonaLabel(v.getOrigenLat(), v.getOrigenLng(), v.getDestinoLat(), v.getDestinoLng());
-        payload.put("zona", zona);
+        payload.put("zona", tarifa.zonaLabel(v.getOrigenLat(), v.getOrigenLng(), v.getDestinoLat(), v.getDestinoLng()));
         taxistaIds.forEach(id -> send(id, "trip:new", payload));
-        // Web Push: el taxista se entera aunque tenga la app cerrada.
-        String cuerpo = (v.getPrecioEstimado() != null ? v.getPrecioEstimado() + " € · " : "") + (zona != null ? zona : "Viaje cercano");
-        taxistaIds.forEach(id -> push.enviar(id, "🚖 Nueva solicitud de viaje", cuerpo, "/", "trip:new"));
+        // El Web Push de 'trip:new' lo gestiona MatchingService (canal app-cerrada),
+        // que conoce la disponibilidad persistente; aquí solo entrega por WS.
     }
     @Override public void enviarAceptado(Long clienteId, Viaje v) {
         send(clienteId, "trip:accepted", Map.of("viajeId", v.getId(), "taxistaId", v.getTaxistaId()));
