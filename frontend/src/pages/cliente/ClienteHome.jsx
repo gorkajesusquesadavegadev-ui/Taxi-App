@@ -7,6 +7,7 @@ import Badge from "../../components/Badge.jsx";
 import Spinner from "../../components/Spinner.jsx";
 import AddressSearch from "../../components/AddressSearch.jsx";
 import ReservaModal from "../../components/ReservaModal.jsx";
+import ValorarViaje from "../../components/ValorarViaje.jsx";
 import { IconCar, IconCalendar } from "../../components/icons.jsx";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/client.js";
@@ -463,12 +464,18 @@ export default function ClienteHome() {
                     </p>
                     <div className="mt-1.5 flex items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="truncate font-display text-base font-extrabold text-volcanic">
+                        <p className="flex items-center gap-1.5 truncate font-display text-base font-extrabold text-volcanic">
                           {viaje.taxistaNombre || "Taxista"}
+                          {viaje.taxistaVerificado && (
+                            <span title="Taxista verificado" className="text-palm">✓</span>
+                          )}
                         </p>
-                        {viaje.taxistaModelo && (
-                          <p className="truncate text-sm font-medium text-volcanic/65">{viaje.taxistaModelo}</p>
-                        )}
+                        <p className="truncate text-sm font-medium text-volcanic/65">
+                          {viaje.taxistaModelo || ""}
+                          {viaje.taxistaRatingCount > 0 && (
+                            <span className="ml-1 font-bold text-volcanic/80">· ⭐ {viaje.taxistaRating} ({viaje.taxistaRatingCount})</span>
+                          )}
+                        </p>
                       </div>
                       {viaje.taxistaMatricula && (
                         <span className="shrink-0 rounded-lg border-2 border-volcanic bg-white px-2.5 py-1 font-mono text-base font-black tracking-wider text-volcanic">
@@ -505,6 +512,9 @@ export default function ClienteHome() {
                       Reintentar búsqueda
                     </button>
                   </div>
+                )}
+                {viaje.estado === "COMPLETADO" && viaje.taxistaId && (
+                  <ValorarViaje viajeId={viaje.id} etiqueta="el viaje" />
                 )}
                 {viaje.estado === "COMPLETADO" || viaje.estado === "CANCELADO" ? (
                   <Button full variant="dark" onClick={cancelar}>

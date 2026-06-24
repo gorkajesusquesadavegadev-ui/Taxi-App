@@ -17,6 +17,10 @@ public interface ViajeRepository extends JpaRepository<Viaje, Long> {
     // Demand analysis: every pickup requested in the recent window.
     List<Viaje> findBySolicitadoEnAfter(Instant desde);
 
+    // Admin dashboard.
+    long countByEstado(EstadoViaje estado);
+    List<Viaje> findTop100ByOrderBySolicitadoEnDesc();
+
     // Current non-terminal trip for resync ("always informed" client polling).
     Optional<Viaje> findFirstByClienteIdAndEstadoInOrderBySolicitadoEnDesc(
         Long clienteId, Collection<EstadoViaje> estados);

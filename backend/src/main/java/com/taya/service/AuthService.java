@@ -35,6 +35,8 @@ public class AuthService {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "credenciales inválidas"));
         if (!encoder.matches(r.password(), u.getPasswordHash()))
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "credenciales inválidas");
+        if (u.isBloqueado())
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "cuenta bloqueada. Contacta con soporte.");
         return new AuthResponse(jwt.generate(u.getId(), u.getRol().name()), u.getId(), u.getNombre(), u.getRol().name());
     }
 }

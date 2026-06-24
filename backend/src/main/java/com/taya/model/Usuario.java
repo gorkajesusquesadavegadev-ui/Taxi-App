@@ -15,6 +15,13 @@ public class Usuario {
     private String telefono; // contacto WhatsApp para reservas
     private boolean activo = true;
     @Column(name = "creado_en") private Instant creadoEn = Instant.now();
+    // Verificación de taxistas: el admin aprueba tras revisar licencia/documentos.
+    private boolean verificado = false;
+    @Column(name = "documento_url") private String documentoUrl; // foto licencia/DNI subida
+    private boolean bloqueado = false; // admin puede vetar a un usuario
+    // Reputación: media y nº de valoraciones recibidas (denormalizado para lectura rápida).
+    @Column(name = "rating_media") private double ratingMedia = 0;
+    @Column(name = "rating_count") private int ratingCount = 0;
 
     public Long getId() { return id; } public void setId(Long id) { this.id = id; }
     public String getNombre() { return nombre; } public void setNombre(String v) { this.nombre = v; }
@@ -27,4 +34,9 @@ public class Usuario {
     public String getTelefono() { return telefono; } public void setTelefono(String v) { this.telefono = v; }
     public boolean isActivo() { return activo; } public void setActivo(boolean v) { this.activo = v; }
     public Instant getCreadoEn() { return creadoEn; } public void setCreadoEn(Instant v) { this.creadoEn = v; }
+    public boolean isVerificado() { return verificado; } public void setVerificado(boolean v) { this.verificado = v; }
+    public String getDocumentoUrl() { return documentoUrl; } public void setDocumentoUrl(String v) { this.documentoUrl = v; }
+    public boolean isBloqueado() { return bloqueado; } public void setBloqueado(boolean v) { this.bloqueado = v; }
+    public double getRatingMedia() { return ratingMedia; } public void setRatingMedia(double v) { this.ratingMedia = v; }
+    public int getRatingCount() { return ratingCount; } public void setRatingCount(int v) { this.ratingCount = v; }
 }

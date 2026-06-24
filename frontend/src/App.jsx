@@ -13,6 +13,7 @@ const Estadisticas = lazy(() => import("./pages/Estadisticas.jsx"));
 const Foro = lazy(() => import("./pages/Foro.jsx"));
 const Reservas = lazy(() => import("./pages/Reservas.jsx"));
 const TarifaActual = lazy(() => import("./pages/TarifaActual.jsx"));
+const AdminPanel = lazy(() => import("./pages/admin/AdminPanel.jsx"));
 const Privacidad = lazy(() => import("./pages/legal/Privacidad.jsx"));
 const Cookies = lazy(() => import("./pages/legal/Cookies.jsx"));
 const Terminos = lazy(() => import("./pages/legal/Terminos.jsx"));
@@ -48,7 +49,23 @@ export default function App() {
         <Route
           path="/"
           element={
-            <Protected>{user?.rol === "TAXISTA" ? <TaxistaHome /> : <ClienteHome />}</Protected>
+            <Protected>
+              {user?.rol === "ADMIN" ? (
+                <Navigate to="/admin" replace />
+              ) : user?.rol === "TAXISTA" ? (
+                <TaxistaHome />
+              ) : (
+                <ClienteHome />
+              )}
+            </Protected>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <Protected>
+              {user?.rol === "ADMIN" ? <AdminPanel /> : <Navigate to="/" replace />}
+            </Protected>
           }
         />
         <Route path="/historial" element={<Protected><Historial /></Protected>} />

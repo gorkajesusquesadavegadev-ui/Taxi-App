@@ -41,7 +41,10 @@ public class ViajeService {
             cli != null ? cli.getNombre() : null, cli != null ? cli.getTelefono() : null,
             tax != null ? tax.getVehiculoMatricula() : null,
             tax != null ? tax.getVehiculoModelo() : null,
-            tax != null ? tax.getLicencia() : null);
+            tax != null ? tax.getLicencia() : null,
+            tax != null ? tax.getRatingMedia() : null,
+            tax != null ? tax.getRatingCount() : null,
+            tax != null ? tax.isVerificado() : null);
     }
 
     /** Recorrido completo de una oferta: recogida → paradas → destino. */

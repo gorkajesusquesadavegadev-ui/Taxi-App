@@ -9,6 +9,8 @@ import { api } from "../../api/client.js";
 import { direccionDe } from "../../api/geo.js";
 import { connectWs } from "../../api/ws.js";
 import { prefs, beep, avisar } from "../../utils/prefs.js";
+import ValorarViaje from "../../components/ValorarViaje.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
 const TIPO_LABEL = { TRANSFER: "Transfer", EXCURSION: "Excursión" };
@@ -57,6 +59,7 @@ function OnlineToggle({ online, onToggle }) {
 }
 
 export default function TaxistaHome() {
+  const { user } = useAuth();
   const [online, setOnline] = useState(() => localStorage.getItem("taya:online") === "1");
   const [pos, setPos] = useState(null); // null = sin fix GPS real todavía
   const [incoming, setIncoming] = useState(null); // trip:new payload
@@ -492,24 +495,37 @@ export default function TaxistaHome() {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-3">
-                <span
-                  className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ${
-                    online ? "bg-atlantic/15 text-atlantic-dark" : "bg-volcanic/10 text-volcanic/50"
-                  }`}
-                >
-                  <IconCar />
-                </span>
-                <div className="min-w-0">
-                  <p className="font-display font-bold">
-                    {viaje?.estado === "COMPLETADO" ? "Carrera completada" : online ? "En línea" : "Desconectado"}
-                  </p>
-                  <p className="truncate text-sm text-volcanic/60">{msg}</p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ${
+                      online ? "bg-atlantic/15 text-atlantic-dark" : "bg-volcanic/10 text-volcanic/50"
+                    }`}
+                  >
+                    <IconCar />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-display font-bold">
+                      {viaje?.estado === "COMPLETADO" ? "Carrera completada" : online ? "En línea" : "Desconectado"}
+                    </p>
+                    <p className="truncate text-sm text-volcanic/60">{msg}</p>
+                  </div>
+                  {viaje?.estado === "COMPLETADO" && (
+                    <Button size="sm" variant="dark" className="ml-auto" onClick={() => setViaje(null)}>
+                      Listo
+                    </Button>
+                  )}
                 </div>
-                {viaje?.estado === "COMPLETADO" && (
-                  <Button size="sm" variant="dark" className="ml-auto" onClick={() => setViaje(null)}>
-                    Listo
-                  </Button>
+                {viaje?.estado === "COMPLETADO" && viaje.clienteId && (
+                  <ValorarViaje viajeId={viaje.id} etiqueta="el cliente" />
+                )}
+                {!viaje && online && user && user.verificado === false && (
+                  <div className="rounded-2xl bg-coral/10 px-4 py-3 text-sm">
+                    <p className="font-bold text-coral">Cuenta pendiente de verificación</p>
+                    <p className="mt-0.5 text-xs text-volcanic/60">
+                      No recibirás viajes hasta que un administrador apruebe tu licencia. Te avisaremos.
+                    </p>
+                  </div>
                 )}
               </div>
             )}

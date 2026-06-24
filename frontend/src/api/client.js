@@ -71,6 +71,16 @@ export const api = {
   iniciar: (id) => req("PUT", `/viajes/${id}/iniciar`),
   finalizar: (id) => req("PUT", `/viajes/${id}/finalizar`),
   historialTaxista: () => req("GET", "/taxista/historial"),
+  // valoraciones (rating 1-5★ tras viaje completado)
+  valorar: (viajeId, estrellas, comentario) => req("POST", `/valoraciones/${viajeId}`, { estrellas, comentario }),
+  valoracionPendiente: (viajeId) => req("GET", `/valoraciones/pendiente/${viajeId}`),
+  // admin
+  adminMetricas: () => req("GET", "/admin/metricas"),
+  adminUsuarios: () => req("GET", "/admin/usuarios"),
+  adminPendientes: () => req("GET", "/admin/taxistas/pendientes"),
+  adminVerificar: (id, valor) => req("PUT", `/admin/taxistas/${id}/verificar?valor=${valor}`),
+  adminBloquear: (id, valor) => req("PUT", `/admin/usuarios/${id}/bloquear?valor=${valor}`),
+  adminViajes: () => req("GET", "/admin/viajes"),
   // foro de taxistas
   foroHistorial: () => req("GET", "/foro"),
   foroPublicar: (texto) => req("POST", "/foro", { texto }),

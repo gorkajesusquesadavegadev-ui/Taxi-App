@@ -1,9 +1,14 @@
 package com.taya.config;
 import com.taya.model.ConfiguracionTarifa;
 import com.taya.model.Evento;
+import com.taya.model.Rol;
+import com.taya.model.Usuario;
 import com.taya.repository.ConfiguracionTarifaRepository;
 import com.taya.repository.EventoRepository;
+import com.taya.repository.UsuarioRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -19,8 +24,14 @@ import java.time.Instant;
 public class DataSeeder implements CommandLineRunner {
     private final ConfiguracionTarifaRepository repo;
     private final EventoRepository eventos;
-    public DataSeeder(ConfiguracionTarifaRepository repo, EventoRepository eventos) {
-        this.repo = repo; this.eventos = eventos;
+    private final UsuarioRepository usuarios;
+    private final PasswordEncoder encoder;
+    @Value("${admin.email:admin@canarycab.com}") private String adminEmail;
+    @Value("${admin.password:CanaryCab-Admin-2024}") private String adminPassword;
+
+    public DataSeeder(ConfiguracionTarifaRepository repo, EventoRepository eventos,
+                      UsuarioRepository usuarios, PasswordEncoder encoder) {
+        this.repo = repo; this.eventos = eventos; this.usuarios = usuarios; this.encoder = encoder;
     }
     @Override public void run(String... args) {
         var c = repo.findAll().stream().findFirst().orElseGet(ConfiguracionTarifa::new);
@@ -31,6 +42,25 @@ public class DataSeeder implements CommandLineRunner {
         if (c.getRadioBusquedaKm() == null) c.setRadioBusquedaKm(new BigDecimal("5"));
         repo.save(c);
         sembrarEventos();
+        sembrarAdmin();
+    }
+
+    /** Crea el usuario admin y, en el primer arranque, verifica a los taxistas
+     *  ya existentes para no dejar fuera a quien se registró antes del sistema
+     *  de verificación. Idempotente: solo corre cuando el admin aún no existe. */
+    private void sembrarAdmin() {
+        if (usuarios.existsByEmail(adminEmail)) return;
+        // Primer arranque con verificación: dar por verificados los taxistas previos.
+        usuarios.findByRolOrderByCreadoEnDesc(Rol.TAXISTA).forEach(t -> {
+            if (!t.isVerificado()) { t.setVerificado(true); usuarios.save(t); }
+        });
+        Usuario admin = new Usuario();
+        admin.setNombre("Administrador");
+        admin.setEmail(adminEmail);
+        admin.setPasswordHash(encoder.encode(adminPassword));
+        admin.setRol(Rol.ADMIN);
+        admin.setVerificado(true);
+        usuarios.save(admin);
     }
 
     /** Eventos demo relativos a hoy para que el mapa de demanda tenga señal. */

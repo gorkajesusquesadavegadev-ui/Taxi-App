@@ -27,7 +27,8 @@ public class UsuarioController {
 
     private UsuarioResponse aResponse(com.taya.model.Usuario u) {
         return new UsuarioResponse(u.getId(), u.getNombre(), u.getEmail(), u.getRol().name(),
-            u.getVehiculoMatricula(), u.getVehiculoModelo(), u.getTelefono());
+            u.getVehiculoMatricula(), u.getVehiculoModelo(), u.getTelefono(),
+            u.isVerificado(), u.getRatingMedia(), u.getRatingCount(), u.getLicencia());
     }
 
     @GetMapping("/me")
