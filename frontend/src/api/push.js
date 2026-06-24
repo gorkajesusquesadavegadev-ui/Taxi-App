@@ -42,14 +42,24 @@ export async function activarPush() {
       return { ok: false, motivo: "No diste permiso de notificaciones." };
 
     const reg = await navigator.serviceWorker.ready;
+    const { publicKey } = await api.vapidPublicKey();
+    if (!publicKey) return { ok: false, motivo: "El servidor no devolvió la clave de notificaciones." };
+    const appKey = urlBase64ToUint8Array(publicKey);
+
+    // Borra cualquier suscripción previa (posible clave VAPID distinta = causa de
+    // "push service error") y crea una nueva. Reintenta una vez ante fallos
+    // transitorios del servicio de push (FCM).
     let sub = await reg.pushManager.getSubscription();
-    if (!sub) {
-      const { publicKey } = await api.vapidPublicKey();
-      if (!publicKey) return { ok: false, motivo: "El servidor no devolvió la clave de notificaciones." };
-      sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey),
-      });
+    if (sub) { try { await sub.unsubscribe(); } catch (_) {} sub = null; }
+    try {
+      sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: appKey });
+    } catch (e1) {
+      await new Promise((r) => setTimeout(r, 1200));
+      try {
+        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: appKey });
+      } catch (e2) {
+        return { ok: false, motivo: "El servicio de notificaciones rechazó la suscripción (FCM). Comprueba que tu móvil tiene Google Play Services y conexión, y reintenta. (" + (e2?.message || e2) + ")" };
+      }
     }
     const json = sub.toJSON();
     await api.pushSubscribe({
