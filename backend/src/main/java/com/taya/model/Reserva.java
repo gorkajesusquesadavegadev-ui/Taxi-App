@@ -28,6 +28,9 @@ public class Reserva {
     @Enumerated(EnumType.STRING) @Column(nullable = false) private EstadoReserva estado = EstadoReserva.PENDIENTE;
     @Column(name = "viaje_id") private Long viajeId; // viaje generado al activarse la reserva
     @Column(name = "creado_en", nullable = false) private Instant creadoEn = Instant.now();
+    // Recordatorio push enviado (30 min antes). Wrapper nullable: evita problemas
+    // de migración sobre filas previas (ver Usuario).
+    @Column(name = "recordatorio_enviado") private Boolean recordatorioEnviado = Boolean.FALSE;
 
     public Long getId(){ return id; } public void setId(Long v){ this.id=v; }
     public Long getClienteId(){ return clienteId; } public void setClienteId(Long v){ this.clienteId=v; }
@@ -48,4 +51,6 @@ public class Reserva {
     public EstadoReserva getEstado(){ return estado; } public void setEstado(EstadoReserva v){ this.estado=v; }
     public Long getViajeId(){ return viajeId; } public void setViajeId(Long v){ this.viajeId=v; }
     public Instant getCreadoEn(){ return creadoEn; } public void setCreadoEn(Instant v){ this.creadoEn=v; }
+    public boolean isRecordatorioEnviado(){ return Boolean.TRUE.equals(recordatorioEnviado); }
+    public void setRecordatorioEnviado(boolean v){ this.recordatorioEnviado=v; }
 }

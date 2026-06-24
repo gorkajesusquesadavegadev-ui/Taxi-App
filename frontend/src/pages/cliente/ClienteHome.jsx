@@ -12,6 +12,7 @@ import { IconCar, IconCalendar } from "../../components/icons.jsx";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { direccionDe, ubicacionPrecisa } from "../../api/geo.js";
+import { activarPush } from "../../api/push.js";
 import { connectWs } from "../../api/ws.js";
 import { avisar } from "../../utils/prefs.js";
 
@@ -303,6 +304,8 @@ export default function ClienteHome() {
       });
       setViaje(v);
       setStatusMsg("Buscando un taxi cercano…");
+      // Web Push: avisar "taxi en camino / ha llegado" aunque cierre la app
+      activarPush().catch(() => {});
     } catch (e) {
       setError(e.message || "No se pudo pedir el taxi");
     } finally {

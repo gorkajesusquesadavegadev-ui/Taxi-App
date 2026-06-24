@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Layout from "../components/Layout.jsx";
 import Button from "../components/Button.jsx";
 import Input from "../components/Input.jsx";
@@ -7,6 +7,7 @@ import { IconLogout } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { api } from "../api/client.js";
 import { prefs } from "../utils/prefs.js";
+import { pushSoportado, pushActivo, activarPush, desactivarPush } from "../api/push.js";
 
 function Toggle({ checked, onChange, label, hint }) {
   return (
@@ -45,6 +46,8 @@ export default function Ajustes() {
   const [savedMsg, setSavedMsg] = useState("");
   const [sound, setSound] = useState(prefs.getSound());
   const [nearby, setNearby] = useState(prefs.getNearby());
+  const [push, setPush] = useState(false);
+  useEffect(() => { pushActivo().then(setPush).catch(() => {}); }, []);
   // cambio de contraseña
   const [pwdActual, setPwdActual] = useState("");
   const [pwdNueva, setPwdNueva] = useState("");
@@ -182,6 +185,17 @@ export default function Ajustes() {
                 label="Taxis cercanos en el mapa"
                 hint="Muestra los taxis libres alrededor (cliente)"
               />
+              {pushSoportado() && (
+                <Toggle
+                  checked={push}
+                  onChange={async (v) => {
+                    if (v) { const ok = await activarPush(); setPush(ok); }
+                    else { await desactivarPush(); setPush(false); }
+                  }}
+                  label="Avisos con la app cerrada"
+                  hint="Notificaciones push: solicitudes y estado del viaje aunque no tengas la app abierta"
+                />
+              )}
             </div>
           </section>
 

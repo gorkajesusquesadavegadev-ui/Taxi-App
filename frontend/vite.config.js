@@ -30,6 +30,8 @@ export default defineConfig({
         // assets propios precacheados; mapas/fuentes van a red con caché
         globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
         navigateFallback: "/index.html",
+        // handlers Web Push (push + notificationclick) en el SW generado
+        importScripts: ["/push-sw.js"],
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.origin.includes("basemaps.cartocdn.com"),

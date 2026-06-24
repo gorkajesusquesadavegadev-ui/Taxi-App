@@ -2,6 +2,7 @@ package com.taya.websocket;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.taya.model.Viaje;
 import com.taya.service.TarifaService;
+import com.taya.service.WebPushService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -13,9 +14,10 @@ import java.util.Map;
 public class TripWsServiceImpl implements TripWsService {
     private final WsSessionRegistry registry;
     private final TarifaService tarifa;
+    private final WebPushService push;
     private final ObjectMapper mapper = new ObjectMapper();
-    public TripWsServiceImpl(WsSessionRegistry registry, TarifaService tarifa) {
-        this.registry = registry; this.tarifa = tarifa;
+    public TripWsServiceImpl(WsSessionRegistry registry, TarifaService tarifa, WebPushService push) {
+        this.registry = registry; this.tarifa = tarifa; this.push = push;
     }
 
     private void send(Long userId, String event, Object data) {
@@ -36,11 +38,16 @@ public class TripWsServiceImpl implements TripWsService {
         payload.put("precioEstimado", v.getPrecioEstimado());
         payload.put("tipo", v.getTipo() != null ? v.getTipo().name() : "NORMAL");
         payload.put("detalle", v.getDetalle());
-        payload.put("zona", tarifa.zonaLabel(v.getOrigenLat(), v.getOrigenLng(), v.getDestinoLat(), v.getDestinoLng()));
+        String zona = tarifa.zonaLabel(v.getOrigenLat(), v.getOrigenLng(), v.getDestinoLat(), v.getDestinoLng());
+        payload.put("zona", zona);
         taxistaIds.forEach(id -> send(id, "trip:new", payload));
+        // Web Push: el taxista se entera aunque tenga la app cerrada.
+        String cuerpo = (v.getPrecioEstimado() != null ? v.getPrecioEstimado() + " € · " : "") + (zona != null ? zona : "Viaje cercano");
+        taxistaIds.forEach(id -> push.enviar(id, "🚖 Nueva solicitud de viaje", cuerpo, "/", "trip:new"));
     }
     @Override public void enviarAceptado(Long clienteId, Viaje v) {
         send(clienteId, "trip:accepted", Map.of("viajeId", v.getId(), "taxistaId", v.getTaxistaId()));
+        push.enviar(clienteId, "✅ Taxi en camino", "Un taxista ha aceptado tu viaje y va hacia ti.", "/", "trip:accepted");
     }
     @Override public void enviarAsignado(Long taxistaId, Viaje v) {
         // reserva activada: el taxista recibe el viaje ya asignado para conducirlo
@@ -49,6 +56,7 @@ public class TripWsServiceImpl implements TripWsService {
         p.put("detalle", v.getDetalle());
         p.put("tipo", v.getTipo() != null ? v.getTipo().name() : "NORMAL");
         send(taxistaId, "trip:assigned", p);
+        push.enviar(taxistaId, "📋 Reserva activa", (v.getDetalle() != null ? v.getDetalle() : "Tu reserva") + " comienza ahora.", "/", "trip:assigned");
     }
     @Override public void enviarTomado(List<Long> taxistaIds, Long viajeId) {
         taxistaIds.forEach(id -> send(id, "trip:taken", Map.of("viajeId", viajeId)));
@@ -58,6 +66,7 @@ public class TripWsServiceImpl implements TripWsService {
     }
     @Override public void enviarLlegada(Long clienteId, Long viajeId) {
         send(clienteId, "trip:arrived", Map.of("viajeId", viajeId));
+        push.enviar(clienteId, "🚕 Tu taxi ha llegado", "El taxista te espera en el punto de recogida.", "/", "trip:arrived");
     }
     @Override public void enviarEstado(Long clienteId, String status) {
         send(clienteId, "trip:status", Map.of("status", status));

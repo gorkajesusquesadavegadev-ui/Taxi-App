@@ -11,6 +11,7 @@ import { connectWs } from "../../api/ws.js";
 import { prefs, beep, avisar } from "../../utils/prefs.js";
 import ValorarViaje from "../../components/ValorarViaje.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { activarPush } from "../../api/push.js";
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
 const TIPO_LABEL = { TRANSFER: "Transfer", EXCURSION: "Excursión" };
@@ -272,6 +273,8 @@ export default function TaxistaHome() {
         // el WS effect reafirma LIBRE al activarse; aquí solo persistimos
         localStorage.setItem("taya:online", "1");
         setOnline(true);
+        // Web Push: que las solicitudes lleguen aunque cierre la app
+        activarPush().catch(() => {});
       } else {
         await api.estado({ estado: "DESCONECTADO" });
         localStorage.setItem("taya:online", "0");
