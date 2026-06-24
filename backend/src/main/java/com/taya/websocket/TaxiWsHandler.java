@@ -12,9 +12,11 @@ public class TaxiWsHandler extends TextWebSocketHandler {
     private final JwtTokenProvider jwt;
     private final WsSessionRegistry registry;
     private final UbicacionService ubicacion;
+    private final com.taya.websocket.TripWsService trips;
     private final ObjectMapper mapper = new ObjectMapper();
-    public TaxiWsHandler(JwtTokenProvider jwt, WsSessionRegistry registry, UbicacionService ubicacion) {
-        this.jwt = jwt; this.registry = registry; this.ubicacion = ubicacion;
+    public TaxiWsHandler(JwtTokenProvider jwt, WsSessionRegistry registry, UbicacionService ubicacion,
+                         com.taya.websocket.TripWsService trips) {
+        this.jwt = jwt; this.registry = registry; this.ubicacion = ubicacion; this.trips = trips;
     }
 
     private Long userIdOf(WebSocketSession s) { return (Long) s.getAttributes().get("userId"); }
@@ -36,7 +38,13 @@ public class TaxiWsHandler extends TextWebSocketHandler {
         String event = node.path("event").asText();
         JsonNode data = node.path("data");
         switch (event) {
-            case "location:update" -> ubicacion.actualizarUbicacion(userId, data.get("lat").asDouble(), data.get("lng").asDouble());
+            case "location:update" -> {
+                double lat = data.get("lat").asDouble(), lng = data.get("lng").asDouble();
+                ubicacion.actualizarUbicacion(userId, lat, lng);
+                // Reenvía la posición en vivo al cliente del viaje en curso (mapa + ETA).
+                Long clienteId = ubicacion.clienteDelViaje(userId);
+                if (clienteId != null) trips.enviarUbicacionTaxi(clienteId, lat, lng);
+            }
             case "heartbeat" -> ubicacion.heartbeat(userId);
             default -> { /* ignore unknown */ }
         }

@@ -21,6 +21,9 @@ public interface ViajeRepository extends JpaRepository<Viaje, Long> {
     long countByEstado(EstadoViaje estado);
     List<Viaje> findTop100ByOrderBySolicitadoEnDesc();
 
+    // Compartir viaje en vivo (token público).
+    Optional<Viaje> findByShareToken(String shareToken);
+
     // Current non-terminal trip for resync ("always informed" client polling).
     Optional<Viaje> findFirstByClienteIdAndEstadoInOrderBySolicitadoEnDesc(
         Long clienteId, Collection<EstadoViaje> estados);

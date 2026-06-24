@@ -66,6 +66,17 @@ public class ViajeController {
         return viajes.uno(id, Long.valueOf(uid));
     }
 
+    @PutMapping("/{id}/compartir") @PreAuthorize("hasRole('CLIENTE')")
+    public java.util.Map<String, String> compartir(@AuthenticationPrincipal String uid, @PathVariable Long id) {
+        return java.util.Map.of("token", viajes.compartir(id, Long.valueOf(uid)));
+    }
+
+    /** Seguimiento público en vivo por token (sin login). */
+    @GetMapping("/seguir/{token}")
+    public ViajeService.SeguimientoResponse seguir(@PathVariable String token) {
+        return viajes.seguir(token);
+    }
+
     @GetMapping("/{id}/ruta")
     public RutaResponse ruta(@AuthenticationPrincipal String uid, @PathVariable Long id) {
         return viajes.rutaDe(id, Long.valueOf(uid));

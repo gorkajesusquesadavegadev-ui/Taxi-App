@@ -92,6 +92,19 @@ public class UbicacionService {
         return redis.opsForValue().get("taxi:" + taxistaId + ":ubicacion");
     }
 
+    // Mapa taxista->cliente del viaje en curso, para reenviar la posición en vivo
+    // sin consultar la BD en cada location:update (cada 3 s).
+    public void vincularViaje(Long taxistaId, Long clienteId) {
+        redis.opsForValue().set("taxi:" + taxistaId + ":viaje_cliente", String.valueOf(clienteId), Duration.ofHours(6));
+    }
+    public Long clienteDelViaje(Long taxistaId) {
+        String v = redis.opsForValue().get("taxi:" + taxistaId + ":viaje_cliente");
+        return v == null ? null : Long.valueOf(v);
+    }
+    public void desvincularViaje(Long taxistaId) {
+        redis.delete("taxi:" + taxistaId + ":viaje_cliente");
+    }
+
     /** Free taxistas within radiusKm of (lat,lng). */
     public List<TaxiCercano> libresEnRadio(double lat, double lng, double radiusKm) {
         var circle = new Circle(new Point(lng, lat), new Distance(radiusKm, Metrics.KILOMETERS));

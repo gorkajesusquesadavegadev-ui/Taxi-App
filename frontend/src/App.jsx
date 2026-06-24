@@ -14,6 +14,7 @@ const Foro = lazy(() => import("./pages/Foro.jsx"));
 const Reservas = lazy(() => import("./pages/Reservas.jsx"));
 const TarifaActual = lazy(() => import("./pages/TarifaActual.jsx"));
 const AdminPanel = lazy(() => import("./pages/admin/AdminPanel.jsx"));
+const Seguir = lazy(() => import("./pages/Seguir.jsx"));
 const Privacidad = lazy(() => import("./pages/legal/Privacidad.jsx"));
 const Cookies = lazy(() => import("./pages/legal/Cookies.jsx"));
 const Terminos = lazy(() => import("./pages/legal/Terminos.jsx"));
@@ -97,6 +98,7 @@ export default function App() {
             </Protected>
           }
         />
+        <Route path="/seguir/:token" element={<Seguir />} />
         <Route path="/privacidad" element={<Privacidad />} />
         <Route path="/cookies" element={<Cookies />} />
         <Route path="/terminos" element={<Terminos />} />

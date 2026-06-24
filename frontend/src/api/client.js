@@ -59,6 +59,8 @@ export const api = {
   pendienteCercano: () => req("GET", "/viajes/pendiente-cercano"),
   tarifaActual: () => req("GET", "/tarifa/actual"),
   cancelar: (id) => req("PUT", `/viajes/${id}/cancelar`),
+  compartirViaje: (id) => req("PUT", `/viajes/${id}/compartir`),
+  seguir: (token) => req("GET", `/viajes/seguir/${token}`),
   historialCliente: () => req("GET", "/viajes/historial"),
   cercanos: (lat, lng, radio) =>
     req("GET", `/taxistas/cercanos?lat=${lat}&lng=${lng}${radio ? `&radio=${radio}` : ""}`),

@@ -263,6 +263,38 @@ export default function ClienteHome() {
     }
   }
 
+  // Compartir viaje en vivo: genera token y abre el menú de compartir / copia link
+  async function compartirViaje() {
+    if (!viaje) return;
+    try {
+      const { token } = await api.compartirViaje(viaje.id);
+      const url = `${window.location.origin}/seguir/${token}`;
+      const texto = `Sigue mi taxi en vivo (CanaryCab): ${url}`;
+      if (navigator.share) {
+        await navigator.share({ title: "Sigue mi taxi · CanaryCab", text: texto, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        setStatusMsg("Enlace de seguimiento copiado.");
+      }
+    } catch (_) {
+      setStatusMsg("No se pudo generar el enlace.");
+    }
+  }
+
+  // SOS: comparte ubicación + datos del taxi por WhatsApp y permite llamar al 112
+  function sos() {
+    if (!viaje) return;
+    const pos = taxiPos || { lat: viaje.origenLat, lng: viaje.origenLng };
+    const mapa = `https://maps.google.com/?q=${pos.lat},${pos.lng}`;
+    const datos =
+      `🆘 EMERGENCIA - voy en un taxi (CanaryCab).` +
+      (viaje.taxistaNombre ? ` Taxista: ${viaje.taxistaNombre}.` : "") +
+      (viaje.taxistaMatricula ? ` Matrícula: ${viaje.taxistaMatricula}.` : "") +
+      (viaje.taxistaLicencia ? ` Licencia: ${viaje.taxistaLicencia}.` : "") +
+      ` Mi ubicación: ${mapa}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(datos)}`, "_blank");
+  }
+
   // Favorito elegido: rellena el primer punto libre (origen, luego destino).
   function pickFavorito(p) {
     if (viaje) return;
@@ -533,6 +565,23 @@ export default function ClienteHome() {
                         </a>
                       )}
                     </div>
+                  </div>
+                )}
+                {/* Compartir viaje en vivo + SOS (durante el trayecto) */}
+                {["ACEPTADO", "LLEGADO", "EN_CURSO"].includes(viaje.estado) && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={compartirViaje}
+                      className="flex items-center justify-center gap-2 rounded-2xl border border-sand-deep bg-white py-2.5 text-sm font-bold text-volcanic transition-colors hover:border-atlantic hover:bg-atlantic/10"
+                    >
+                      🔗 Compartir viaje
+                    </button>
+                    <button
+                      onClick={sos}
+                      className="flex items-center justify-center gap-2 rounded-2xl bg-coral/15 py-2.5 text-sm font-extrabold text-coral transition-colors hover:bg-coral/25"
+                    >
+                      🆘 SOS
+                    </button>
                   </div>
                 )}
                 {/* Sin taxista tras 45s → mostrar opción de reintento */}

@@ -113,6 +113,7 @@ public class ViajeService {
         // Ocupado: deja de ser elegible para PUSH de nuevos viajes.
         usuarios.findById(taxistaId).ifPresent(u -> { u.setDisponible(false); usuarios.save(u); });
         Viaje v = viajes.findById(viajeId).orElseThrow();
+        ubicacion.vincularViaje(taxistaId, v.getClienteId()); // posición en vivo al cliente
         // Notify the client their trip was accepted. The losing taxistas learn via the 409
         // they receive when calling /aceptar, so trip:taken push is optional for MVP.
         ws.enviarAceptado(v.getClienteId(), v);
@@ -170,6 +171,7 @@ public class ViajeService {
         v.setEstado(EstadoViaje.COMPLETADO); v.setCompletadoEn(Instant.now());
         final double finLat = v.getDestinoLat(), finLng = v.getDestinoLng();
         ubicacion.setLibre(taxistaId, finLat, finLng);
+        ubicacion.desvincularViaje(taxistaId);
         // Vuelve a estar disponible para PUSH de nuevos viajes.
         usuarios.findById(taxistaId).ifPresent(u -> {
             u.setDisponible(true);
@@ -189,8 +191,11 @@ public class ViajeService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "no participas en el viaje");
         if (v.getEstado() == EstadoViaje.COMPLETADO || v.getEstado() == EstadoViaje.CANCELADO)
             throw new ResponseStatusException(HttpStatus.CONFLICT, "viaje ya cerrado");
-        if (v.getTaxistaId() != null) ubicacion.setLibre(v.getTaxistaId(),
-            v.getOrigenLat(), v.getOrigenLng());
+        if (v.getTaxistaId() != null) {
+            ubicacion.setLibre(v.getTaxistaId(), v.getOrigenLat(), v.getOrigenLng());
+            ubicacion.desvincularViaje(v.getTaxistaId());
+            usuarios.findById(v.getTaxistaId()).ifPresent(u -> { u.setDisponible(true); usuarios.save(u); });
+        }
         v.setEstado(EstadoViaje.CANCELADO); v.setCanceladoEn(Instant.now());
         v = viajes.save(v);
         ws.enviarCancelado(v.getClienteId(), v.getTaxistaId(), v.getId());
@@ -199,6 +204,57 @@ public class ViajeService {
 
     /** One trip by id, restricted to its participants. The client polls this to
      *  observe terminal states (COMPLETADO/CANCELADO) that /activo can't return. */
+    /** Genera (o reutiliza) un token público para seguir el viaje en vivo. */
+    @Transactional
+    public String compartir(Long viajeId, Long clienteId) {
+        Viaje v = viajes.findById(viajeId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "viaje no existe"));
+        if (!clienteId.equals(v.getClienteId()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "no es tu viaje");
+        if (v.getShareToken() == null) {
+            v.setShareToken(java.util.UUID.randomUUID().toString().replace("-", ""));
+            viajes.save(v);
+        }
+        return v.getShareToken();
+    }
+
+    public record SeguimientoResponse(String estado, Double taxiLat, Double taxiLng,
+        double origenLat, double origenLng, double destinoLat, double destinoLng,
+        String origenTexto, String destinoTexto, String taxistaNombre, String matricula,
+        String modelo, Integer etaMin) {}
+
+    /** Datos públicos (sin login) para la página de seguimiento por token. */
+    public SeguimientoResponse seguir(String token) {
+        Viaje v = viajes.findByShareToken(token)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "enlace no válido"));
+        Double tLat = null, tLng = null;
+        if (v.getTaxistaId() != null) {
+            String ubic = ubicacion.ubicacion(v.getTaxistaId());
+            if (ubic != null) {
+                String[] p = ubic.split(",");
+                tLat = Double.parseDouble(p[0]); tLng = Double.parseDouble(p[1]);
+            }
+        }
+        var tax = v.getTaxistaId() != null ? usuarios.findById(v.getTaxistaId()).orElse(null) : null;
+        Integer eta = null;
+        if (tLat != null && "ACEPTADO".equals(v.getEstado().name())) {
+            double km = haversineKm(tLat, tLng, v.getOrigenLat(), v.getOrigenLng());
+            eta = Math.max(1, (int) Math.round(km / 22.0 * 60));
+        }
+        return new SeguimientoResponse(v.getEstado().name(), tLat, tLng,
+            v.getOrigenLat(), v.getOrigenLng(), v.getDestinoLat(), v.getDestinoLng(),
+            v.getOrigenTexto(), v.getDestinoTexto(),
+            tax != null ? tax.getNombre() : null,
+            tax != null ? tax.getVehiculoMatricula() : null,
+            tax != null ? tax.getVehiculoModelo() : null, eta);
+    }
+
+    private static double haversineKm(double lat1, double lng1, double lat2, double lng2) {
+        double dLat = Math.toRadians(lat2 - lat1), dLng = Math.toRadians(lng2 - lng1);
+        double a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(Math.toRadians(lat1))*Math.cos(Math.toRadians(lat2))*Math.sin(dLng/2)*Math.sin(dLng/2);
+        return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
     public ViajeResponse uno(Long viajeId, Long usuarioId) {
         Viaje v = viajes.findById(viajeId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "viaje no existe"));
@@ -254,7 +310,10 @@ public class ViajeService {
         v.setEstado(EstadoViaje.ACEPTADO);
         v.setAceptadoEn(Instant.now());
         v = viajes.save(v);
-        if (r.getTaxistaId() != null) ubicacion.setOcupado(r.getTaxistaId());
+        if (r.getTaxistaId() != null) {
+            ubicacion.setOcupado(r.getTaxistaId());
+            ubicacion.vincularViaje(r.getTaxistaId(), v.getClienteId());
+        }
         ws.enviarAceptado(v.getClienteId(), v);   // cliente: "Taxista en camino"
         ws.enviarAsignado(v.getTaxistaId(), v);   // taxista: viaje para conducir
         return v;

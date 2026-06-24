@@ -29,7 +29,9 @@ public class Viaje {
     @Column(name = "iniciado_en") private Instant iniciadoEn;
     @Column(name = "completado_en") private Instant completadoEn;
     @Column(name = "cancelado_en") private Instant canceladoEn;
+    @Column(name = "share_token", length = 40) private String shareToken; // compartir viaje en vivo
 
+    public String getShareToken(){ return shareToken; } public void setShareToken(String v){ this.shareToken=v; }
     public Long getId() { return id; } public void setId(Long v){ this.id=v; }
     public Long getClienteId(){ return clienteId; } public void setClienteId(Long v){ this.clienteId=v; }
     public Long getTaxistaId(){ return taxistaId; } public void setTaxistaId(Long v){ this.taxistaId=v; }
