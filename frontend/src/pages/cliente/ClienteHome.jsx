@@ -82,6 +82,8 @@ export default function ClienteHome() {
   const [reservando, setReservando] = useState(false);
   const [sinTaxi, setSinTaxi] = useState(false); // true tras 45s sin taxista
   const [localizando, setLocalizando] = useState(false); // GPS en curso para "mi ubicación"
+  const [accesible, setAccesible] = useState(false); // requiere taxi adaptado
+  const [fidelidad, setFidelidad] = useState(null);
   const navigate = useNavigate();
   const wsRef = useRef(null);
   const userPosRef = useRef(LPGC);
@@ -194,6 +196,14 @@ export default function ClienteHome() {
     });
     return () => { alive = false; };
   }, []);
+
+  // fidelidad: nivel + progreso a viaje gratis (se refresca al cerrar un viaje)
+  useEffect(() => {
+    let alive = true;
+    if (viaje && viaje.estado !== "COMPLETADO") return;
+    api.fidelidad().then((f) => alive && setFidelidad(f)).catch(() => {});
+    return () => { alive = false; };
+  }, [viaje?.estado]);
 
   // taxis online (libres + en viaje) — refresca cada 8 s
   useEffect(() => {
@@ -342,6 +352,7 @@ export default function ClienteHome() {
         destinoLng: destino.lng,
         origenTexto: origen.label || null,
         destinoTexto: destino.label || null,
+        requiereAccesible: accesible,
       });
       setViaje(v);
       setStatusMsg("Buscando un taxi cercano…");
@@ -650,6 +661,41 @@ export default function ClienteHome() {
 
                 {/* favoritos: un toque rellena origen/destino; guarda el punto elegido */}
                 <FavoritosBar onPick={pickFavorito} puntoParaGuardar={destino || origen} />
+
+                {/* taxi adaptado: solo despacha a vehículos accesibles */}
+                <button
+                  onClick={() => setAccesible((a) => !a)}
+                  aria-pressed={accesible}
+                  className={`flex w-full items-center gap-2 rounded-2xl border-2 px-3 py-2 text-sm font-bold transition-colors ${
+                    accesible ? "border-atlantic bg-atlantic/10 text-atlantic-dark" : "border-sand-deep bg-white text-volcanic/60"
+                  }`}
+                >
+                  <span className="text-base">♿</span>
+                  Necesito taxi adaptado
+                  <span className={`ml-auto h-5 w-9 rounded-full p-0.5 transition-colors ${accesible ? "bg-atlantic" : "bg-volcanic/20"}`}>
+                    <span className={`block h-4 w-4 rounded-full bg-white transition-transform ${accesible ? "translate-x-4" : ""}`} />
+                  </span>
+                </button>
+
+                {/* fidelidad: nivel + progreso a viaje gratis */}
+                {fidelidad && fidelidad.completados > 0 && (
+                  <div className="rounded-2xl border border-taxi/40 bg-taxi/10 px-3 py-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-extrabold text-volcanic">
+                        {fidelidad.nivel === "Oro" ? "🥇" : fidelidad.nivel === "Plata" ? "🥈" : "🥉"} Cliente {fidelidad.nivel}
+                      </span>
+                      <span className="text-xs font-semibold text-volcanic/60">{fidelidad.completados} viajes</span>
+                    </div>
+                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-white">
+                      <div className="h-full rounded-full bg-taxi" style={{ width: `${(fidelidad.progreso / 10) * 100}%` }} />
+                    </div>
+                    <p className="mt-1 text-[11px] font-semibold text-volcanic/60">
+                      {fidelidad.faltanParaRecompensa === 0
+                        ? "🎉 ¡Tienes un viaje de regalo disponible!"
+                        : `${fidelidad.faltanParaRecompensa} viajes para tu próximo viaje gratis`}
+                    </p>
+                  </div>
+                )}
 
                 {/* estimate: time + distance + price, Google-style */}
                 <div className="flex items-center justify-between rounded-2xl bg-sand px-4 py-3">

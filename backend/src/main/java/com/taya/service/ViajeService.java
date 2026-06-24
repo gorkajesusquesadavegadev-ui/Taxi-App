@@ -71,6 +71,7 @@ public class ViajeService {
         // después (pedir taxi nunca espera a un geocoder externo)
         v.setOrigenTexto(sinTexto(r.origenTexto()) ? null : r.origenTexto());
         v.setDestinoTexto(sinTexto(r.destinoTexto()) ? null : r.destinoTexto());
+        v.setRequiereAccesible(Boolean.TRUE.equals(r.requiereAccesible()));
         v.setDistanciaEstimadaKm(est.distanciaKm()); v.setPrecioEstimado(est.precioEstimado());
         v.setEstado(EstadoViaje.SOLICITADO);
         v = viajes.save(v);

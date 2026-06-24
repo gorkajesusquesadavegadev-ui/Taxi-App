@@ -20,7 +20,7 @@ public class UsuarioController {
     /** Campos de vehículo solo se aplican a taxistas; en cliente se ignoran. */
     public record ActualizarMeRequest(@NotBlank @Size(min = 2, max = 60) String nombre,
                                       String vehiculoModelo, String vehiculoMatricula,
-                                      String telefono) {}
+                                      String telefono, Boolean vehiculoAccesible) {}
 
     public record CambiarPasswordRequest(@NotBlank String actual,
                                          @NotBlank @Size(min = 6, max = 100) String nueva) {}
@@ -28,7 +28,8 @@ public class UsuarioController {
     private UsuarioResponse aResponse(com.taya.model.Usuario u) {
         return new UsuarioResponse(u.getId(), u.getNombre(), u.getEmail(), u.getRol().name(),
             u.getVehiculoMatricula(), u.getVehiculoModelo(), u.getTelefono(),
-            u.isVerificado(), u.getRatingMedia(), u.getRatingCount(), u.getLicencia());
+            u.isVerificado(), u.getRatingMedia(), u.getRatingCount(), u.getLicencia(),
+            u.isVehiculoAccesible());
     }
 
     @GetMapping("/me")
@@ -47,6 +48,7 @@ public class UsuarioController {
                 u.setVehiculoModelo(r.vehiculoModelo().trim());
             if (r.vehiculoMatricula() != null && !r.vehiculoMatricula().isBlank())
                 u.setVehiculoMatricula(r.vehiculoMatricula().trim().toUpperCase());
+            if (r.vehiculoAccesible() != null) u.setVehiculoAccesible(r.vehiculoAccesible());
         }
         usuarios.save(u);
         return aResponse(u);

@@ -24,6 +24,9 @@ public interface ViajeRepository extends JpaRepository<Viaje, Long> {
     // Compartir viaje en vivo (token público).
     Optional<Viaje> findByShareToken(String shareToken);
 
+    // Fidelidad: viajes completados por cliente.
+    long countByClienteIdAndEstado(Long clienteId, EstadoViaje estado);
+
     // Current non-terminal trip for resync ("always informed" client polling).
     Optional<Viaje> findFirstByClienteIdAndEstadoInOrderBySolicitadoEnDesc(
         Long clienteId, Collection<EstadoViaje> estados);

@@ -76,6 +76,8 @@ export const api = {
   // valoraciones (rating 1-5★ tras viaje completado)
   valorar: (viajeId, estrellas, comentario) => req("POST", `/valoraciones/${viajeId}`, { estrellas, comentario }),
   valoracionPendiente: (viajeId) => req("GET", `/valoraciones/pendiente/${viajeId}`),
+  // fidelidad
+  fidelidad: () => req("GET", "/fidelidad"),
   // favoritos
   favoritos: () => req("GET", "/favoritos"),
   favoritoCrear: (d) => req("POST", "/favoritos", d),

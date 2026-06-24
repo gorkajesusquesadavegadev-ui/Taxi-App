@@ -42,6 +42,7 @@ export default function Ajustes() {
   const [modelo, setModelo] = useState(user?.vehiculoModelo || "");
   const [matricula, setMatricula] = useState(user?.vehiculoMatricula || "");
   const [telefono, setTelefono] = useState(user?.telefono || "");
+  const [accesible, setAccesible] = useState(!!user?.vehiculoAccesible);
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
   const [sound, setSound] = useState(prefs.getSound());
@@ -60,7 +61,8 @@ export default function Ajustes() {
     telefono.trim() !== (user?.telefono || "") ||
     (esTaxista &&
       (modelo.trim() !== (user?.vehiculoModelo || "") ||
-        matricula.trim().toUpperCase() !== (user?.vehiculoMatricula || "")));
+        matricula.trim().toUpperCase() !== (user?.vehiculoMatricula || "") ||
+        accesible !== !!user?.vehiculoAccesible));
 
   async function guardar() {
     setSaving(true);
@@ -71,6 +73,7 @@ export default function Ajustes() {
         telefono: telefono.trim(),
         vehiculoModelo: esTaxista ? modelo.trim() : null,
         vehiculoMatricula: esTaxista ? matricula.trim() : null,
+        vehiculoAccesible: esTaxista ? accesible : null,
       });
       setUser(me);
       setSavedMsg("Guardado");
@@ -150,6 +153,22 @@ export default function Ajustes() {
                     placeholder="1234-ABC"
                   />
                 </div>
+              )}
+              {esTaxista && (
+                <button
+                  type="button"
+                  onClick={() => setAccesible((a) => !a)}
+                  aria-pressed={accesible}
+                  className={`flex w-full items-center gap-2 rounded-2xl border-2 px-3 py-2 text-sm font-bold transition-colors ${
+                    accesible ? "border-atlantic bg-atlantic/10 text-atlantic-dark" : "border-sand-deep bg-white text-volcanic/60"
+                  }`}
+                >
+                  <span className="text-base">♿</span>
+                  Vehículo adaptado (silla de ruedas)
+                  <span className={`ml-auto h-5 w-9 rounded-full p-0.5 transition-colors ${accesible ? "bg-atlantic" : "bg-volcanic/20"}`}>
+                    <span className={`block h-4 w-4 rounded-full bg-white transition-transform ${accesible ? "translate-x-4" : ""}`} />
+                  </span>
+                </button>
               )}
               <div className="flex items-center gap-3">
                 <Button size="sm" disabled={!dirty || saving} onClick={guardar}>

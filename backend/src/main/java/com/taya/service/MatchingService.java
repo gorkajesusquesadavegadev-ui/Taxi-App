@@ -23,23 +23,24 @@ public class MatchingService {
         this.registry = registry; this.usuarios = usuarios; this.push = push;
     }
 
-    /** Solo se despachan viajes a taxistas verificados (no bloqueados) por el admin. */
-    private boolean apto(Long taxistaId) {
+    /** Verificado + no bloqueado + (si el viaje requiere taxi adaptado) vehículo accesible. */
+    private boolean aptoPara(Long taxistaId, boolean requiereAccesible) {
         return usuarios.findById(taxistaId)
-            .map(u -> u.isVerificado() && !u.isBloqueado())
+            .map(u -> u.isVerificado() && !u.isBloqueado() && (!requiereAccesible || u.isVehiculoAccesible()))
             .orElse(false);
     }
 
     public void difundirNuevoViaje(Viaje viaje) {
         double radio = tarifa.radioBusquedaKm().doubleValue();
         double lat = viaje.getOrigenLat(), lng = viaje.getOrigenLng();
+        boolean acc = viaje.isRequiereAccesible();
 
         // === Canal 1: WebSocket (app abierta) — entrega instantánea ===
-        List<Long> ids = libresConSesion(lat, lng, radio);
-        if (ids.isEmpty()) ids = libresConSesion(lat, lng, 50.0);
+        List<Long> ids = libresConSesion(lat, lng, radio, acc);
+        if (ids.isEmpty()) ids = libresConSesion(lat, lng, 50.0, acc);
         if (ids.isEmpty()) {
             ids = ubicacion.libresEnRadio(lat, lng, 300.0)
-                .stream().map(UbicacionService.TaxiCercano::taxistaId).filter(this::apto).toList();
+                .stream().map(UbicacionService.TaxiCercano::taxistaId).filter(id -> aptoPara(id, acc)).toList();
         }
         if (!ids.isEmpty()) ws.enviarNuevoViaje(ids, viaje);
 
@@ -52,11 +53,13 @@ public class MatchingService {
 
     private void notificarPush(Viaje viaje, double lat, double lng, List<Long> yaPorWs) {
         double radioPush = Math.max(tarifa.radioBusquedaKm().doubleValue(), 15.0); // algo más amplio
+        boolean acc = viaje.isRequiereAccesible();
         String zona = tarifa.zonaLabel(lat, lng, viaje.getDestinoLat(), viaje.getDestinoLng());
         String cuerpo = (viaje.getPrecioEstimado() != null ? viaje.getPrecioEstimado() + " € · " : "")
             + (zona != null ? zona : "Viaje cercano");
         for (Usuario t : usuarios.findByRolAndDisponibleTrue(Rol.TAXISTA)) {
             if (!t.isVerificado() || t.isBloqueado()) continue;
+            if (acc && !t.isVehiculoAccesible()) continue;
             if (t.getUltimaLat() == null || t.getUltimaLng() == null) continue;
             if (yaPorWs.contains(t.getId())) continue;                 // ya avisado por WS
             var s = registry.get(t.getId());
@@ -74,12 +77,12 @@ public class MatchingService {
         return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
-    /** Filtra: taxistas LIBRES en Redis, verificados, y con WS abierto ahora mismo */
-    private List<Long> libresConSesion(double lat, double lng, double radioKm) {
+    /** Filtra: taxistas LIBRES en Redis, verificados (y accesibles si procede), con WS abierto */
+    private List<Long> libresConSesion(double lat, double lng, double radioKm, boolean requiereAccesible) {
         return ubicacion.libresEnRadio(lat, lng, radioKm)
             .stream()
             .map(UbicacionService.TaxiCercano::taxistaId)
-            .filter(this::apto)
+            .filter(id -> aptoPara(id, requiereAccesible))
             .filter(id -> {
                 var s = registry.get(id);
                 if (s != null && s.isOpen()) return true;

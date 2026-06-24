@@ -31,6 +31,8 @@ public class Usuario {
     private Boolean disponible = Boolean.FALSE;
     @Column(name = "ultima_lat") private Double ultimaLat;
     @Column(name = "ultima_lng") private Double ultimaLng;
+    // Vehículo adaptado para silla de ruedas (taxista). Wrapper nullable.
+    @Column(name = "vehiculo_accesible") private Boolean vehiculoAccesible = Boolean.FALSE;
 
     public Long getId() { return id; } public void setId(Long id) { this.id = id; }
     public String getNombre() { return nombre; } public void setNombre(String v) { this.nombre = v; }
@@ -51,4 +53,5 @@ public class Usuario {
     public boolean isDisponible() { return Boolean.TRUE.equals(disponible); } public void setDisponible(boolean v) { this.disponible = v; }
     public Double getUltimaLat() { return ultimaLat; } public void setUltimaLat(Double v) { this.ultimaLat = v; }
     public Double getUltimaLng() { return ultimaLng; } public void setUltimaLng(Double v) { this.ultimaLng = v; }
+    public boolean isVehiculoAccesible() { return Boolean.TRUE.equals(vehiculoAccesible); } public void setVehiculoAccesible(boolean v) { this.vehiculoAccesible = v; }
 }
