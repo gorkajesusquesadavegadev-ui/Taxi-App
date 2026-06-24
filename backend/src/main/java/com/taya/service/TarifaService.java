@@ -168,7 +168,19 @@ public class TarifaService {
     }
 
     public EstimacionResponse estimar(double oLat, double oLng, double dLat, double dLng) {
-        var ruta = osrm.rutaEntre(oLat, oLng, dLat, dLng);
+        return estimarVia(oLat, oLng, dLat, dLng, java.util.List.of());
+    }
+
+    /** Estimación pasando por paradas intermedias (multiparada). Lista vacía =
+     *  ruta directa origen→destino (comportamiento normal). El precio usa la
+     *  distancia REAL del recorrido completo; la zona, el tramo origen→destino. */
+    public EstimacionResponse estimarVia(double oLat, double oLng, double dLat, double dLng,
+                                         java.util.List<double[]> paradas) {
+        var puntos = new java.util.ArrayList<double[]>();
+        puntos.add(new double[]{oLat, oLng});
+        if (paradas != null) puntos.addAll(paradas);
+        puntos.add(new double[]{dLat, dLng});
+        var ruta = osrm.rutaVia(puntos);
         return new EstimacionResponse(
             BigDecimal.valueOf(ruta.km()),
             BigDecimal.valueOf(Math.ceil(ruta.duracionMin())),

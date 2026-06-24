@@ -31,9 +31,11 @@ public class Viaje {
     @Column(name = "cancelado_en") private Instant canceladoEn;
     @Column(name = "share_token", length = 40) private String shareToken; // compartir viaje en vivo
     @Column(name = "requiere_accesible") private Boolean requiereAccesible = Boolean.FALSE; // taxi adaptado
+    @Column(name = "paradas", length = 1000) private String paradas; // multiparada "lat,lng;lat,lng"
 
     public String getShareToken(){ return shareToken; } public void setShareToken(String v){ this.shareToken=v; }
     public boolean isRequiereAccesible(){ return Boolean.TRUE.equals(requiereAccesible); } public void setRequiereAccesible(boolean v){ this.requiereAccesible=v; }
+    public String getParadas(){ return paradas; } public void setParadas(String v){ this.paradas=v; }
     public Long getId() { return id; } public void setId(Long v){ this.id=v; }
     public Long getClienteId(){ return clienteId; } public void setClienteId(Long v){ this.clienteId=v; }
     public Long getTaxistaId(){ return taxistaId; } public void setTaxistaId(Long v){ this.taxistaId=v; }

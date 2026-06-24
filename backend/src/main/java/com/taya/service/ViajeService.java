@@ -56,13 +56,38 @@ public class ViajeService {
         return pts;
     }
 
+    // Multiparada: parseo/serialización "lat,lng;lat,lng".
+    static java.util.List<double[]> listaParadas(double[][] arr) {
+        var out = new java.util.ArrayList<double[]>();
+        if (arr != null) for (double[] p : arr) if (p != null && p.length == 2) out.add(new double[]{p[0], p[1]});
+        return out;
+    }
+    static String formatParadas(double[][] arr) {
+        var l = listaParadas(arr);
+        if (l.isEmpty()) return null;
+        var sb = new StringBuilder();
+        for (double[] p : l) { if (sb.length() > 0) sb.append(';'); sb.append(p[0]).append(',').append(p[1]); }
+        return sb.toString();
+    }
+    static java.util.List<double[]> parseParadas(String s) {
+        var out = new java.util.ArrayList<double[]>();
+        if (s == null || s.isBlank()) return out;
+        for (String par : s.split(";")) {
+            var xy = par.split(",");
+            if (xy.length == 2) out.add(new double[]{Double.parseDouble(xy[0]), Double.parseDouble(xy[1])});
+        }
+        return out;
+    }
+
     public EstimacionResponse estimar(EstimarRequest r) {
-        return tarifa.estimar(r.origenLat(), r.origenLng(), r.destinoLat(), r.destinoLng());
+        return tarifa.estimarVia(r.origenLat(), r.origenLng(), r.destinoLat(), r.destinoLng(),
+            listaParadas(r.paradas()));
     }
 
     @Transactional
     public ViajeResponse solicitar(Long clienteId, SolicitarViajeRequest r) {
-        var est = tarifa.estimar(r.origenLat(), r.origenLng(), r.destinoLat(), r.destinoLng());
+        var est = tarifa.estimarVia(r.origenLat(), r.origenLng(), r.destinoLat(), r.destinoLng(),
+            listaParadas(r.paradas()));
         Viaje v = new Viaje();
         v.setClienteId(clienteId);
         v.setOrigenLat(r.origenLat()); v.setOrigenLng(r.origenLng());
@@ -72,6 +97,7 @@ public class ViajeService {
         v.setOrigenTexto(sinTexto(r.origenTexto()) ? null : r.origenTexto());
         v.setDestinoTexto(sinTexto(r.destinoTexto()) ? null : r.destinoTexto());
         v.setRequiereAccesible(Boolean.TRUE.equals(r.requiereAccesible()));
+        v.setParadas(formatParadas(r.paradas()));
         v.setDistanciaEstimadaKm(est.distanciaKm()); v.setPrecioEstimado(est.precioEstimado());
         v.setEstado(EstadoViaje.SOLICITADO);
         v = viajes.save(v);
@@ -256,6 +282,15 @@ public class ViajeService {
         return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
 
+    /** Puntos del recorrido del viaje con paradas: origen → paradas → destino. */
+    private static java.util.List<double[]> puntosViaje(Viaje v, java.util.List<double[]> paradas) {
+        var pts = new java.util.ArrayList<double[]>();
+        pts.add(new double[]{v.getOrigenLat(), v.getOrigenLng()});
+        pts.addAll(paradas);
+        pts.add(new double[]{v.getDestinoLat(), v.getDestinoLng()});
+        return pts;
+    }
+
     public ViajeResponse uno(Long viajeId, Long usuarioId) {
         Viaje v = viajes.findById(viajeId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "viaje no existe"));
@@ -271,11 +306,14 @@ public class ViajeService {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "viaje no existe"));
         if (!usuarioId.equals(v.getClienteId()) && !usuarioId.equals(v.getTaxistaId()))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "no participas en el viaje");
+        var paradas = parseParadas(v.getParadas());
         var ruta = (v.getOfertaId() != null)
             ? catalogo.porId(v.getOfertaId())
                 .map(of -> osrm.rutaVia(puntosDeOferta(of, v.getOrigenLat(), v.getOrigenLng())))
                 .orElseGet(() -> osrm.rutaEntre(v.getOrigenLat(), v.getOrigenLng(), v.getDestinoLat(), v.getDestinoLng()))
-            : osrm.rutaEntre(v.getOrigenLat(), v.getOrigenLng(), v.getDestinoLat(), v.getDestinoLng());
+            : paradas.isEmpty()
+                ? osrm.rutaEntre(v.getOrigenLat(), v.getOrigenLng(), v.getDestinoLat(), v.getDestinoLng())
+                : osrm.rutaVia(puntosViaje(v, paradas));
         return new RutaResponse(ruta.puntos(), BigDecimal.valueOf(ruta.km()),
             BigDecimal.valueOf(Math.ceil(ruta.duracionMin())));
     }

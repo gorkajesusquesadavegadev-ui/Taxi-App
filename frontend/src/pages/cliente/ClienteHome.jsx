@@ -83,6 +83,7 @@ export default function ClienteHome() {
   const [sinTaxi, setSinTaxi] = useState(false); // true tras 45s sin taxista
   const [localizando, setLocalizando] = useState(false); // GPS en curso para "mi ubicación"
   const [accesible, setAccesible] = useState(false); // requiere taxi adaptado
+  const [paradas, setParadas] = useState([]); // multiparada (puntos intermedios)
   const [fidelidad, setFidelidad] = useState(null);
   const navigate = useNavigate();
   const wsRef = useRef(null);
@@ -233,6 +234,7 @@ export default function ClienteHome() {
         origenLng: origen.lng,
         destinoLat: destino.lat,
         destinoLng: destino.lng,
+        paradas: paradas.filter(Boolean).map((p) => [p.lat, p.lng]),
       })
       .then((e) => alive && setEstimacion(e))
       .catch(() => alive && setError("No se pudo estimar la tarifa"))
@@ -240,7 +242,7 @@ export default function ClienteHome() {
     return () => {
       alive = false;
     };
-  }, [origen?.lat, origen?.lng, destino?.lat, destino?.lng]);
+  }, [origen?.lat, origen?.lng, destino?.lat, destino?.lng, paradas]);
 
   // map click sets the point right away, then fills in the street name async
   function etiquetar(p, setter) {
@@ -328,6 +330,7 @@ export default function ClienteHome() {
   function reset() {
     setOrigen(null);
     setDestino(null);
+    setParadas([]);
     setEstimacion(null);
     setError("");
   }
@@ -353,6 +356,7 @@ export default function ClienteHome() {
         origenTexto: origen.label || null,
         destinoTexto: destino.label || null,
         requiereAccesible: accesible,
+        paradas: paradas.filter(Boolean).map((p) => [p.lat, p.lng]),
       });
       setViaje(v);
       setStatusMsg("Buscando un taxi cercano…");
@@ -427,6 +431,7 @@ export default function ClienteHome() {
         ]
       : [
           ...(origen ? [{ id: "o", ...origen, kind: "origin" }] : []),
+          ...paradas.filter(Boolean).map((p, i) => ({ id: `p${i}`, lat: p.lat, lng: p.lng, kind: "destino" })),
           ...(destino ? [{ id: "d", ...destino, kind: "destino" }] : []),
         ]),
     ...(taxiPos ? [{ id: "taxi-activo", ...taxiPos, kind: "taxi" }] : []),
@@ -643,12 +648,39 @@ export default function ClienteHome() {
                     onSelect={setOrigen}
                     dotClass="bg-taxi"
                   />
+                  {paradas.map((p, i) => (
+                    <div key={i} className="flex items-center gap-1.5">
+                      <div className="flex-1">
+                        <AddressSearch
+                          placeholder={`Parada ${i + 1}`}
+                          value={p}
+                          onSelect={(pt) => setParadas((arr) => arr.map((x, j) => (j === i ? pt : x)))}
+                          dotClass="bg-volcanic"
+                        />
+                      </div>
+                      <button
+                        onClick={() => setParadas((arr) => arr.filter((_, j) => j !== i))}
+                        aria-label={`Quitar parada ${i + 1}`}
+                        className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-sand text-volcanic/60 hover:bg-coral/15 hover:text-coral"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
                   <AddressSearch
                     placeholder="¿A dónde vas?"
                     value={destino}
                     onSelect={setDestino}
                     dotClass="bg-atlantic-dark"
                   />
+                  {paradas.length < 3 && (
+                    <button
+                      onClick={() => setParadas((arr) => [...arr, null])}
+                      className="inline-flex items-center gap-1.5 text-sm font-bold text-atlantic-dark underline-offset-2 hover:underline"
+                    >
+                      ➕ Añadir parada
+                    </button>
+                  )}
                 </div>
                 {(origen || destino) && (
                   <button
