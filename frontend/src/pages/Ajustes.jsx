@@ -47,6 +47,7 @@ export default function Ajustes() {
   const [sound, setSound] = useState(prefs.getSound());
   const [nearby, setNearby] = useState(prefs.getNearby());
   const [push, setPush] = useState(false);
+  const [pushMsg, setPushMsg] = useState("");
   useEffect(() => { pushActivo().then(setPush).catch(() => {}); }, []);
   // cambio de contraseña
   const [pwdActual, setPwdActual] = useState("");
@@ -189,14 +190,22 @@ export default function Ajustes() {
                 <Toggle
                   checked={push}
                   onChange={async (v) => {
-                    if (v) { const ok = await activarPush(); setPush(ok); }
-                    else { await desactivarPush(); setPush(false); }
+                    if (v) {
+                      const res = await activarPush();
+                      setPush(res.ok);
+                      setPushMsg(res.ok ? "✅ Avisos activados." : "⚠️ " + res.motivo);
+                    } else {
+                      await desactivarPush();
+                      setPush(false);
+                      setPushMsg("");
+                    }
                   }}
                   label="Avisos con la app cerrada"
                   hint="Notificaciones push: solicitudes y estado del viaje aunque no tengas la app abierta"
                 />
               )}
             </div>
+            {pushMsg && <p className="mt-2 text-xs font-semibold text-volcanic/70">{pushMsg}</p>}
           </section>
 
           {/* seguridad */}

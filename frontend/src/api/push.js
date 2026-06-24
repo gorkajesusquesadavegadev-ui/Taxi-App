@@ -17,20 +17,35 @@ function urlBase64ToUint8Array(base64String) {
   return out;
 }
 
+function esIOS() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+function esPWAInstalada() {
+  return window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
 /**
- * Pide permiso (si hace falta), suscribe el navegador al push y guarda la
- * suscripción en el backend. Devuelve true si quedó activo.
+ * Pide permiso, suscribe el navegador al push y lo guarda en el backend.
+ * Devuelve { ok, motivo } para poder explicar el fallo al usuario.
  */
 export async function activarPush() {
-  if (!pushSoportado()) return false;
+  if (!pushSoportado()) {
+    if (esIOS() && !esPWAInstalada())
+      return { ok: false, motivo: "En iPhone debes instalar la app (Compartir → Añadir a pantalla de inicio) y abrirla desde el icono." };
+    return { ok: false, motivo: "Tu navegador no soporta notificaciones push." };
+  }
   try {
     const permiso = await Notification.requestPermission();
-    if (permiso !== "granted") return false;
+    if (permiso === "denied")
+      return { ok: false, motivo: "Has bloqueado las notificaciones. Actívalas en los ajustes del navegador para este sitio." };
+    if (permiso !== "granted")
+      return { ok: false, motivo: "No diste permiso de notificaciones." };
 
     const reg = await navigator.serviceWorker.ready;
     let sub = await reg.pushManager.getSubscription();
     if (!sub) {
       const { publicKey } = await api.vapidPublicKey();
+      if (!publicKey) return { ok: false, motivo: "El servidor no devolvió la clave de notificaciones." };
       sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicKey),
@@ -42,9 +57,9 @@ export async function activarPush() {
       p256dh: json.keys?.p256dh,
       auth: json.keys?.auth,
     });
-    return true;
-  } catch (_) {
-    return false;
+    return { ok: true, motivo: "" };
+  } catch (e) {
+    return { ok: false, motivo: "Error activando avisos: " + (e?.message || e) };
   }
 }
 
