@@ -16,12 +16,14 @@ public class Usuario {
     private boolean activo = true;
     @Column(name = "creado_en") private Instant creadoEn = Instant.now();
     // Verificación de taxistas: el admin aprueba tras revisar licencia/documentos.
-    private boolean verificado = false;
+    // columnDefinition con DEFAULT: imprescindible para que ADD COLUMN NOT NULL
+    // funcione sobre la tabla 'usuarios' ya poblada (Postgres rellena las filas).
+    @Column(columnDefinition = "boolean default false") private boolean verificado = false;
     @Column(name = "documento_url") private String documentoUrl; // foto licencia/DNI subida
-    private boolean bloqueado = false; // admin puede vetar a un usuario
+    @Column(columnDefinition = "boolean default false") private boolean bloqueado = false;
     // Reputación: media y nº de valoraciones recibidas (denormalizado para lectura rápida).
-    @Column(name = "rating_media") private double ratingMedia = 0;
-    @Column(name = "rating_count") private int ratingCount = 0;
+    @Column(name = "rating_media", columnDefinition = "double precision default 0") private double ratingMedia = 0;
+    @Column(name = "rating_count", columnDefinition = "integer default 0") private int ratingCount = 0;
 
     public Long getId() { return id; } public void setId(Long id) { this.id = id; }
     public String getNombre() { return nombre; } public void setNombre(String v) { this.nombre = v; }
