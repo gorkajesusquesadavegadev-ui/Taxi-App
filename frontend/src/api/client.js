@@ -74,6 +74,10 @@ export const api = {
   // valoraciones (rating 1-5★ tras viaje completado)
   valorar: (viajeId, estrellas, comentario) => req("POST", `/valoraciones/${viajeId}`, { estrellas, comentario }),
   valoracionPendiente: (viajeId) => req("GET", `/valoraciones/pendiente/${viajeId}`),
+  // favoritos
+  favoritos: () => req("GET", "/favoritos"),
+  favoritoCrear: (d) => req("POST", "/favoritos", d),
+  favoritoBorrar: (id) => req("DELETE", `/favoritos/${id}`),
   // web push
   vapidPublicKey: () => req("GET", "/push/vapid-public-key"),
   pushSubscribe: (d) => req("POST", "/push/subscribe", d),

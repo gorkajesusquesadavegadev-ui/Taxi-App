@@ -8,6 +8,7 @@ import Spinner from "../../components/Spinner.jsx";
 import AddressSearch from "../../components/AddressSearch.jsx";
 import ReservaModal from "../../components/ReservaModal.jsx";
 import ValorarViaje from "../../components/ValorarViaje.jsx";
+import FavoritosBar from "../../components/FavoritosBar.jsx";
 import { IconCar, IconCalendar } from "../../components/icons.jsx";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/client.js";
@@ -262,6 +263,14 @@ export default function ClienteHome() {
     }
   }
 
+  // Favorito elegido: rellena el primer punto libre (origen, luego destino).
+  function pickFavorito(p) {
+    if (viaje) return;
+    if (!origen) { setOrigen(p); }
+    else if (!destino) { setDestino(p); }
+    else { setDestino(p); }
+  }
+
   function onMapClick(latlng) {
     if (viaje) return; // locked during an active trip
     const punto = { ...latlng, label: "" };
@@ -390,6 +399,19 @@ export default function ClienteHome() {
   const center =
     taxiPos || (viaje ? { lat: viaje.origenLat, lng: viaje.origenLng } : origen) || userPos;
 
+  // ETA en vivo del taxi al punto de recogida (haversine + velocidad urbana
+  // media ~22 km/h; mínimo 1 min). Se recalcula al moverse el taxi.
+  const etaMin = (() => {
+    if (!taxiPos || !viaje || viaje.estado !== "ACEPTADO") return null;
+    const R = 6371, toRad = (d) => (d * Math.PI) / 180;
+    const dLat = toRad(viaje.origenLat - taxiPos.lat);
+    const dLng = toRad(viaje.origenLng - taxiPos.lng);
+    const a = Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(taxiPos.lat)) * Math.cos(toRad(viaje.origenLat)) * Math.sin(dLng / 2) ** 2;
+    const km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return Math.max(1, Math.round((km / 22) * 60));
+  })();
+
   return (
     <Layout title="Pedir taxi" framed>
       <div className="relative h-full">
@@ -462,9 +484,19 @@ export default function ClienteHome() {
                 {/* Taxista asignado: matrícula + licencia + contacto */}
                 {viaje.taxistaId && ["ACEPTADO", "LLEGADO", "EN_CURSO"].includes(viaje.estado) && (
                   <div className="rounded-2xl border-2 border-taxi/40 bg-taxi/10 p-3">
-                    <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-volcanic/55">
-                      Tu taxi
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-volcanic/55">
+                        Tu taxi
+                      </p>
+                      {viaje.estado === "ACEPTADO" && etaMin != null && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-volcanic px-2.5 py-1 font-display text-xs font-extrabold text-taxi">
+                          ⏱️ llega en {etaMin} min
+                        </span>
+                      )}
+                      {viaje.estado === "LLEGADO" && (
+                        <span className="rounded-full bg-palm px-2.5 py-1 text-xs font-extrabold text-white">Ha llegado</span>
+                      )}
+                    </div>
                     <div className="mt-1.5 flex items-center justify-between gap-3">
                       <div className="min-w-0">
                         <p className="flex items-center gap-1.5 truncate font-display text-base font-extrabold text-volcanic">
@@ -566,6 +598,9 @@ export default function ClienteHome() {
                     Reiniciar puntos
                   </button>
                 )}
+
+                {/* favoritos: un toque rellena origen/destino; guarda el punto elegido */}
+                <FavoritosBar onPick={pickFavorito} puntoParaGuardar={destino || origen} />
 
                 {/* estimate: time + distance + price, Google-style */}
                 <div className="flex items-center justify-between rounded-2xl bg-sand px-4 py-3">
