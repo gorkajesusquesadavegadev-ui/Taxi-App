@@ -58,7 +58,15 @@ public class DataSeeder implements CommandLineRunner {
         try { jdbc.execute("ALTER TABLE usuarios DROP CONSTRAINT IF EXISTS usuarios_rol_check"); }
         catch (Exception ignored) {}
 
-        if (usuarios.existsByEmail(adminEmail)) return;
+        // La env var ADMIN_PASSWORD es la fuente de verdad: si el admin ya existe,
+        // sincroniza su contraseña con la env en cada arranque (permite rotarla).
+        var existente = usuarios.findByEmail(adminEmail).orElse(null);
+        if (existente != null) {
+            existente.setPasswordHash(encoder.encode(adminPassword));
+            existente.setRol(Rol.ADMIN);
+            usuarios.save(existente);
+            return;
+        }
         // Primer arranque con verificación: dar por verificados los taxistas previos.
         usuarios.findByRolOrderByCreadoEnDesc(Rol.TAXISTA).forEach(t -> {
             if (!t.isVerificado()) { t.setVerificado(true); usuarios.save(t); }
