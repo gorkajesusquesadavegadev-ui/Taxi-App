@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import Sidebar from "./Sidebar.jsx";
 import ToastHost from "./ToastHost.jsx";
 import ConexionBanner from "./ConexionBanner.jsx";
+import Onboarding from "./Onboarding.jsx";
 import ReservaReminders from "./ReservaReminders.jsx";
 import ReservaBell from "./ReservaBell.jsx";
 import { IconMenu } from "./icons.jsx";
@@ -21,6 +22,7 @@ export default function Layout({ title, action, children, framed = false }) {
       </a>
       <ToastHost />
       <ConexionBanner />
+      <Onboarding />
       {user?.rol === "TAXISTA" && <ReservaReminders />}
       <Sidebar open={open} onClose={() => setOpen(false)} />
 

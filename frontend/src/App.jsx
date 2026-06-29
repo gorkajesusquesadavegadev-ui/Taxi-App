@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import Spinner from "./components/Spinner.jsx";
 
@@ -41,11 +41,13 @@ function Protected({ children }) {
 
 export default function App() {
   const { user, loading } = useAuth();
+  const location = useLocation();
   if (loading) return <Splash />;
 
   return (
     <Suspense fallback={<Splash />}>
-      <Routes>
+      <div key={location.pathname} className="page-fade h-full">
+      <Routes location={location}>
         <Route path="/login" element={user ? <Navigate to="/" replace /> : <Auth />} />
         <Route
           path="/"
@@ -104,6 +106,7 @@ export default function App() {
         <Route path="/terminos" element={<Terminos />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </div>
     </Suspense>
   );
 }

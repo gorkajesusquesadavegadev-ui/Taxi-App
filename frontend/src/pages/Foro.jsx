@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Layout from "../components/Layout.jsx";
 import Spinner from "../components/Spinner.jsx";
+import { Skeleton } from "../components/Skeleton.jsx";
 import { IconChat, IconSend } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { api } from "../api/client.js";
@@ -128,8 +129,12 @@ export default function Foro() {
         <div className="slim-scroll flex-1 overflow-y-auto overflow-x-hidden bg-cream px-3 py-4 sm:px-6">
           <div className="mx-auto max-w-2xl space-y-1.5">
             {!mensajes && !error && (
-              <div className="grid place-items-center py-16">
-                <Spinner />
+              <div className="space-y-3 py-2">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className={`flex ${i % 2 ? "justify-end" : "justify-start"}`}>
+                    <Skeleton className={`h-12 ${i % 2 ? "w-1/2" : "w-2/3"} rounded-2xl`} />
+                  </div>
+                ))}
               </div>
             )}
             {error && (

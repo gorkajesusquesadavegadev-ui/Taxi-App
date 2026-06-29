@@ -3,6 +3,8 @@ import Layout from "../components/Layout.jsx";
 import Card from "../components/Card.jsx";
 import Button from "../components/Button.jsx";
 import Spinner from "../components/Spinner.jsx";
+import { SkeletonList } from "../components/Skeleton.jsx";
+import PullToRefresh from "../components/PullToRefresh.jsx";
 import { IconPlane, IconCompass, IconPin, IconCalendar, IconWhatsapp } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { api } from "../api/client.js";
@@ -217,7 +219,7 @@ export default function Reservas() {
 
   return (
     <Layout title="Reservas" framed>
-      <div className="h-full overflow-y-auto overflow-x-hidden slim-scroll">
+      <PullToRefresh onRefresh={cargar}>
         <div className="mx-auto max-w-3xl space-y-4 p-4 lg:p-6">
           {esTaxista && (
             <div className="relative grid grid-cols-2 rounded-2xl bg-sand p-1 text-sm font-semibold">
@@ -244,11 +246,7 @@ export default function Reservas() {
 
           {error && <p className="rounded-2xl bg-coral/12 p-4 text-sm text-coral">{error}</p>}
 
-          {!lista && !error && (
-            <div className="grid place-items-center py-16">
-              <Spinner />
-            </div>
-          )}
+          {!lista && !error && <SkeletonList count={5} />}
 
           {lista && lista.length === 0 && (
             <div className="grid place-items-center py-16 text-center">
@@ -279,7 +277,7 @@ export default function Reservas() {
             ))}
           </div>
         </div>
-      </div>
+      </PullToRefresh>
     </Layout>
   );
 }
