@@ -15,6 +15,7 @@ import { api } from "../../api/client.js";
 import { direccionDe, ubicacionPrecisa } from "../../api/geo.js";
 import { activarPush } from "../../api/push.js";
 import { tapLigero, tapFuerte } from "../../utils/haptics.js";
+import { useI18n } from "../../i18n/index.jsx";
 import { connectWs } from "../../api/ws.js";
 import { avisar } from "../../utils/prefs.js";
 
@@ -67,6 +68,7 @@ const MSG_ESTADO = {
 };
 
 export default function ClienteHome() {
+  const { t } = useI18n();
   const [origen, setOrigen] = useState(null);
   const [destino, setDestino] = useState(null);
   const [userPos, setUserPos] = useState(LPGC);
@@ -112,7 +114,7 @@ export default function ClienteHome() {
     const ws = connectWs((event, data) => {
       if (event === "trip:accepted") {
         setViaje((v) => (v ? { ...v, estado: "ACEPTADO", taxistaId: data.taxistaId } : v));
-        setStatusMsg("Taxista en camino");
+        setStatusMsg(t("ride.driverOnWay"));
         notificarEstado("ACEPTADO");
         // recarga el viaje completo: trae matrícula, modelo y licencia del taxista
         const vid = viajeRef.current?.id ?? data.viajeId;
@@ -121,18 +123,18 @@ export default function ClienteHome() {
       if (event === "trip:location") setTaxiPos({ lat: data.lat, lng: data.lng });
       if (event === "trip:arrived") {
         setViaje((v) => (v ? { ...v, estado: "LLEGADO" } : v));
-        setStatusMsg("Tu taxi ha llegado");
+        setStatusMsg(t("ride.arrived"));
         notificarEstado("LLEGADO");
       }
       if (event === "trip:status") {
         const map = { ARRIVED: "LLEGADO", IN_PROGRESS: "EN_CURSO", COMPLETED: "COMPLETADO" };
         const est = map[data.status];
         setViaje((v) => (v ? { ...v, estado: est || v.estado } : v));
-        if (data.status === "COMPLETED") setStatusMsg("Viaje completado. ¡Gracias!");
+        if (data.status === "COMPLETED") setStatusMsg(t("ride.completed"));
         if (est) notificarEstado(est);
       }
       if (event === "trip:cancelled") {
-        setStatusMsg("El viaje fue cancelado");
+        setStatusMsg(t("ride.cancelled"));
         setViaje(null);
         setTaxiPos(null);
         setLlegada(false);
@@ -363,7 +365,7 @@ export default function ClienteHome() {
         paradas: paradas.filter(Boolean).map((p) => [p.lat, p.lng]),
       });
       setViaje(v);
-      setStatusMsg("Buscando un taxi cercano…");
+      setStatusMsg(t("ride.searching"));
       // Web Push: avisar "taxi en camino / ha llegado" aunque cierre la app
       activarPush().catch(() => {});
     } catch (e) {
@@ -465,7 +467,7 @@ export default function ClienteHome() {
   })();
 
   return (
-    <Layout title="Pedir taxi" framed>
+    <Layout title={t("nav.ride")} framed>
       <div className="relative h-full">
         {/* map fills the content area */}
         <div className="absolute inset-0">
@@ -504,10 +506,10 @@ export default function ClienteHome() {
           <div className="pointer-events-none absolute inset-x-3 top-3 z-[500] flex justify-center">
             <span className="pill max-w-full bg-volcanic/90 text-center text-cream shadow-card">
               {!origen
-                ? "Busca, dicta o toca el mapa: recogida"
+                ? t("ride.helperPickup")
                 : !destino
-                  ? "Ahora el destino"
-                  : "Listo para pedir"}
+                  ? t("ride.helperDest")
+                  : t("ride.helperReady")}
             </span>
           </div>
         )}
@@ -528,7 +530,7 @@ export default function ClienteHome() {
                   </span>
                 )}
                 <p className="text-sm text-volcanic/70">
-                  {statusMsg || "Viaje en curso"}
+                  {statusMsg || t("ride.inProgress")}
                   {viaje.estado !== "COMPLETADO" && viaje.estado !== "CANCELADO" && (
                     <Spinner className="ml-2 h-4 w-4 align-middle" />
                   )}
@@ -538,15 +540,15 @@ export default function ClienteHome() {
                   <div className="rounded-2xl border-2 border-taxi/40 bg-taxi/10 p-3">
                     <div className="flex items-center justify-between">
                       <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-volcanic/55">
-                        Tu taxi
+                        {t("ride.yourTaxi")}
                       </p>
                       {viaje.estado === "ACEPTADO" && etaMin != null && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-volcanic px-2.5 py-1 font-display text-xs font-extrabold text-taxi">
-                          ⏱️ llega en {etaMin} min
+                          ⏱️ {t("ride.arrivesIn", { min: etaMin })}
                         </span>
                       )}
                       {viaje.estado === "LLEGADO" && (
-                        <span className="rounded-full bg-palm px-2.5 py-1 text-xs font-extrabold text-white">Ha llegado</span>
+                        <span className="rounded-full bg-palm px-2.5 py-1 text-xs font-extrabold text-white">{t("ride.hasArrived")}</span>
                       )}
                     </div>
                     <div className="mt-1.5 flex items-center justify-between gap-3">
@@ -554,7 +556,7 @@ export default function ClienteHome() {
                         <p className="flex items-center gap-1.5 truncate font-display text-base font-extrabold text-volcanic">
                           {viaje.taxistaNombre || "Taxista"}
                           {viaje.taxistaVerificado && (
-                            <span title="Taxista verificado" className="text-palm">✓</span>
+                            <span title={t("ride.verifiedTaxi")} className="text-palm">✓</span>
                           )}
                         </p>
                         <p className="truncate text-sm font-medium text-volcanic/65">
@@ -573,7 +575,7 @@ export default function ClienteHome() {
                     <div className="mt-2 flex items-center gap-2">
                       {viaje.taxistaLicencia && (
                         <span className="rounded-md bg-volcanic/10 px-2 py-1 text-xs font-bold text-volcanic/70">
-                          Licencia {viaje.taxistaLicencia}
+                          {t("ride.licensePrefix")} {viaje.taxistaLicencia}
                         </span>
                       )}
                       {viaje.taxistaTelefono && (
@@ -581,7 +583,7 @@ export default function ClienteHome() {
                           href={`tel:${viaje.taxistaTelefono}`}
                           className="ml-auto inline-flex items-center gap-1.5 rounded-xl bg-volcanic px-3 py-1.5 text-sm font-extrabold text-cream transition active:scale-95"
                         >
-                          📞 Llamar
+                          📞 {t("ride.call")}
                         </a>
                       )}
                     </div>
@@ -594,26 +596,26 @@ export default function ClienteHome() {
                       onClick={compartirViaje}
                       className="flex items-center justify-center gap-2 rounded-2xl border border-sand-deep bg-white py-2.5 text-sm font-bold text-volcanic transition-colors hover:border-atlantic hover:bg-atlantic/10"
                     >
-                      🔗 Compartir viaje
+                      🔗 {t("ride.share")}
                     </button>
                     <button
                       onClick={sos}
                       className="flex items-center justify-center gap-2 rounded-2xl bg-coral/15 py-2.5 text-sm font-extrabold text-coral transition-colors hover:bg-coral/25"
                     >
-                      🆘 SOS
+                      🆘 {t("ride.sos")}
                     </button>
                   </div>
                 )}
                 {/* Sin taxista tras 45s → mostrar opción de reintento */}
                 {sinTaxi && viaje.estado === "SOLICITADO" && (
                   <div className="rounded-xl bg-taxi/15 px-3 py-2.5 text-sm">
-                    <p className="font-semibold text-volcanic">No hay taxis disponibles cerca ahora mismo.</p>
-                    <p className="mt-0.5 text-xs text-volcanic/60">El sistema sigue buscando automáticamente. Puedes reintentar o esperar.</p>
+                    <p className="font-semibold text-volcanic">{t("ride.noTaxisNear")}</p>
+                    <p className="mt-0.5 text-xs text-volcanic/60">{t("ride.stillSearching")}</p>
                     <button
                       onClick={reintentar}
                       className="mt-2 w-full rounded-xl bg-taxi py-2 font-bold text-volcanic transition active:scale-95"
                     >
-                      Reintentar búsqueda
+                      {t("ride.retrySearch")}
                     </button>
                   </div>
                 )}
@@ -622,11 +624,11 @@ export default function ClienteHome() {
                 )}
                 {viaje.estado === "COMPLETADO" || viaje.estado === "CANCELADO" ? (
                   <Button full variant="dark" onClick={cancelar}>
-                    Nuevo viaje
+                    {t("ride.newTrip")}
                   </Button>
                 ) : (
                   <Button full variant="danger" onClick={cancelar}>
-                    Cancelar viaje
+                    {t("ride.cancelTrip")}
                   </Button>
                 )}
               </div>
@@ -641,13 +643,13 @@ export default function ClienteHome() {
                     className="flex w-full items-center justify-center gap-2 rounded-2xl bg-atlantic/10 px-3 py-2.5 text-sm font-extrabold text-atlantic-dark transition-colors hover:bg-atlantic/20 disabled:opacity-60"
                   >
                     {localizando ? (
-                      <><Spinner className="h-4 w-4" /> Localizando…</>
+                      <><Spinner className="h-4 w-4" /> {t("ride.locating")}</>
                     ) : (
-                      <>📍 Usar mi ubicación</>
+                      <>📍 {t("ride.useMyLocation")}</>
                     )}
                   </button>
                   <AddressSearch
-                    placeholder="¿Dónde te recogemos?"
+                    placeholder={t("ride.pickupPh")}
                     value={origen}
                     onSelect={setOrigen}
                     dotClass="bg-taxi"
@@ -656,7 +658,7 @@ export default function ClienteHome() {
                     <div key={i} className="flex items-center gap-1.5">
                       <div className="flex-1">
                         <AddressSearch
-                          placeholder={`Parada ${i + 1}`}
+                          placeholder={t("ride.stopPh", { n: i + 1 })}
                           value={p}
                           onSelect={(pt) => setParadas((arr) => arr.map((x, j) => (j === i ? pt : x)))}
                           dotClass="bg-volcanic"
@@ -664,7 +666,7 @@ export default function ClienteHome() {
                       </div>
                       <button
                         onClick={() => setParadas((arr) => arr.filter((_, j) => j !== i))}
-                        aria-label={`Quitar parada ${i + 1}`}
+                        aria-label={t("ride.stopPh", { n: i + 1 })}
                         className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-sand text-volcanic/60 hover:bg-coral/15 hover:text-coral"
                       >
                         ×
@@ -672,7 +674,7 @@ export default function ClienteHome() {
                     </div>
                   ))}
                   <AddressSearch
-                    placeholder="¿A dónde vas?"
+                    placeholder={t("ride.destPh")}
                     value={destino}
                     onSelect={setDestino}
                     dotClass="bg-atlantic-dark"
@@ -682,7 +684,7 @@ export default function ClienteHome() {
                       onClick={() => setParadas((arr) => [...arr, null])}
                       className="inline-flex items-center gap-1.5 text-sm font-bold text-atlantic-dark underline-offset-2 hover:underline"
                     >
-                      ➕ Añadir parada
+                      ➕ {t("ride.addStop")}
                     </button>
                   )}
                 </div>
@@ -691,7 +693,7 @@ export default function ClienteHome() {
                     onClick={reset}
                     className="text-sm font-semibold text-atlantic-dark underline-offset-2 hover:underline"
                   >
-                    Reiniciar puntos
+                    {t("ride.resetPoints")}
                   </button>
                 )}
 
@@ -707,7 +709,7 @@ export default function ClienteHome() {
                   }`}
                 >
                   <span className="text-base">♿</span>
-                  Necesito taxi adaptado
+                  {t("ride.needAccessible")}
                   <span className={`ml-auto h-5 w-9 rounded-full p-0.5 transition-colors ${accesible ? "bg-atlantic" : "bg-volcanic/20"}`}>
                     <span className={`block h-4 w-4 rounded-full bg-white transition-transform ${accesible ? "translate-x-4" : ""}`} />
                   </span>
@@ -727,8 +729,8 @@ export default function ClienteHome() {
                     </div>
                     <p className="mt-1 text-[11px] font-semibold text-volcanic/60">
                       {fidelidad.faltanParaRecompensa === 0
-                        ? "🎉 ¡Tienes un viaje de regalo disponible!"
-                        : `${fidelidad.faltanParaRecompensa} viajes para tu próximo viaje gratis`}
+                        ? t("ride.freeRideReady")
+                        : t("ride.toNextFree", { n: fidelidad.faltanParaRecompensa })}
                     </p>
                   </div>
                 )}
@@ -737,7 +739,7 @@ export default function ClienteHome() {
                 <div className="flex items-center justify-between rounded-2xl bg-sand px-4 py-3">
                   {estimando ? (
                     <>
-                      <span className="text-sm font-semibold text-volcanic/70">Calculando ruta…</span>
+                      <span className="text-sm font-semibold text-volcanic/70">{t("ride.calcRoute")}</span>
                       <Spinner className="h-4 w-4" />
                     </>
                   ) : estimacion ? (
@@ -767,8 +769,8 @@ export default function ClienteHome() {
                     </div>
                   ) : (
                     <>
-                      <span className="text-sm font-semibold text-volcanic/70">Estimado</span>
-                      <span className="text-sm text-volcanic/40">elige origen y destino</span>
+                      <span className="text-sm font-semibold text-volcanic/70">{t("ride.estimated")}</span>
+                      <span className="text-sm text-volcanic/40">{t("ride.pickOriginDest")}</span>
                     </>
                   )}
                 </div>
@@ -778,9 +780,9 @@ export default function ClienteHome() {
                 {/* Taxis disponibles ahora mismo */}
                 {taxisOnline.length > 0 && (
                   <p className="text-center text-xs font-semibold text-palm">
-                    {taxisOnline.filter(t => !t.enViaje).length > 0
-                      ? `${taxisOnline.filter(t => !t.enViaje).length} taxi${taxisOnline.filter(t => !t.enViaje).length > 1 ? "s" : ""} libre${taxisOnline.filter(t => !t.enViaje).length > 1 ? "s" : ""} cerca`
-                      : `${taxisOnline.length} taxi${taxisOnline.length > 1 ? "s" : ""} cerca (en viaje)`}
+                    {taxisOnline.filter(tx => !tx.enViaje).length > 0
+                      ? t("ride.taxisFree", { n: taxisOnline.filter(tx => !tx.enViaje).length })
+                      : t("ride.taxisBusy", { n: taxisOnline.length })}
                   </p>
                 )}
 
@@ -790,7 +792,7 @@ export default function ClienteHome() {
                     disabled={!origen || !destino}
                     onClick={() => setReservando(true)}
                   >
-                    <IconCalendar width={16} height={16} /> Reservar
+                    <IconCalendar width={16} height={16} /> {t("ride.book")}
                   </Button>
                   <Button
                     full
@@ -799,11 +801,11 @@ export default function ClienteHome() {
                     onClick={pedir}
                   >
                     {busy ? <Spinner className="border-volcanic/30 border-t-volcanic" /> : null}
-                    Pedir ahora
+                    {t("ride.requestNow")}
                   </Button>
                 </div>
                 <p className="text-center text-[11px] text-volcanic/45">
-                  El precio final lo marca el taxímetro al llegar.
+                  {t("ride.meterNote")}
                 </p>
               </div>
             )}

@@ -731,18 +731,18 @@ export default function Auth() {
             >
               {logoPop && (
                 <span className="absolute -top-7 left-1/2 -translate-x-1/2 animate-pop whitespace-nowrap rounded-full bg-taxi px-3 py-1 text-[11px] font-extrabold text-volcanic shadow-card">
-                  {mode === "login" ? "¡Bienvenido de nuevo! 🌴" : "¡Bienvenido a bordo! 🚕"}
+                  {mode === "login" ? t("auth.welcomeBack") : t("auth.welcomeAboard")}
                 </span>
               )}
               <LogoWordmark height={40} className="transition-transform duration-150 hover:scale-105" />
               <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-volcanic/40">
-                {mode === "login" ? "Inicia sesión" : "Crea tu cuenta"}
+                {mode === "login" ? t("auth.loginSubtitle") : t("auth.registerSubtitle")}
               </p>
             </button>
             <button
               type="button"
               onClick={() => setOpen(false)}
-              aria-label="Volver a la portada"
+              aria-label={t("auth.back")}
               className="ml-1 mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-sand text-volcanic/60 transition-colors hover:bg-taxi hover:text-volcanic"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
@@ -766,7 +766,7 @@ export default function Auth() {
                   mode === m ? "text-volcanic" : "text-volcanic/45"
                 }`}
               >
-                {m === "login" ? "Entrar" : "Crear cuenta"}
+                {m === "login" ? t("auth.login") : t("auth.register")}
               </button>
             ))}
           </div>
@@ -796,7 +796,7 @@ export default function Auth() {
                     >
                       {r === "CLIENTE" ? <IconPin /> : <IconCar />}
                     </span>
-                    {r === "CLIENTE" ? "Viajo" : "Conduzco"}
+                    {r === "CLIENTE" ? t("auth.iRide") : t("auth.iDrive")}
                   </button>
                 );
               })}
@@ -806,9 +806,9 @@ export default function Auth() {
           <div className="space-y-2.5">
             {mode === "register" && (
               <Input
-                label="Nombre"
+                label={t("auth.name")}
                 name="nombre"
-                placeholder="Tu nombre"
+                placeholder={t("auth.namePh")}
                 value={form.nombre}
                 onChange={set("nombre")}
                 onBlur={blur("nombre")}
@@ -818,7 +818,7 @@ export default function Auth() {
               />
             )}
             <Input
-              label="Email"
+              label={t("auth.email")}
               name="email"
               type="email"
               placeholder="tu@email.com"
@@ -831,10 +831,10 @@ export default function Auth() {
             />
             <div>
               <Input
-                label="Contraseña"
+                label={t("auth.password")}
                 name="password"
                 type="password"
-                placeholder="mínimo 6 caracteres"
+                placeholder={t("auth.passwordPh")}
                 value={form.password}
                 onChange={set("password")}
                 onBlur={blur("password")}
@@ -858,7 +858,7 @@ export default function Auth() {
             </div>
             {mode === "register" && (
               <Input
-                label="Teléfono (WhatsApp)"
+                label={t("auth.phoneWhatsapp")}
                 name="telefono"
                 type="tel"
                 placeholder="612 34 56 78"
@@ -869,7 +869,7 @@ export default function Auth() {
             {mode === "register" && rol === "TAXISTA" && (
               <div className="animate-fade-up space-y-2.5">
                 <Input
-                  label="Nº de licencia"
+                  label={t("auth.licenseNo")}
                   name="licencia"
                   placeholder="LPA-1234"
                   value={form.licencia}
@@ -877,14 +877,14 @@ export default function Auth() {
                 />
                 <div className="grid grid-cols-2 gap-2">
                   <Input
-                    label="Modelo"
+                    label={t("auth.model")}
                     name="vehiculoModelo"
                     placeholder="Toyota Prius"
                     value={form.vehiculoModelo}
                     onChange={set("vehiculoModelo")}
                   />
                   <Input
-                    label="Matrícula"
+                    label={t("auth.plate")}
                     name="vehiculoMatricula"
                     placeholder="1234-ABC"
                     value={form.vehiculoMatricula}
@@ -903,7 +903,7 @@ export default function Auth() {
 
           <Button type="submit" full className="mt-4" disabled={busy}>
             {busy ? <Spinner className="border-volcanic/30 border-t-volcanic" /> : <IconBolt />}
-            {mode === "login" ? "Entrar" : "Crear cuenta"}
+            {mode === "login" ? t("auth.login") : t("auth.register")}
           </Button>
         </form>
       </main>
