@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client.js";
+import { toast } from "../utils/toast.js";
+import { tapExito } from "../utils/haptics.js";
 
 const ICONO = (et) => {
   const e = (et || "").toLowerCase();
@@ -30,12 +32,17 @@ export default function FavoritosBar({ onPick, puntoParaGuardar }) {
     try {
       await api.favoritoCrear({ etiqueta: etiqueta.trim(), direccion: p.label || null, lat: p.lat, lng: p.lng });
       setEtiqueta(""); setGuardando(false); cargar();
-    } catch (_) {}
+      tapExito();
+      toast("Favorito guardado", `"${etiqueta.trim()}" añadido`, "success");
+    } catch (err) {
+      toast("No se pudo guardar", err.message || "Inténtalo de nuevo", "error");
+    }
   }
 
   async function borrar(id, e) {
     e.stopPropagation();
-    try { await api.favoritoBorrar(id); cargar(); } catch (_) {}
+    try { await api.favoritoBorrar(id); cargar(); }
+    catch (err) { toast("No se pudo borrar", err.message || "", "error"); }
   }
 
   if (favs.length === 0 && !puntoParaGuardar) return null;

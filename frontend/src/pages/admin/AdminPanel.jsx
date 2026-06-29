@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
 import { useAuth } from "../../context/AuthContext.jsx";
-import Spinner from "../../components/Spinner.jsx";
+import { SkeletonList } from "../../components/Skeleton.jsx";
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
 const fmtFecha = (s) => (s ? new Date(s).toLocaleString("es-ES", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—");
@@ -104,7 +104,7 @@ export default function AdminPanel() {
 
       <main className="flex-1 overflow-y-auto p-4">
         {loading ? (
-          <div className="grid place-items-center py-20"><Spinner /></div>
+          <SkeletonList count={6} />
         ) : tab === "resumen" ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             <Stat label="Usuarios" value={m?.totalUsuarios ?? 0} />

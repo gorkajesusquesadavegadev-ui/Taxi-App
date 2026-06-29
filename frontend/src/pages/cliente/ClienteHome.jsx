@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../../api/client.js";
 import { direccionDe, ubicacionPrecisa } from "../../api/geo.js";
 import { activarPush } from "../../api/push.js";
+import { tapLigero, tapFuerte } from "../../utils/haptics.js";
 import { connectWs } from "../../api/ws.js";
 import { avisar } from "../../utils/prefs.js";
 
@@ -278,6 +279,7 @@ export default function ClienteHome() {
   // Compartir viaje en vivo: genera token y abre el menú de compartir / copia link
   async function compartirViaje() {
     if (!viaje) return;
+    tapLigero();
     try {
       const { token } = await api.compartirViaje(viaje.id);
       const url = `${window.location.origin}/seguir/${token}`;
@@ -296,6 +298,7 @@ export default function ClienteHome() {
   // SOS: comparte ubicación + datos del taxi por WhatsApp y permite llamar al 112
   function sos() {
     if (!viaje) return;
+    tapFuerte();
     const pos = taxiPos || { lat: viaje.origenLat, lng: viaje.origenLng };
     const mapa = `https://maps.google.com/?q=${pos.lat},${pos.lng}`;
     const datos =
@@ -344,6 +347,7 @@ export default function ClienteHome() {
 
   async function pedir() {
     if (!origen || !destino) return;
+    tapFuerte();
     setBusy(true);
     setError("");
     setSinTaxi(false);

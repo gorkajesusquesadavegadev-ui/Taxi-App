@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import Layout from "../components/Layout.jsx";
 import Card from "../components/Card.jsx";
 import Badge from "../components/Badge.jsx";
-import Spinner from "../components/Spinner.jsx";
+import { SkeletonList } from "../components/Skeleton.jsx";
+import PullToRefresh from "../components/PullToRefresh.jsx";
+import { useNavigate } from "react-router-dom";
 import { IconList, IconPlane, IconCompass, IconPin, IconWhatsapp } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { api } from "../api/client.js";
@@ -137,23 +139,25 @@ function ViajeCard({ v, index, esTaxista }) {
 
 export default function Historial() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const esTaxista = user?.rol === "TAXISTA";
   const [viajes, setViajes] = useState(null);
   const [error, setError] = useState("");
 
-  useEffect(() => {
+  const cargar = () => {
     const fetcher = esTaxista ? api.historialTaxista : api.historialCliente;
-    fetcher()
+    return fetcher()
       .then(setViajes)
       .catch((e) => setError(e.message || "No se pudo cargar"));
-  }, [esTaxista]);
+  };
+  useEffect(() => { cargar(); }, [esTaxista]);
 
   return (
     <Layout title={esTaxista ? "Mis carreras" : "Mis viajes"}>
-      <div className="slim-scroll h-full overflow-y-auto overflow-x-hidden px-4 py-4 lg:px-8 lg:py-6">
+      <PullToRefresh onRefresh={cargar} className="px-4 py-4 lg:px-8 lg:py-6">
         {!viajes && !error && (
-          <div className="grid place-items-center py-16">
-            <Spinner />
+          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <SkeletonList count={6} />
           </div>
         )}
         {error && <p className="rounded-2xl bg-coral/12 p-4 text-sm text-coral">{error}</p>}
@@ -163,9 +167,15 @@ export default function Historial() {
               <IconList width={30} height={30} />
             </span>
             <p className="font-display text-lg font-bold">Sin viajes todavía</p>
-            <p className="text-sm text-volcanic/55">
+            <p className="mb-4 text-sm text-volcanic/55">
               {esTaxista ? "Conéctate para recibir carreras." : "Pide tu primer taxi."}
             </p>
+            <button
+              onClick={() => navigate("/")}
+              className="rounded-full bg-taxi px-6 py-2.5 font-display font-extrabold text-volcanic transition active:scale-95"
+            >
+              {esTaxista ? "Ir a conducir" : "Pedir un taxi"}
+            </button>
           </div>
         )}
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -173,7 +183,7 @@ export default function Historial() {
             <ViajeCard key={v.id} v={v} index={i} esTaxista={esTaxista} />
           ))}
         </div>
-      </div>
+      </PullToRefresh>
     </Layout>
   );
 }

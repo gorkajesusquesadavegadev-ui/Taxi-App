@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { onToast } from "../utils/toast.js";
 import { IconCalendar, IconCar, IconBolt } from "./icons.jsx";
 
-const ICONO = { reserva: IconCalendar, viaje: IconCar, info: IconBolt };
+const ICONO = { reserva: IconCalendar, viaje: IconCar, info: IconBolt, success: IconBolt, error: IconBolt };
+const ACCENTO = { success: "bg-palm text-white", error: "bg-coral text-white" };
 
 function Toast({ t, onClose }) {
   const Icon = ICONO[t.tipo] || IconBolt;
+  const acento = ACCENTO[t.tipo] || "bg-taxi text-volcanic";
   useEffect(() => {
     const id = setTimeout(onClose, 6000);
     return () => clearTimeout(id);
@@ -16,8 +18,8 @@ function Toast({ t, onClose }) {
       className="pointer-events-auto flex w-full max-w-sm cursor-pointer items-start gap-3 rounded-2xl bg-volcanic px-4 py-3 text-cream shadow-float ring-1 ring-white/10"
       style={{ animation: "toast-in 0.35s cubic-bezier(0.22,1.2,0.36,1) both" }}
     >
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-taxi text-volcanic">
-        <Icon width={18} height={18} />
+      <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${acento}`}>
+        {t.tipo === "success" ? "✓" : t.tipo === "error" ? "!" : <Icon width={18} height={18} />}
       </span>
       <div className="min-w-0 flex-1 pt-0.5">
         <p className="font-display text-sm font-extrabold leading-tight">{t.titulo}</p>

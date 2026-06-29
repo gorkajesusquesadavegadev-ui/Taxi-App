@@ -12,6 +12,7 @@ import { prefs, beep, avisar } from "../../utils/prefs.js";
 import ValorarViaje from "../../components/ValorarViaje.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { activarPush } from "../../api/push.js";
+import { tapExito } from "../../utils/haptics.js";
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
 const TIPO_LABEL = { TRANSFER: "Transfer", EXCURSION: "Excursión" };
@@ -288,6 +289,7 @@ export default function TaxistaHome() {
 
   async function aceptar() {
     if (!incoming) return;
+    tapExito();
     const id = incoming.viajeId ?? incoming.id;
     if (!id) { setIncoming(null); setMsg("Solicitud inválida."); return; }
     try {
