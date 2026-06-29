@@ -6,6 +6,8 @@ import Input from "../components/Input.jsx";
 import Spinner from "../components/Spinner.jsx";
 import { IconBolt, IconPin, IconCar } from "../components/icons.jsx";
 import { LogoWordmark, LogoFull } from "../components/Logo.jsx";
+import { useI18n } from "../i18n/index.jsx";
+import LangSwitcher from "../components/LangSwitcher.jsx";
 
 /* ---------- live validation ---------- */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -569,6 +571,7 @@ function Scene() {
 /* ---------- page ---------- */
 export default function Auth() {
   const { login, register } = useAuth();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false); // false = portada TAYA, true = formulario
   const [mode, setMode] = useState("login"); // login | register
   const [rol, setRol] = useState("CLIENTE");
@@ -660,23 +663,30 @@ export default function Auth() {
         </div>
       )}
 
+      {/* selector de idioma — visible en la portada */}
+      {!open && (
+        <div className="absolute right-4 top-4 z-20 lg:right-8 lg:top-6">
+          <LangSwitcher />
+        </div>
+      )}
+
       {/* ---------- portada: logo + CanaryCab gigante + CTA ---------- */}
       {!open && (
         <main id="main-content" className="pointer-events-none relative z-10 flex min-h-screen flex-col items-center justify-center px-6 pb-[38vh] text-center lg:pb-[26vh]">
           <p className="animate-fade-up rounded-full bg-cream/80 px-4 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.3em] text-volcanic/70 shadow-sm backdrop-blur-sm">
-            Islas Canarias · Proyecto de cohesión territorial
+            {t("landing.badge")}
           </p>
           <div
             className="mt-5 animate-fade-up rounded-3xl bg-white/80 px-8 py-5 shadow-sm backdrop-blur-md"
             style={{ animationDelay: "80ms" }}
           >
-            <LogoFull />
+            <LogoFull subtitle={t("landing.subtitle")} />
           </div>
           <p
             className="mt-3 max-w-xs animate-fade-up text-sm font-semibold text-volcanic/75 lg:max-w-sm lg:text-base"
             style={{ animationDelay: "400ms" }}
           >
-            Ruta real, tarifa clara y tu taxi en vivo en el mapa.
+            {t("landing.tagline")}
           </p>
           <span className="mt-7 inline-block animate-fade-up" style={{ animationDelay: "520ms" }}>
             <button
@@ -684,14 +694,14 @@ export default function Auth() {
               onClick={() => setOpen(true)}
               className="cta-pulse btn-shine pointer-events-auto inline-flex items-center gap-2.5 rounded-full bg-taxi px-9 py-4 font-display text-base font-extrabold text-volcanic transition-transform active:scale-95"
             >
-              <IconBolt /> Empezar
+              <IconBolt /> {t("cta.start")}
             </button>
           </span>
           <p
             className="mt-3 animate-fade-up text-[11px] font-bold uppercase tracking-[0.2em] text-volcanic/55"
             style={{ animationDelay: "800ms" }}
           >
-            Entrar o crear cuenta
+            {t("landing.enterOrSignup")}
           </p>
           <div className="pointer-events-auto mt-6 animate-fade-up flex gap-4 text-[10px] font-semibold text-volcanic/40" style={{ animationDelay: "950ms" }}>
             <Link to="/privacidad" className="hover:text-volcanic/70 underline-offset-2 hover:underline">Privacidad</Link>

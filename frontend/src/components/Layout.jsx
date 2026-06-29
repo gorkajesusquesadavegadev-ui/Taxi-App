@@ -7,10 +7,12 @@ import Onboarding from "./Onboarding.jsx";
 import ReservaReminders from "./ReservaReminders.jsx";
 import ReservaBell from "./ReservaBell.jsx";
 import { IconMenu } from "./icons.jsx";
+import { useI18n } from "../i18n/index.jsx";
 
 export default function Layout({ title, action, children, framed = false }) {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
+  const { t } = useI18n();
 
   return (
     // Full-bleed responsive shell: drawer sidebar on mobile, docked rail on lg+.
@@ -45,7 +47,7 @@ export default function Layout({ title, action, children, framed = false }) {
             </h1>
             <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-volcanic/45">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-taxi" />
-              {user?.rol === "TAXISTA" ? "Modo taxista" : "Modo cliente"}
+              {user?.rol === "TAXISTA" ? t("nav.driverMode") : t("nav.clientMode")}
             </p>
           </div>
           {user?.rol === "TAXISTA" && <ReservaBell />}

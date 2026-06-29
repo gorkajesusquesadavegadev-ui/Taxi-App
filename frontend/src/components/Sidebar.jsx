@@ -15,30 +15,33 @@ import {
   IconCoin,
 } from "./icons.jsx";
 import { LogoWordmark } from "./Logo.jsx";
+import { useI18n } from "../i18n/index.jsx";
+import LangSwitcher from "./LangSwitcher.jsx";
 
 const NAV = {
   CLIENTE: [
-    { to: "/", label: "Pedir taxi", icon: IconPin, end: true },
-    { to: "/transfers", label: "Transfers", icon: IconPlane },
-    { to: "/excursiones", label: "Excursiones", icon: IconCompass },
-    { to: "/reservas", label: "Reservas", icon: IconCalendar },
-    { to: "/tarifa", label: "Tarifa actual", icon: IconCoin },
-    { to: "/historial", label: "Mis viajes", icon: IconList },
-    { to: "/estadisticas", label: "Estadísticas", icon: IconChart },
+    { to: "/", k: "nav.ride", icon: IconPin, end: true },
+    { to: "/transfers", k: "nav.transfers", icon: IconPlane },
+    { to: "/excursiones", k: "nav.excursions", icon: IconCompass },
+    { to: "/reservas", k: "nav.reservations", icon: IconCalendar },
+    { to: "/tarifa", k: "nav.fare", icon: IconCoin },
+    { to: "/historial", k: "nav.trips", icon: IconList },
+    { to: "/estadisticas", k: "nav.stats", icon: IconChart },
   ],
   TAXISTA: [
-    { to: "/", label: "Conducir", icon: IconCar, end: true },
-    { to: "/reservas", label: "Reservas", icon: IconCalendar },
-    { to: "/tarifa", label: "Tarifa actual", icon: IconCoin },
-    { to: "/foro", label: "Foro", icon: IconChat },
-    { to: "/historial", label: "Mis carreras", icon: IconList },
-    { to: "/estadisticas", label: "Estadísticas", icon: IconChart },
+    { to: "/", k: "nav.drive", icon: IconCar, end: true },
+    { to: "/reservas", k: "nav.reservations", icon: IconCalendar },
+    { to: "/tarifa", k: "nav.fare", icon: IconCoin },
+    { to: "/foro", k: "nav.forum", icon: IconChat },
+    { to: "/historial", k: "nav.rides", icon: IconList },
+    { to: "/estadisticas", k: "nav.stats", icon: IconChart },
   ],
 };
 
 // Drawer on mobile; permanently docked navigation rail on lg+.
 export default function Sidebar({ open, onClose }) {
   const { user, logout } = useAuth();
+  const { t } = useI18n();
   const items = NAV[user?.rol] || [];
 
   return (
@@ -77,7 +80,7 @@ export default function Sidebar({ open, onClose }) {
 
         {/* nav */}
         <nav className="relative mt-2 flex-1 space-y-1 px-3">
-          {items.map(({ to, label, icon: Icon, end }, i) => (
+          {items.map(({ to, k, icon: Icon, end }, i) => (
             <NavLink
               key={to}
               to={to}
@@ -95,7 +98,7 @@ export default function Sidebar({ open, onClose }) {
               }
             >
               <Icon />
-              {label}
+              {t(k)}
             </NavLink>
           ))}
         </nav>
@@ -112,7 +115,7 @@ export default function Sidebar({ open, onClose }) {
                 text-cream/60 transition-colors hover:bg-volcanic-700 hover:text-cream"
             >
               <IconLogout />
-              Cerrar sesión
+              {t("nav.logout")}
             </button>
             <NavLink
               to="/ajustes"
@@ -129,7 +132,7 @@ export default function Sidebar({ open, onClose }) {
               <IconGear />
             </NavLink>
           </div>
-          <p className="mt-3 px-4 text-[11px] text-cream/30">CanaryCab · Proyecto de cohesión territorial</p>
+          <div className="mt-3 px-3"><LangSwitcher /></div>
         </div>
       </aside>
     </>
