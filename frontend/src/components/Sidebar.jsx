@@ -72,7 +72,7 @@ export default function Sidebar({ open, onClose }) {
           <button
             onClick={onClose}
             className="grid h-9 w-9 place-items-center rounded-xl text-cream/70 hover:bg-volcanic-700 lg:hidden"
-            aria-label="Cerrar menú"
+            aria-label={t("a11y.closeMenu")}
           >
             <IconClose />
           </button>
@@ -120,7 +120,7 @@ export default function Sidebar({ open, onClose }) {
             <NavLink
               to="/ajustes"
               onClick={onClose}
-              aria-label="Ajustes"
+              aria-label={t("a11y.settings")}
               className={({ isActive }) =>
                 `grid h-11 w-11 shrink-0 place-items-center rounded-2xl transition-colors ${
                   isActive

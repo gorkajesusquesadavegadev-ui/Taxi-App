@@ -37,7 +37,7 @@ export default function Layout({ title, action, children, framed = false }) {
           <button
             onClick={() => setOpen(true)}
             className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-volcanic text-cream shadow-card transition-transform active:scale-90 lg:hidden"
-            aria-label="Abrir menú"
+            aria-label={t("a11y.openMenu")}
           >
             <IconMenu />
           </button>

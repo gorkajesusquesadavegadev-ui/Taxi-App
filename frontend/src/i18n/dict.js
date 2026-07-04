@@ -3,6 +3,18 @@
 export const DICT = {
   es: {
     "lang.name": "Español",
+    "a11y.loading": "cargando", "a11y.openMenu": "Abrir menú", "a11y.closeMenu": "Cerrar menú", "a11y.settings": "Ajustes", "a11y.clear": "Borrar", "a11y.dictate": "Dictar dirección",
+    "hist.mapPoint": "Punto en el mapa", "hist.call": "Llamar", "hist.couldNotLoad": "No se pudo cargar",
+    "hist.myTrips": "Mis viajes", "hist.myRides": "Mis carreras", "hist.trip": "Viaje",
+    "hist.finalPrice": "Precio final", "hist.estimated": "Estimado", "hist.downloadReceipt": "Descargar recibo (PDF)",
+    "hist.client": "Cliente", "hist.yourDriver": "Tu taxista", "hist.driver": "Taxista",
+    "hist.noPhone": "sin teléfono para contacto.", "hist.none": "Sin viajes todavía",
+    "hist.driverEmpty": "Conéctate para recibir carreras.", "hist.clientEmpty": "Pide tu primer taxi.",
+    "hist.goDrive": "Ir a conducir", "hist.bookTaxi": "Pedir un taxi", "hist.noMoves": "Sin movimientos aún",
+    "hist.completeToSee": "Completa un viaje y aparecerá aquí.",
+    "fav.savePh": "Nombre (Casa, Trabajo…)", "fav.saveAddress": "Guardar esta dirección como favorita",
+    "fav.saved": "Favorito guardado", "fav.added": "«{n}» añadido", "fav.couldNotSave": "No se pudo guardar", "fav.couldNotDelete": "No se pudo borrar",
+
     "legal.back": "Volver", "legal.notice": "Documento legal en español (versión legalmente vinculante). Jurisdicción: España · Islas Canarias.",
 
     "seg.acepted": "El taxi va de camino a la recogida", "seg.arrived": "El taxi ha llegado al punto de recogida", "seg.inProgress": "Viaje en curso", "seg.completed": "Viaje completado", "seg.cancelled": "El viaje fue cancelado", "seg.searching": "Buscando taxi…", "seg.invalidLink": "Enlace no válido o caducado.", "seg.liveTracking": "🚕 Seguimiento en vivo · CanaryCab", "seg.driver": "Taxista", "seg.arrivesIn": "llega en {min} min",
@@ -157,6 +169,18 @@ export const DICT = {
   },
   en: {
     "lang.name": "English",
+    "a11y.loading": "loading", "a11y.openMenu": "Open menu", "a11y.closeMenu": "Close menu", "a11y.settings": "Settings", "a11y.clear": "Clear", "a11y.dictate": "Dictate address",
+    "hist.mapPoint": "Point on the map", "hist.call": "Call", "hist.couldNotLoad": "Could not load",
+    "hist.myTrips": "My trips", "hist.myRides": "My rides", "hist.trip": "Trip",
+    "hist.finalPrice": "Final price", "hist.estimated": "Estimated", "hist.downloadReceipt": "Download receipt (PDF)",
+    "hist.client": "Passenger", "hist.yourDriver": "Your driver", "hist.driver": "Driver",
+    "hist.noPhone": "has no phone for contact.", "hist.none": "No trips yet",
+    "hist.driverEmpty": "Connect to receive rides.", "hist.clientEmpty": "Book your first taxi.",
+    "hist.goDrive": "Go drive", "hist.bookTaxi": "Book a taxi", "hist.noMoves": "No activity yet",
+    "hist.completeToSee": "Complete a trip and it will appear here.",
+    "fav.savePh": "Name (Home, Work…)", "fav.saveAddress": "Save this address as a favourite",
+    "fav.saved": "Favourite saved", "fav.added": "\"{n}\" added", "fav.couldNotSave": "Could not save", "fav.couldNotDelete": "Could not delete",
+
     "legal.back": "Back", "legal.notice": "Legal document in Spanish (legally binding version). Jurisdiction: Spain · Canary Islands.",
 
     "seg.acepted": "The taxi is on its way to pickup", "seg.arrived": "The taxi has arrived at the pickup point", "seg.inProgress": "Trip in progress", "seg.completed": "Trip completed", "seg.cancelled": "The trip was cancelled", "seg.searching": "Finding a taxi…", "seg.invalidLink": "Invalid or expired link.", "seg.liveTracking": "🚕 Live tracking · CanaryCab", "seg.driver": "Driver", "seg.arrivesIn": "arrives in {min} min",
@@ -302,6 +326,18 @@ export const DICT = {
   },
   de: {
     "lang.name": "Deutsch",
+    "a11y.loading": "lädt", "a11y.openMenu": "Menü öffnen", "a11y.closeMenu": "Menü schließen", "a11y.settings": "Einstellungen", "a11y.clear": "Löschen", "a11y.dictate": "Adresse diktieren",
+    "hist.mapPoint": "Punkt auf der Karte", "hist.call": "Anrufen", "hist.couldNotLoad": "Laden fehlgeschlagen",
+    "hist.myTrips": "Meine Fahrten", "hist.myRides": "Meine Fahrten", "hist.trip": "Fahrt",
+    "hist.finalPrice": "Endpreis", "hist.estimated": "Geschätzt", "hist.downloadReceipt": "Beleg herunterladen (PDF)",
+    "hist.client": "Fahrgast", "hist.yourDriver": "Dein Fahrer", "hist.driver": "Fahrer",
+    "hist.noPhone": "hat kein Telefon für Kontakt.", "hist.none": "Noch keine Fahrten",
+    "hist.driverEmpty": "Verbinde dich, um Fahrten zu erhalten.", "hist.clientEmpty": "Buche dein erstes Taxi.",
+    "hist.goDrive": "Zum Fahren", "hist.bookTaxi": "Taxi bestellen", "hist.noMoves": "Noch keine Aktivität",
+    "hist.completeToSee": "Schließe eine Fahrt ab und sie erscheint hier.",
+    "fav.savePh": "Name (Zuhause, Arbeit…)", "fav.saveAddress": "Diese Adresse als Favorit speichern",
+    "fav.saved": "Favorit gespeichert", "fav.added": "„{n}“ hinzugefügt", "fav.couldNotSave": "Speichern fehlgeschlagen", "fav.couldNotDelete": "Löschen fehlgeschlagen",
+
     "legal.back": "Zurück", "legal.notice": "Rechtsdokument auf Spanisch (rechtsverbindliche Fassung). Gerichtsstand: Spanien · Kanarische Inseln.",
 
     "seg.acepted": "Das Taxi ist auf dem Weg zur Abholung", "seg.arrived": "Das Taxi ist am Abholpunkt angekommen", "seg.inProgress": "Fahrt läuft", "seg.completed": "Fahrt abgeschlossen", "seg.cancelled": "Die Fahrt wurde storniert", "seg.searching": "Taxi wird gesucht…", "seg.invalidLink": "Ungültiger oder abgelaufener Link.", "seg.liveTracking": "🚕 Live-Verfolgung · CanaryCab", "seg.driver": "Fahrer", "seg.arrivesIn": "kommt in {min} Min",

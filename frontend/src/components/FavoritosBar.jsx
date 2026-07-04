@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client.js";
 import { toast } from "../utils/toast.js";
 import { tapExito } from "../utils/haptics.js";
+import { useI18n } from "../i18n/index.jsx";
 
 const ICONO = (et) => {
   const e = (et || "").toLowerCase();
@@ -17,6 +18,7 @@ const ICONO = (et) => {
  * onPick. Permite guardar el punto actual (origen/destino elegido) con nombre.
  */
 export default function FavoritosBar({ onPick, puntoParaGuardar }) {
+  const { t } = useI18n();
   const [favs, setFavs] = useState([]);
   const [guardando, setGuardando] = useState(false);
   const [etiqueta, setEtiqueta] = useState("");
@@ -33,16 +35,16 @@ export default function FavoritosBar({ onPick, puntoParaGuardar }) {
       await api.favoritoCrear({ etiqueta: etiqueta.trim(), direccion: p.label || null, lat: p.lat, lng: p.lng });
       setEtiqueta(""); setGuardando(false); cargar();
       tapExito();
-      toast("Favorito guardado", `"${etiqueta.trim()}" añadido`, "success");
+      toast(t("fav.saved"), t("fav.added", { n: etiqueta.trim() }), "success");
     } catch (err) {
-      toast("No se pudo guardar", err.message || "Inténtalo de nuevo", "error");
+      toast(t("fav.couldNotSave"), err.message || "", "error");
     }
   }
 
   async function borrar(id, e) {
     e.stopPropagation();
     try { await api.favoritoBorrar(id); cargar(); }
-    catch (err) { toast("No se pudo borrar", err.message || "", "error"); }
+    catch (err) { toast(t("fav.couldNotDelete"), err.message || "", "error"); }
   }
 
   if (favs.length === 0 && !puntoParaGuardar) return null;
@@ -81,18 +83,18 @@ export default function FavoritosBar({ onPick, puntoParaGuardar }) {
               onChange={(e) => setEtiqueta(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && guardar()}
               maxLength={40}
-              placeholder="Nombre (Casa, Trabajo…)"
+              placeholder={t("fav.savePh")}
               className="min-w-0 flex-1 rounded-xl border-2 border-taxi bg-white px-3 py-1.5 text-sm outline-none"
             />
-            <button onClick={guardar} className="rounded-xl bg-volcanic px-3 py-1.5 text-sm font-bold text-cream">Guardar</button>
-            <button onClick={() => setGuardando(false)} aria-label="Cancelar" className="rounded-xl bg-sand px-2.5 py-1.5 text-sm font-bold text-volcanic">×</button>
+            <button onClick={guardar} className="rounded-xl bg-volcanic px-3 py-1.5 text-sm font-bold text-cream">{t("common.save")}</button>
+            <button onClick={() => setGuardando(false)} aria-label={t("common.cancel")} className="rounded-xl bg-sand px-2.5 py-1.5 text-sm font-bold text-volcanic">×</button>
           </div>
         ) : (
           <button
             onClick={() => setGuardando(true)}
             className="inline-flex items-center gap-1.5 text-sm font-bold text-atlantic-dark underline-offset-2 hover:underline"
           >
-            ⭐ Guardar esta dirección como favorita
+            ⭐ {t("fav.saveAddress")}
           </button>
         )
       )}

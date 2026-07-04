@@ -283,7 +283,7 @@ export default function Ajustes() {
                 type="password"
                 value={pwdNueva}
                 onChange={(e) => setPwdNueva(e.target.value)}
-                placeholder="mínimo 6 caracteres"
+                placeholder={tr("auth.passwordPh")}
                 hint={pwdNueva && pwdNueva.length < 6 ? tr("set.min6") : undefined}
               />
               <div className="flex items-center gap-3">

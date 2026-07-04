@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { buscarDirecciones } from "../api/geo.js";
 import Spinner from "./Spinner.jsx";
+import { useI18n } from "../i18n/index.jsx";
 
 // Web Speech API (Chrome/Edge); hide the mic where unsupported.
 const SR =
@@ -31,6 +32,7 @@ const IconPinSmall = () => (
  * onSelect(point|null)
  */
 export default function AddressSearch({ placeholder, value, onSelect, dotClass = "bg-taxi" }) {
+  const { t } = useI18n();
   const [q, setQ] = useState("");
   const [results, setResults] = useState([]);
   const [editing, setEditing] = useState(false);
@@ -147,7 +149,7 @@ export default function AddressSearch({ placeholder, value, onSelect, dotClass =
           <button
             type="button"
             onClick={clear}
-            aria-label="Borrar"
+            aria-label={t("a11y.clear")}
             className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-volcanic/40 hover:bg-sand hover:text-volcanic"
           >
             <IconX />
@@ -157,7 +159,7 @@ export default function AddressSearch({ placeholder, value, onSelect, dotClass =
           <button
             type="button"
             onClick={toggleMic}
-            aria-label="Dictar dirección"
+            aria-label={t("a11y.dictate")}
             className={`grid h-7 w-7 shrink-0 place-items-center rounded-full transition-colors ${
               listening
                 ? "animate-pulse bg-volcanic text-taxi"

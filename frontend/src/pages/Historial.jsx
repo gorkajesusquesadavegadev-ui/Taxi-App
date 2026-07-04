@@ -10,11 +10,12 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { api } from "../api/client.js";
 import { whatsappLink } from "../utils/reservas.js";
 import { descargarFactura } from "../utils/factura.js";
+import { useI18n } from "../i18n/index.jsx";
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
 const TIPO = {
-  TRANSFER: { label: "Transfer", icon: IconPlane },
-  EXCURSION: { label: "Excursión", icon: IconCompass },
+  TRANSFER: { k: "nav.transfers", icon: IconPlane },
+  EXCURSION: { k: "res.excursion", icon: IconCompass },
 };
 
 const fmtFecha = (iso) => {
@@ -41,6 +42,7 @@ function TramoRuta({ origen, destino }) {
 }
 
 function ViajeCard({ v, index, esTaxista }) {
+  const { t } = useI18n();
   // los nombres llegan de la BD: el backend los guarda al solicitar y
   // rellena los antiguos al consultar el historial
   const origen = v.origenTexto || "";
@@ -67,7 +69,7 @@ function ViajeCard({ v, index, esTaxista }) {
           </span>
           <div className="min-w-0 leading-tight">
             <p className="text-[11px] font-bold uppercase tracking-wider text-volcanic/45">
-              {tipo ? tipo.label : "Viaje"} · {fmtFecha(v.completadoEn || v.solicitadoEn)}
+              {tipo ? t(tipo.k) : t("hist.trip")} · {fmtFecha(v.completadoEn || v.solicitadoEn)}
             </p>
             <p className="text-xs text-volcanic/50">
               {Number(v.distanciaRealKm ?? v.distanciaEstimadaKm ?? 0).toFixed(1)} km
@@ -77,11 +79,11 @@ function ViajeCard({ v, index, esTaxista }) {
         <Badge estado={v.estado} />
       </div>
 
-      <TramoRuta origen={origen || "Punto en el mapa"} destino={destino || "Punto en el mapa"} />
+      <TramoRuta origen={origen || t("hist.mapPoint")} destino={destino || t("hist.mapPoint")} />
 
       <div className="mt-3 flex items-end justify-between border-t border-sand-deep/70 pt-3">
         <span className="text-xs uppercase tracking-wider text-volcanic/45">
-          {v.precioFinal != null ? "Precio final" : "Estimado"}
+          {v.precioFinal != null ? t("hist.finalPrice") : t("hist.estimated")}
         </span>
         <span className="font-display text-xl font-extrabold">
           {fmtEur(v.precioFinal ?? v.precioEstimado)}
@@ -94,7 +96,7 @@ function ViajeCard({ v, index, esTaxista }) {
           onClick={() => descargarFactura(v)}
           className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-sand-deep bg-white py-2 text-sm font-bold text-volcanic transition-colors hover:border-taxi hover:bg-taxi/10"
         >
-          🧾 Descargar recibo (PDF)
+          🧾 {t("hist.downloadReceipt")}
         </button>
       )}
 
@@ -103,14 +105,14 @@ function ViajeCard({ v, index, esTaxista }) {
         <div className="mt-3 flex items-center justify-between gap-2 rounded-2xl bg-sand px-3 py-2">
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-volcanic/45">
-              {esTaxista ? "Cliente" : "Tu taxista"}
+              {esTaxista ? t("hist.client") : t("hist.yourDriver")}
             </p>
             <p className="truncate text-sm font-semibold">{contactoNombre}</p>
           </div>
           <div className="flex shrink-0 gap-1.5">
             <a
               href={`tel:${contactoTel}`}
-              aria-label="Llamar"
+              aria-label={t("hist.call")}
               className="grid h-9 w-9 place-items-center rounded-full bg-volcanic text-cream transition-transform active:scale-95"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -130,7 +132,7 @@ function ViajeCard({ v, index, esTaxista }) {
         </div>
       ) : (
         <p className="mt-3 rounded-2xl bg-sand px-3 py-2 text-xs text-volcanic/45">
-          {esTaxista ? "Cliente" : "Taxista"} sin teléfono para contacto.
+          {esTaxista ? t("hist.client") : t("hist.driver")} {t("hist.noPhone")}
         </p>
       ))}
     </Card>
@@ -139,6 +141,7 @@ function ViajeCard({ v, index, esTaxista }) {
 
 export default function Historial() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const esTaxista = user?.rol === "TAXISTA";
   const [viajes, setViajes] = useState(null);
@@ -148,12 +151,12 @@ export default function Historial() {
     const fetcher = esTaxista ? api.historialTaxista : api.historialCliente;
     return fetcher()
       .then(setViajes)
-      .catch((e) => setError(e.message || "No se pudo cargar"));
+      .catch((e) => setError(e.message || t("hist.couldNotLoad")));
   };
   useEffect(() => { cargar(); }, [esTaxista]);
 
   return (
-    <Layout title={esTaxista ? "Mis carreras" : "Mis viajes"}>
+    <Layout title={esTaxista ? t("hist.myRides") : t("hist.myTrips")}>
       <PullToRefresh onRefresh={cargar} className="px-4 py-4 lg:px-8 lg:py-6">
         {!viajes && !error && (
           <div className="mx-auto grid max-w-5xl grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -166,15 +169,15 @@ export default function Historial() {
             <span className="mb-3 grid h-16 w-16 place-items-center rounded-3xl bg-atlantic/10 text-atlantic-dark">
               <IconList width={30} height={30} />
             </span>
-            <p className="font-display text-lg font-bold">Sin viajes todavía</p>
+            <p className="font-display text-lg font-bold">{t("hist.none")}</p>
             <p className="mb-4 text-sm text-volcanic/55">
-              {esTaxista ? "Conéctate para recibir carreras." : "Pide tu primer taxi."}
+              {esTaxista ? t("hist.driverEmpty") : t("hist.clientEmpty")}
             </p>
             <button
               onClick={() => navigate("/")}
               className="rounded-full bg-taxi px-6 py-2.5 font-display font-extrabold text-volcanic transition active:scale-95"
             >
-              {esTaxista ? "Ir a conducir" : "Pedir un taxi"}
+              {esTaxista ? t("hist.goDrive") : t("hist.bookTaxi")}
             </button>
           </div>
         )}

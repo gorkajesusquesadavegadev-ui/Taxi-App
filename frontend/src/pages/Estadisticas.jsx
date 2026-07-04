@@ -27,7 +27,7 @@ function StatChip({ label, value, sub, dark }) {
 }
 
 /** Barras con degradado, valor encima y máximo destacado en amarillo. */
-function Barras({ serie }) {
+function Barras({ serie, t }) {
   const vals = serie.map((p) => Number(p.valor));
   const max = Math.max(...vals, 0.01);
   const vacio = vals.every((v) => v === 0);
@@ -35,8 +35,8 @@ function Barras({ serie }) {
     return (
       <div className="grid h-40 place-items-center rounded-2xl bg-sand text-center">
         <div>
-          <p className="font-display font-bold text-volcanic/60">Sin movimientos aún</p>
-          <p className="mt-1 text-xs text-volcanic/45">Completa un viaje y aparecerá aquí.</p>
+          <p className="font-display font-bold text-volcanic/60">{t("hist.noMoves")}</p>
+          <p className="mt-1 text-xs text-volcanic/45">{t("hist.completeToSee")}</p>
         </div>
       </div>
     );
@@ -215,7 +215,7 @@ export default function Estadisticas() {
                     ))}
                   </div>
                 </div>
-                <Barras serie={serie} />
+                <Barras serie={serie} t={t} />
               </section>
 
               {/* rutas top */}
