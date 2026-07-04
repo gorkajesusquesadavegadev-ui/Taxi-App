@@ -3,6 +3,8 @@
 export const DICT = {
   es: {
     "lang.name": "Español",
+    "legal.back": "Volver", "legal.notice": "Documento legal en español (versión legalmente vinculante). Jurisdicción: España · Islas Canarias.",
+
     "seg.acepted": "El taxi va de camino a la recogida", "seg.arrived": "El taxi ha llegado al punto de recogida", "seg.inProgress": "Viaje en curso", "seg.completed": "Viaje completado", "seg.cancelled": "El viaje fue cancelado", "seg.searching": "Buscando taxi…", "seg.invalidLink": "Enlace no válido o caducado.", "seg.liveTracking": "🚕 Seguimiento en vivo · CanaryCab", "seg.driver": "Taxista", "seg.arrivesIn": "llega en {min} min",
 
     "adm.title": "Panel de administración", "adm.refresh": "Refrescar", "adm.exit": "Salir", "adm.errLoad": "Error cargando datos",
@@ -155,6 +157,8 @@ export const DICT = {
   },
   en: {
     "lang.name": "English",
+    "legal.back": "Back", "legal.notice": "Legal document in Spanish (legally binding version). Jurisdiction: Spain · Canary Islands.",
+
     "seg.acepted": "The taxi is on its way to pickup", "seg.arrived": "The taxi has arrived at the pickup point", "seg.inProgress": "Trip in progress", "seg.completed": "Trip completed", "seg.cancelled": "The trip was cancelled", "seg.searching": "Finding a taxi…", "seg.invalidLink": "Invalid or expired link.", "seg.liveTracking": "🚕 Live tracking · CanaryCab", "seg.driver": "Driver", "seg.arrivesIn": "arrives in {min} min",
 
     "adm.title": "Administration panel", "adm.refresh": "Refresh", "adm.exit": "Log out", "adm.errLoad": "Error loading data",
@@ -298,6 +302,8 @@ export const DICT = {
   },
   de: {
     "lang.name": "Deutsch",
+    "legal.back": "Zurück", "legal.notice": "Rechtsdokument auf Spanisch (rechtsverbindliche Fassung). Gerichtsstand: Spanien · Kanarische Inseln.",
+
     "seg.acepted": "Das Taxi ist auf dem Weg zur Abholung", "seg.arrived": "Das Taxi ist am Abholpunkt angekommen", "seg.inProgress": "Fahrt läuft", "seg.completed": "Fahrt abgeschlossen", "seg.cancelled": "Die Fahrt wurde storniert", "seg.searching": "Taxi wird gesucht…", "seg.invalidLink": "Ungültiger oder abgelaufener Link.", "seg.liveTracking": "🚕 Live-Verfolgung · CanaryCab", "seg.driver": "Fahrer", "seg.arrivesIn": "kommt in {min} Min",
 
     "adm.title": "Verwaltungsbereich", "adm.refresh": "Aktualisieren", "adm.exit": "Abmelden", "adm.errLoad": "Fehler beim Laden der Daten",

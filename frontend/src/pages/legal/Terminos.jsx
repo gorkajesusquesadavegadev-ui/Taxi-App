@@ -1,17 +1,20 @@
 import { useNavigate } from "react-router-dom";
 import { LogoWordmark } from "../../components/Logo.jsx";
+import { useI18n } from "../../i18n/index.jsx";
 
 export default function Terminos() {
   const nav = useNavigate();
+  const { t } = useI18n();
   return (
     <div className="min-h-screen bg-cream px-4 py-10 sm:px-8">
       <div className="mx-auto max-w-2xl">
         <button onClick={() => nav(-1)} className="mb-6 text-sm font-semibold text-atlantic-dark underline-offset-2 hover:underline">
-          ← Volver
+          ← {t("legal.back")}
         </button>
         <LogoWordmark height={28} className="mb-6" />
         <h1 className="font-display text-2xl font-extrabold text-volcanic">Términos y Condiciones de Uso</h1>
         <p className="mt-1 text-sm text-volcanic/50">Última actualización: junio 2025</p>
+        <p className="mt-4 rounded-xl bg-taxi/15 px-3 py-2 text-xs font-semibold text-volcanic/70">{t("legal.notice")}</p>
 
         <div className="mt-8 space-y-6 text-sm leading-relaxed text-volcanic/80">
           <section>
