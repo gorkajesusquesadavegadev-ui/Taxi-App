@@ -7,10 +7,11 @@ import AddressSearch from "../../components/AddressSearch.jsx";
 import ReservaModal from "../../components/ReservaModal.jsx";
 import { IconPlane, IconCompass, IconCalendar } from "../../components/icons.jsx";
 import { api } from "../../api/client.js";
+import { useI18n } from "../../i18n/index.jsx";
 
 const fmtEur = (v) => `${Number(v).toFixed(2)} €`;
 
-function OfertaCard({ oferta, busy, onSolicitar, onReservar, icon: Icon }) {
+function OfertaCard({ oferta, busy, onSolicitar, onReservar, icon: Icon, t }) {
   return (
     <article className="surface flex flex-col p-4 transition-shadow hover:shadow-float">
       <div className="flex items-start gap-3">
@@ -26,19 +27,19 @@ function OfertaCard({ oferta, busy, onSolicitar, onReservar, icon: Icon }) {
       </div>
       <div className="mt-3 flex items-center gap-2">
         <span className="pill bg-sand text-volcanic/70">{oferta.duracion}</span>
-        <span className="pill bg-sand text-volcanic/70">hasta 4 plazas</span>
+        <span className="pill bg-sand text-volcanic/70">{t("of.upTo4")}</span>
       </div>
       <div className="mt-3 border-t border-sand-deep/60 pt-3">
         <p className="font-display text-xl font-extrabold">
           {fmtEur(oferta.precio)}
-          <span className="ml-1 text-xs font-medium text-volcanic/45">precio cerrado</span>
+          <span className="ml-1 text-xs font-medium text-volcanic/45">{t("of.closedPrice")}</span>
         </p>
         <div className="mt-2 grid grid-cols-2 gap-2">
           <Button size="sm" variant="outline" onClick={onReservar}>
-            <IconCalendar width={15} height={15} /> Reservar
+            <IconCalendar width={15} height={15} /> {t("of.book")}
           </Button>
           <Button size="sm" disabled={busy} onClick={onSolicitar}>
-            {busy ? <Spinner className="border-volcanic/30 border-t-volcanic" /> : "Ahora"}
+            {busy ? <Spinner className="border-volcanic/30 border-t-volcanic" /> : t("of.now")}
           </Button>
         </div>
       </div>
@@ -52,6 +53,7 @@ function OfertaCard({ oferta, busy, onSolicitar, onReservar, icon: Icon }) {
  * lo reciben al instante y el cliente lo sigue desde "Pedir taxi".
  */
 export default function Ofertas({ tipo }) {
+  const { t } = useI18n();
   const esTransfer = tipo === "transfers";
   const navigate = useNavigate();
   const [items, setItems] = useState(null);
@@ -66,7 +68,7 @@ export default function Ofertas({ tipo }) {
     api
       .catalogo()
       .then((c) => alive && setItems(c?.[tipo] || []))
-      .catch(() => alive && setError("No se pudo cargar el catálogo"));
+      .catch(() => alive && setError(t("of.couldNotLoadCatalog")));
     return () => {
       alive = false;
     };
@@ -83,7 +85,7 @@ export default function Ofertas({ tipo }) {
       });
       navigate("/"); // el home del cliente muestra y sigue el viaje activo
     } catch (e) {
-      setError(e.message || "No se pudo solicitar");
+      setError(e.message || t("of.couldNotRequest"));
       setBusyId(null);
     }
   }
@@ -99,40 +101,40 @@ export default function Ofertas({ tipo }) {
       notas,
     });
     setReservando(null);
-    setOkMsg("Reserva enviada. Te avisaremos cuando un taxista la acepte.");
+    setOkMsg(t("of.bookingSent"));
     setTimeout(() => navigate("/reservas"), 900);
   }
 
   return (
-    <Layout title={esTransfer ? "Transfers" : "Excursiones"} framed>
+    <Layout title={esTransfer ? t("nav.transfers") : t("nav.excursions")} framed>
       <div className="h-full overflow-y-auto overflow-x-hidden slim-scroll">
         <div className="mx-auto max-w-5xl space-y-4 p-4 lg:p-6">
           <header>
             <h2 className="font-display text-xl font-extrabold tracking-tight lg:text-2xl">
-              {esTransfer ? "Traslados con precio cerrado" : "Descubre la isla en taxi"}
+              {esTransfer ? t("of.transfersTitle") : t("of.excursionsTitle")}
             </h2>
             <p className="mt-1 text-sm text-volcanic/60">
               {esTransfer
-                ? "Sin sorpresas: pagas lo acordado, te recoge el primer taxista disponible."
-                : "Rutas guiadas por taxistas locales. Precio por taxi, hasta 4 personas."}
+                ? t("of.transfersSub")
+                : t("of.excursionsSub")}
             </p>
           </header>
 
           {/* recogida opcional */}
           <div className="surface max-w-xl p-3.5">
             <p className="mb-2 text-xs font-bold uppercase tracking-wider text-volcanic/50">
-              Punto de recogida (opcional)
+              {t("of.pickupOptional")}
             </p>
             <AddressSearch
               placeholder={
-                esTransfer ? "Ej.: tu terminal u hotel" : "Ej.: tu hotel o dirección"
+                esTransfer ? t("of.transferPh") : t("of.excursionPh")
               }
               value={recogida}
               onSelect={setRecogida}
               dotClass="bg-taxi"
             />
             <p className="mt-1.5 text-[11px] text-volcanic/45">
-              Si lo dejas vacío usamos el punto de salida habitual de la oferta.
+              {t("of.emptyHint")}
             </p>
           </div>
 
@@ -157,6 +159,7 @@ export default function Ofertas({ tipo }) {
                   busy={busyId === o.id}
                   onSolicitar={() => solicitar(o)}
                   onReservar={() => setReservando(o)}
+                  t={t}
                 />
               ))}
             </div>
@@ -166,8 +169,8 @@ export default function Ofertas({ tipo }) {
 
       {reservando && (
         <ReservaModal
-          titulo={`Reservar · ${reservando.nombre}`}
-          subtitulo={`${fmtEur(reservando.precio)} precio cerrado · ${reservando.duracion}`}
+          titulo={`${t("of.bookPrefix")} · ${reservando.nombre}`}
+          subtitulo={`${fmtEur(reservando.precio)} ${t("of.closedPrice")} · ${reservando.duracion}`}
           onConfirm={confirmarReserva}
           onClose={() => setReservando(null)}
         />

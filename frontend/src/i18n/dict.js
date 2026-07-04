@@ -3,6 +3,17 @@
 export const DICT = {
   es: {
     "lang.name": "Español",
+    "seg.acepted": "El taxi va de camino a la recogida", "seg.arrived": "El taxi ha llegado al punto de recogida", "seg.inProgress": "Viaje en curso", "seg.completed": "Viaje completado", "seg.cancelled": "El viaje fue cancelado", "seg.searching": "Buscando taxi…", "seg.invalidLink": "Enlace no válido o caducado.", "seg.liveTracking": "🚕 Seguimiento en vivo · CanaryCab", "seg.driver": "Taxista", "seg.arrivesIn": "llega en {min} min",
+
+    "adm.title": "Panel de administración", "adm.refresh": "Refrescar", "adm.exit": "Salir", "adm.errLoad": "Error cargando datos",
+    "adm.summary": "Resumen", "adm.verify": "Verificar", "adm.users": "Usuarios", "adm.trips": "Viajes",
+    "adm.tUsers": "Usuarios", "adm.tClients": "Clientes", "adm.tDrivers": "Taxistas", "adm.tPending": "Pendientes verificar",
+    "adm.tOnline": "Taxistas online", "adm.tToday": "Viajes hoy", "adm.tCompleted": "Completados", "adm.tCancelled": "Cancelados",
+    "adm.tRevenue": "Ingresos totales", "adm.noneToVerify": "No hay taxistas pendientes de verificar 🎉",
+    "adm.registered": "Registrado", "adm.verifyBtn": "Verificar", "adm.verified": "Verificado", "adm.blocked": "BLOQUEADO",
+    "adm.unblock": "Desbloquear", "adm.block": "Bloquear", "adm.verifiedMsg": "Taxista verificado ✓", "adm.verifRemoved": "Verificación retirada",
+    "adm.userBlocked": "Usuario bloqueado", "adm.userUnblocked": "Usuario desbloqueado",
+
     // landing
     "landing.badge": "Islas Canarias · Proyecto de cohesión territorial",
     "landing.subtitle": "Tu app de taxis de Canarias",
@@ -78,6 +89,9 @@ export const DICT = {
     "forum.title": "Foro de taxistas", "forum.today": "Hoy", "forum.yesterday": "Ayer", "forum.couldNotLoad": "No se pudo cargar el foro", "forum.couldNotSend": "No se pudo enviar", "forum.empty": "Foro vacío", "forum.beFirst": "Sé el primero en escribir a tus compañeros.", "forum.writePh": "Escribe un mensaje…", "forum.send": "Enviar",
     "rm.pickDatetime": "Elige fecha y hora", "rm.futureDate": "La fecha debe ser futura", "rm.couldNotBook": "No se pudo reservar", "rm.datetime": "Fecha y hora", "rm.notes": "Notas (opcional)", "rm.notesPh": "Ej.: equipaje grande, vuelo IB3947…", "rm.confirm": "Confirmar reserva",
     "bell.available": "Disponible", "bell.yours": "Es tuya", "bell.taken": "Ya tomada", "bell.expired": "Ha caducado", "bell.newBooking": "Nueva reserva disponible", "bell.tripFallback": "Viaje", "bell.title": "Avisos de reservas", "bell.clear": "Limpiar", "bell.none": "Sin avisos por ahora.", "bell.viewMine": "Ver mis reservas", "bell.aria": "Avisos de reservas",
+    "st.errLoad": "No se pudieron cargar las estadísticas", "st.driverActivity": "Tu actividad al volante", "st.yourTripsData": "Tus viajes en datos", "st.analysis": "Análisis de tu historial guardado en CanaryCab.", "st.earned": "Ganado", "st.spent": "Gastado", "st.totalSuffix": "total", "st.completedTrips": "viajes completados", "st.trips": "Viajes", "st.completedRides": "carreras completadas", "st.completed": "completados", "st.distance": "Distancia", "st.inTaxi": "recorridos en taxi", "st.last14": "los últimos 14 días", "st.last6m": "los últimos 6 meses", "st.days14": "14 días", "st.months6": "6 meses", "st.inPrefix": "en", "st.topRidesDriver": "Tus carreras más repetidas", "st.topRidesClient": "¿A dónde sueles ir?", "st.byFrequency": "Tus trayectos ordenados por frecuencia.", "st.completeToSee": "Completa viajes para ver tus rutas frecuentes.",
+    "fare.title": "Tarifa actual", "fare.couldNotLoad": "No se pudo cargar la tarifa", "fare.taxiLpgc": "Taxi · Las Palmas de Gran Canaria", "fare.farePrefix": "Tarifa", "fare.flagDrop": "Bajada de bandera", "fare.includes": "Incluye", "fare.holiday": "Festivo", "fare.pricePerKm": "Precio por kilómetro", "fare.urban": "Urbano", "fare.urbanSub": "Casco de Las Palmas", "fare.tarifa3": "Tarifa 3", "fare.tarifa3Sub": "Barrios periféricos", "fare.interurban": "Interurbano", "fare.interurbanSub": "Aeropuerto, sur, norte…", "fare.howCalc": "¿Cómo se calcula?", "fare.howCalcBody": "La bajada de bandera incluye los primeros {m} m. A partir de ahí se suma el precio por km de la zona. La franja se actualiza sola según la hora, el día y los festivos del calendario oficial.", "fare.official": "Tarifas oficiales del taxi de Las Palmas de Gran Canaria (BOC nº 150, 2023).",
+    "of.upTo4": "hasta 4 plazas", "of.closedPrice": "precio cerrado", "of.book": "Reservar", "of.now": "Ahora", "of.couldNotLoadCatalog": "No se pudo cargar el catálogo", "of.couldNotRequest": "No se pudo solicitar", "of.bookingSent": "Reserva enviada. Te avisaremos cuando un taxista la acepte.", "of.transfersTitle": "Traslados con precio cerrado", "of.excursionsTitle": "Descubre la isla en taxi", "of.transfersSub": "Sin sorpresas: pagas lo acordado, te recoge el primer taxista disponible.", "of.excursionsSub": "Rutas guiadas por taxistas locales. Precio por taxi, hasta 4 personas.", "of.pickupOptional": "Punto de recogida (opcional)", "of.transferPh": "Ej.: tu terminal u hotel", "of.excursionPh": "Ej.: tu hotel o dirección", "of.emptyHint": "Si lo dejas vacío usamos el punto de salida habitual de la oferta.", "of.bookPrefix": "Reservar",
     // reservas
     "res.trip": "Viaje", "res.excursion": "Excursión",
     "res.pending": "Pendiente", "res.accepted": "Aceptada", "res.cancelledSt": "Cancelada", "res.completedSt": "Completada",
@@ -141,6 +155,25 @@ export const DICT = {
   },
   en: {
     "lang.name": "English",
+    "seg.acepted": "The taxi is on its way to pickup", "seg.arrived": "The taxi has arrived at the pickup point", "seg.inProgress": "Trip in progress", "seg.completed": "Trip completed", "seg.cancelled": "The trip was cancelled", "seg.searching": "Finding a taxi…", "seg.invalidLink": "Invalid or expired link.", "seg.liveTracking": "🚕 Live tracking · CanaryCab", "seg.driver": "Driver", "seg.arrivesIn": "arrives in {min} min",
+
+    "adm.title": "Administration panel", "adm.refresh": "Refresh", "adm.exit": "Log out", "adm.errLoad": "Error loading data",
+    "adm.summary": "Summary", "adm.verify": "Verify", "adm.users": "Users", "adm.trips": "Trips",
+    "adm.tUsers": "Users", "adm.tClients": "Passengers", "adm.tDrivers": "Drivers", "adm.tPending": "Pending verification",
+    "adm.tOnline": "Drivers online", "adm.tToday": "Trips today", "adm.tCompleted": "Completed", "adm.tCancelled": "Cancelled",
+    "adm.tRevenue": "Total revenue", "adm.noneToVerify": "No drivers pending verification 🎉",
+    "adm.registered": "Registered", "adm.verifyBtn": "Verify", "adm.verified": "Verified", "adm.blocked": "BLOCKED",
+    "adm.unblock": "Unblock", "adm.block": "Block", "adm.verifiedMsg": "Driver verified ✓", "adm.verifRemoved": "Verification removed",
+    "adm.userBlocked": "User blocked", "adm.userUnblocked": "User unblocked",
+
+    "of.upTo4": "up to 4 seats", "of.closedPrice": "fixed price", "of.book": "Book", "of.now": "Now", "of.couldNotLoadCatalog": "Could not load the catalogue", "of.couldNotRequest": "Could not request", "of.bookingSent": "Booking sent. We will notify you when a driver accepts it.", "of.transfersTitle": "Transfers at a fixed price", "of.excursionsTitle": "Discover the island by taxi", "of.transfersSub": "No surprises: you pay the agreed price, the first available driver picks you up.", "of.excursionsSub": "Routes guided by local drivers. Price per taxi, up to 4 people.", "of.pickupOptional": "Pickup point (optional)", "of.transferPh": "e.g. your terminal or hotel", "of.excursionPh": "e.g. your hotel or address", "of.emptyHint": "If you leave it empty we use the offer usual departure point.", "of.bookPrefix": "Book",
+
+    "forum.title": "Drivers forum", "forum.today": "Today", "forum.yesterday": "Yesterday", "forum.couldNotLoad": "Could not load the forum", "forum.couldNotSend": "Could not send", "forum.empty": "Empty forum", "forum.beFirst": "Be the first to write to your colleagues.", "forum.writePh": "Write a message…", "forum.send": "Send",
+    "rm.pickDatetime": "Choose date and time", "rm.futureDate": "The date must be in the future", "rm.couldNotBook": "Could not book", "rm.datetime": "Date and time", "rm.notes": "Notes (optional)", "rm.notesPh": "e.g. large luggage, flight IB3947…", "rm.confirm": "Confirm booking",
+    "bell.available": "Available", "bell.yours": "Yours", "bell.taken": "Taken", "bell.expired": "Expired", "bell.newBooking": "New booking available", "bell.tripFallback": "Trip", "bell.title": "Booking alerts", "bell.clear": "Clear", "bell.none": "No alerts for now.", "bell.viewMine": "View my bookings", "bell.aria": "Booking alerts",
+    "st.errLoad": "Could not load the stats", "st.driverActivity": "Your activity behind the wheel", "st.yourTripsData": "Your trips in numbers", "st.analysis": "Analysis of your history saved in CanaryCab.", "st.earned": "Earned", "st.spent": "Spent", "st.totalSuffix": "total", "st.completedTrips": "completed trips", "st.trips": "Trips", "st.completedRides": "completed rides", "st.completed": "completed", "st.distance": "Distance", "st.inTaxi": "travelled by taxi", "st.last14": "the last 14 days", "st.last6m": "the last 6 months", "st.days14": "14 days", "st.months6": "6 months", "st.inPrefix": "in", "st.topRidesDriver": "Your most frequent rides", "st.topRidesClient": "Where do you usually go?", "st.byFrequency": "Your routes ordered by frequency.", "st.completeToSee": "Complete trips to see your frequent routes.",
+    "fare.title": "Current fare", "fare.couldNotLoad": "Could not load the fare", "fare.taxiLpgc": "Taxi · Las Palmas de Gran Canaria", "fare.farePrefix": "Fare", "fare.flagDrop": "Flag drop", "fare.includes": "Includes", "fare.holiday": "Holiday", "fare.pricePerKm": "Price per kilometre", "fare.urban": "Urban", "fare.urbanSub": "Las Palmas centre", "fare.tarifa3": "Tariff 3", "fare.tarifa3Sub": "Outlying districts", "fare.interurban": "Interurban", "fare.interurbanSub": "Airport, south, north…", "fare.howCalc": "How is it calculated?", "fare.howCalcBody": "The flag drop includes the first {m} m. From there the zone price per km is added. The time band updates automatically based on the time, day and official calendar holidays.", "fare.official": "Official taxi fares of Las Palmas de Gran Canaria (BOC no. 150, 2023).",
+
     "landing.badge": "Canary Islands · Territorial cohesion project",
     "landing.subtitle": "Your taxi app for the Canary Islands",
     "landing.tagline": "Real route, clear fare and your taxi live on the map.",
@@ -265,6 +298,25 @@ export const DICT = {
   },
   de: {
     "lang.name": "Deutsch",
+    "seg.acepted": "Das Taxi ist auf dem Weg zur Abholung", "seg.arrived": "Das Taxi ist am Abholpunkt angekommen", "seg.inProgress": "Fahrt läuft", "seg.completed": "Fahrt abgeschlossen", "seg.cancelled": "Die Fahrt wurde storniert", "seg.searching": "Taxi wird gesucht…", "seg.invalidLink": "Ungültiger oder abgelaufener Link.", "seg.liveTracking": "🚕 Live-Verfolgung · CanaryCab", "seg.driver": "Fahrer", "seg.arrivesIn": "kommt in {min} Min",
+
+    "adm.title": "Verwaltungsbereich", "adm.refresh": "Aktualisieren", "adm.exit": "Abmelden", "adm.errLoad": "Fehler beim Laden der Daten",
+    "adm.summary": "Übersicht", "adm.verify": "Prüfen", "adm.users": "Benutzer", "adm.trips": "Fahrten",
+    "adm.tUsers": "Benutzer", "adm.tClients": "Fahrgäste", "adm.tDrivers": "Fahrer", "adm.tPending": "Ausstehende Prüfung",
+    "adm.tOnline": "Fahrer online", "adm.tToday": "Fahrten heute", "adm.tCompleted": "Abgeschlossen", "adm.tCancelled": "Storniert",
+    "adm.tRevenue": "Gesamteinnahmen", "adm.noneToVerify": "Keine Fahrer zur Prüfung 🎉",
+    "adm.registered": "Registriert", "adm.verifyBtn": "Prüfen", "adm.verified": "Verifiziert", "adm.blocked": "GESPERRT",
+    "adm.unblock": "Entsperren", "adm.block": "Sperren", "adm.verifiedMsg": "Fahrer verifiziert ✓", "adm.verifRemoved": "Verifizierung entfernt",
+    "adm.userBlocked": "Benutzer gesperrt", "adm.userUnblocked": "Benutzer entsperrt",
+
+    "of.upTo4": "bis zu 4 Plätze", "of.closedPrice": "Festpreis", "of.book": "Buchen", "of.now": "Jetzt", "of.couldNotLoadCatalog": "Katalog konnte nicht geladen werden", "of.couldNotRequest": "Anfrage fehlgeschlagen", "of.bookingSent": "Buchung gesendet. Wir benachrichtigen dich, sobald ein Fahrer annimmt.", "of.transfersTitle": "Transfers zum Festpreis", "of.excursionsTitle": "Entdecke die Insel per Taxi", "of.transfersSub": "Keine Überraschungen: Du zahlst den vereinbarten Preis, der erste verfügbare Fahrer holt dich ab.", "of.excursionsSub": "Von lokalen Fahrern geführte Routen. Preis pro Taxi, bis zu 4 Personen.", "of.pickupOptional": "Abholpunkt (optional)", "of.transferPh": "z. B. dein Terminal oder Hotel", "of.excursionPh": "z. B. dein Hotel oder Adresse", "of.emptyHint": "Wenn du es leer lässt, nutzen wir den üblichen Startpunkt des Angebots.", "of.bookPrefix": "Buchen",
+
+    "forum.title": "Fahrer-Forum", "forum.today": "Heute", "forum.yesterday": "Gestern", "forum.couldNotLoad": "Forum konnte nicht geladen werden", "forum.couldNotSend": "Senden fehlgeschlagen", "forum.empty": "Leeres Forum", "forum.beFirst": "Sei der Erste, der deinen Kollegen schreibt.", "forum.writePh": "Schreibe eine Nachricht…", "forum.send": "Senden",
+    "rm.pickDatetime": "Datum und Uhrzeit wählen", "rm.futureDate": "Das Datum muss in der Zukunft liegen", "rm.couldNotBook": "Buchung fehlgeschlagen", "rm.datetime": "Datum und Uhrzeit", "rm.notes": "Notizen (optional)", "rm.notesPh": "z. B. großes Gepäck, Flug IB3947…", "rm.confirm": "Buchung bestätigen",
+    "bell.available": "Verfügbar", "bell.yours": "Deine", "bell.taken": "Vergeben", "bell.expired": "Abgelaufen", "bell.newBooking": "Neue Buchung verfügbar", "bell.tripFallback": "Fahrt", "bell.title": "Buchungshinweise", "bell.clear": "Leeren", "bell.none": "Momentan keine Hinweise.", "bell.viewMine": "Meine Buchungen ansehen", "bell.aria": "Buchungshinweise",
+    "st.errLoad": "Statistiken konnten nicht geladen werden", "st.driverActivity": "Deine Aktivität am Steuer", "st.yourTripsData": "Deine Fahrten in Zahlen", "st.analysis": "Analyse deines in CanaryCab gespeicherten Verlaufs.", "st.earned": "Verdient", "st.spent": "Ausgegeben", "st.totalSuffix": "gesamt", "st.completedTrips": "abgeschlossene Fahrten", "st.trips": "Fahrten", "st.completedRides": "abgeschlossene Fahrten", "st.completed": "abgeschlossen", "st.distance": "Distanz", "st.inTaxi": "im Taxi zurückgelegt", "st.last14": "die letzten 14 Tage", "st.last6m": "die letzten 6 Monate", "st.days14": "14 Tage", "st.months6": "6 Monate", "st.inPrefix": "in", "st.topRidesDriver": "Deine häufigsten Fahrten", "st.topRidesClient": "Wohin fährst du meistens?", "st.byFrequency": "Deine Strecken nach Häufigkeit geordnet.", "st.completeToSee": "Schließe Fahrten ab, um deine häufigen Strecken zu sehen.",
+    "fare.title": "Aktueller Tarif", "fare.couldNotLoad": "Tarif konnte nicht geladen werden", "fare.taxiLpgc": "Taxi · Las Palmas de Gran Canaria", "fare.farePrefix": "Tarif", "fare.flagDrop": "Grundgebühr", "fare.includes": "Beinhaltet", "fare.holiday": "Feiertag", "fare.pricePerKm": "Preis pro Kilometer", "fare.urban": "Stadt", "fare.urbanSub": "Zentrum Las Palmas", "fare.tarifa3": "Tarif 3", "fare.tarifa3Sub": "Randbezirke", "fare.interurban": "Überland", "fare.interurbanSub": "Flughafen, Süden, Norden…", "fare.howCalc": "Wie wird berechnet?", "fare.howCalcBody": "Die Grundgebühr beinhaltet die ersten {m} m. Danach kommt der Preis pro km der Zone hinzu. Das Zeitfenster aktualisiert sich automatisch nach Uhrzeit, Tag und offiziellen Feiertagen.", "fare.official": "Offizielle Taxitarife von Las Palmas de Gran Canaria (BOC Nr. 150, 2023).",
+
     "landing.badge": "Kanarische Inseln · Projekt für territorialen Zusammenhalt",
     "landing.subtitle": "Deine Taxi-App für die Kanarischen Inseln",
     "landing.tagline": "Echte Route, klarer Preis und dein Taxi live auf der Karte.",

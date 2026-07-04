@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout.jsx";
+import { useI18n } from "../i18n/index.jsx";
 import Spinner from "../components/Spinner.jsx";
 import { IconChart, IconCar, IconPin } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -77,11 +78,11 @@ function Barras({ serie }) {
   );
 }
 
-function TopRutas({ rutas, esTaxista }) {
+function TopRutas({ rutas, esTaxista, t }) {
   if (!rutas.length)
     return (
       <p className="grid h-24 place-items-center rounded-2xl bg-sand text-sm text-volcanic/45">
-        Completa viajes para ver tus rutas frecuentes.
+        {t("st.completeToSee")}
       </p>
     );
   return (
@@ -126,6 +127,7 @@ function TopRutas({ rutas, esTaxista }) {
 }
 
 export default function Estadisticas() {
+  const { t } = useI18n();
   const { user } = useAuth();
   const esTaxista = user?.rol === "TAXISTA";
   const [stats, setStats] = useState(null);
@@ -136,15 +138,15 @@ export default function Estadisticas() {
     const fetcher = esTaxista ? api.statsTaxista : api.statsCliente;
     fetcher()
       .then(setStats)
-      .catch((e) => setError(e.message || "No se pudieron cargar las estadísticas"));
+      .catch((e) => setError(e.message || t("st.errLoad")));
   }, [esTaxista]);
 
-  const dinero = esTaxista ? "Ganado" : "Gastado";
+  const dinero = esTaxista ? t("st.earned") : t("st.spent");
   const serie = stats ? (periodo === "dias" ? stats.porDia : stats.porMes) : [];
   const totalPeriodo = serie.reduce((s, p) => s + Number(p.valor), 0);
 
   return (
-    <Layout title="Estadísticas" framed>
+    <Layout title={t("nav.stats")} framed>
       <div className="h-full overflow-y-auto overflow-x-hidden slim-scroll">
         <div className="mx-auto max-w-3xl space-y-4 p-4 lg:p-6">
           {error && <p className="rounded-2xl bg-coral/12 p-4 text-sm text-coral">{error}</p>}
@@ -163,10 +165,10 @@ export default function Estadisticas() {
                   </span>
                   <div>
                     <h2 className="font-display text-xl font-extrabold tracking-tight">
-                      {esTaxista ? "Tu actividad al volante" : "Tus viajes en datos"}
+                      {esTaxista ? t("st.driverActivity") : t("st.yourTripsData")}
                     </h2>
                     <p className="text-sm text-volcanic/55">
-                      Análisis de tu historial guardado en CanaryCab.
+                      {t("st.analysis")}
                     </p>
                   </div>
                 </div>
@@ -174,13 +176,13 @@ export default function Estadisticas() {
 
               {/* resumen */}
               <div className="flex flex-col gap-3 sm:flex-row">
-                <StatChip dark label={`${dinero} total`} value={fmtEur(stats.total)} sub="viajes completados" />
+                <StatChip dark label={`${dinero} ${t("st.totalSuffix")}`} value={fmtEur(stats.total)} sub={t("st.completedTrips")} />
                 <StatChip
-                  label="Viajes"
+                  label={t("st.trips")}
                   value={stats.viajes}
-                  sub={esTaxista ? "carreras completadas" : "completados"}
+                  sub={esTaxista ? t("st.completedRides") : t("st.completed")}
                 />
-                <StatChip label="Distancia" value={`${Number(stats.km).toFixed(1)} km`} sub="recorridos en taxi" />
+                <StatChip label={t("st.distance")} value={`${Number(stats.km).toFixed(1)} km`} sub={t("st.inTaxi")} />
               </div>
 
               {/* gráfico con selector de periodo */}
@@ -189,7 +191,7 @@ export default function Estadisticas() {
                   <div>
                     <h3 className="font-display text-base font-extrabold">{dinero}</h3>
                     <p className="text-xs text-volcanic/50">
-                      {fmtEur(totalPeriodo)} en {periodo === "dias" ? "los últimos 14 días" : "los últimos 6 meses"}
+                      {fmtEur(totalPeriodo)} {t("st.inPrefix")} {periodo === "dias" ? t("st.last14") : t("st.last6m")}
                     </p>
                   </div>
                   <div className="relative grid grid-cols-2 rounded-xl bg-sand p-1 text-xs font-bold">
@@ -198,8 +200,8 @@ export default function Estadisticas() {
                         ${periodo === "dias" ? "translate-x-1" : "translate-x-[calc(100%+3px)]"}`}
                     />
                     {[
-                      ["dias", "14 días"],
-                      ["meses", "6 meses"],
+                      ["dias", t("st.days14")],
+                      ["meses", t("st.months6")],
                     ].map(([k, l]) => (
                       <button
                         key={k}
@@ -220,12 +222,12 @@ export default function Estadisticas() {
               <section className="surface p-5">
                 <h3 className="mb-1 flex items-center gap-2 font-display text-base font-extrabold">
                   {esTaxista ? <IconCar width={18} height={18} /> : <IconPin width={18} height={18} />}
-                  {esTaxista ? "Tus carreras más repetidas" : "¿A dónde sueles ir?"}
+                  {esTaxista ? t("st.topRidesDriver") : t("st.topRidesClient")}
                 </h3>
                 <p className="mb-4 text-xs text-volcanic/50">
-                  Tus trayectos ordenados por frecuencia.
+                  {t("st.byFrequency")}
                 </p>
-                <TopRutas rutas={stats.topRutas} esTaxista={esTaxista} />
+                <TopRutas rutas={stats.topRutas} esTaxista={esTaxista} t={t} />
               </section>
             </>
           )}

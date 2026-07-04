@@ -3,18 +3,16 @@ import { useParams } from "react-router-dom";
 import MapView, { LPGC } from "../components/MapView.jsx";
 import Spinner from "../components/Spinner.jsx";
 import { api } from "../api/client.js";
+import { useI18n } from "../i18n/index.jsx";
 
 const ESTADO_TXT = {
-  ACEPTADO: "El taxi va de camino a la recogida",
-  LLEGADO: "El taxi ha llegado al punto de recogida",
-  EN_CURSO: "Viaje en curso",
-  COMPLETADO: "Viaje completado",
-  CANCELADO: "El viaje fue cancelado",
-  SOLICITADO: "Buscando taxi…",
+  ACEPTADO: "seg.acepted", LLEGADO: "seg.arrived", EN_CURSO: "seg.inProgress",
+  COMPLETADO: "seg.completed", CANCELADO: "seg.cancelled", SOLICITADO: "seg.searching",
 };
 
 export default function Seguir() {
   const { token } = useParams();
+  const { t } = useI18n();
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const alive = useRef(true);
@@ -26,7 +24,7 @@ export default function Seguir() {
         const d = await api.seguir(token);
         if (alive.current) setData(d);
       } catch (e) {
-        if (alive.current) setError("Enlace no válido o caducado.");
+        if (alive.current) setError(t("seg.invalidLink"));
       }
     };
     cargar();
@@ -65,8 +63,8 @@ export default function Seguir() {
       {/* cabecera */}
       <div className="absolute inset-x-0 top-0 z-[600] p-3" style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}>
         <div className="mx-auto max-w-md rounded-2xl bg-white/95 px-4 py-3 shadow-float backdrop-blur">
-          <p className="font-display text-sm font-extrabold text-volcanic">🚕 Seguimiento en vivo · CanaryCab</p>
-          <p className="mt-0.5 text-xs text-volcanic/60">{ESTADO_TXT[data.estado] || "—"}</p>
+          <p className="font-display text-sm font-extrabold text-volcanic">{t("seg.liveTracking")}</p>
+          <p className="mt-0.5 text-xs text-volcanic/60">{ESTADO_TXT[data.estado] ? t(ESTADO_TXT[data.estado]) : "—"}</p>
         </div>
       </div>
       {/* tarjeta inferior */}
@@ -75,7 +73,7 @@ export default function Seguir() {
           <div className="mx-auto max-w-md rounded-2xl bg-white px-4 py-3 shadow-float">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="truncate font-display text-base font-extrabold text-volcanic">{data.taxistaNombre || "Taxista"}</p>
+                <p className="truncate font-display text-base font-extrabold text-volcanic">{data.taxistaNombre || t("seg.driver")}</p>
                 {data.modelo && <p className="truncate text-sm text-volcanic/60">{data.modelo}</p>}
               </div>
               {data.matricula && (
@@ -86,7 +84,7 @@ export default function Seguir() {
             </div>
             {data.estado === "ACEPTADO" && data.etaMin != null && (
               <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-volcanic px-3 py-1 font-display text-xs font-extrabold text-taxi">
-                ⏱️ llega en {data.etaMin} min
+                ⏱️ {t("seg.arrivesIn", { min: data.etaMin })}
               </p>
             )}
           </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../../api/client.js";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useI18n } from "../../i18n/index.jsx";
 import { SkeletonList } from "../../components/Skeleton.jsx";
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
@@ -26,6 +27,7 @@ function Stat({ label, value, accent = "text-volcanic" }) {
 
 export default function AdminPanel() {
   const { logout, user } = useAuth();
+  const { t: tr } = useI18n();
   const [tab, setTab] = useState("resumen");
   const [m, setM] = useState(null);
   const [pendientes, setPendientes] = useState([]);
@@ -42,7 +44,7 @@ export default function AdminPanel() {
       ]);
       setM(met); setPendientes(pend || []); setUsuarios(us || []); setViajes(vj || []);
     } catch (e) {
-      setMsg(e.message || "Error cargando datos");
+      setMsg(e.message || tr("adm.errLoad"));
     } finally {
       setLoading(false);
     }
@@ -50,19 +52,19 @@ export default function AdminPanel() {
   useEffect(() => { cargar(); }, []);
 
   async function verificar(id, valor) {
-    try { await api.adminVerificar(id, valor); await cargar(); setMsg(valor ? "Taxista verificado ✓" : "Verificación retirada"); }
-    catch (e) { setMsg(e.message || "Error"); }
+    try { await api.adminVerificar(id, valor); await cargar(); setMsg(valor ? tr("adm.verifiedMsg") : tr("adm.verifRemoved")); }
+    catch (e) { setMsg(e.message || tr("common.error")); }
   }
   async function bloquear(id, valor) {
-    try { await api.adminBloquear(id, valor); await cargar(); setMsg(valor ? "Usuario bloqueado" : "Usuario desbloqueado"); }
-    catch (e) { setMsg(e.message || "Error"); }
+    try { await api.adminBloquear(id, valor); await cargar(); setMsg(valor ? tr("adm.userBlocked") : tr("adm.userUnblocked")); }
+    catch (e) { setMsg(e.message || tr("common.error")); }
   }
 
   const TABS = [
-    { id: "resumen", label: "Resumen" },
-    { id: "verificar", label: `Verificar${pendientes.length ? ` (${pendientes.length})` : ""}` },
-    { id: "usuarios", label: "Usuarios" },
-    { id: "viajes", label: "Viajes" },
+    { id: "resumen", label: tr("adm.summary") },
+    { id: "verificar", label: `${tr("adm.verify")}${pendientes.length ? ` (${pendientes.length})` : ""}` },
+    { id: "usuarios", label: tr("adm.users") },
+    { id: "viajes", label: tr("adm.trips") },
   ];
 
   return (
@@ -74,11 +76,11 @@ export default function AdminPanel() {
       >
         <span className="grid h-9 w-9 place-items-center rounded-xl bg-volcanic font-display text-sm font-black text-taxi">A</span>
         <div className="min-w-0 flex-1">
-          <h1 className="font-display text-base font-extrabold leading-tight text-volcanic">Panel de administración</h1>
+          <h1 className="font-display text-base font-extrabold leading-tight text-volcanic">{tr("adm.title")}</h1>
           <p className="text-[11px] text-volcanic/50">CanaryCab · {user?.nombre}</p>
         </div>
-        <button onClick={cargar} aria-label="Refrescar" className="rounded-xl bg-sand px-3 py-2 text-sm font-bold text-volcanic hover:bg-sand-deep">↻</button>
-        <button onClick={logout} className="rounded-xl bg-volcanic px-3 py-2 text-sm font-bold text-cream">Salir</button>
+        <button onClick={cargar} aria-label={tr("adm.refresh")} className="rounded-xl bg-sand px-3 py-2 text-sm font-bold text-volcanic hover:bg-sand-deep">↻</button>
+        <button onClick={logout} className="rounded-xl bg-volcanic px-3 py-2 text-sm font-bold text-cream">{tr("adm.exit")}</button>
       </header>
 
       {/* tabs */}
@@ -107,20 +109,20 @@ export default function AdminPanel() {
           <SkeletonList count={6} />
         ) : tab === "resumen" ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            <Stat label="Usuarios" value={m?.totalUsuarios ?? 0} />
-            <Stat label="Clientes" value={m?.totalClientes ?? 0} />
-            <Stat label="Taxistas" value={m?.totalTaxistas ?? 0} />
-            <Stat label="Pendientes verificar" value={m?.taxistasPendientes ?? 0} accent="text-coral" />
-            <Stat label="Taxistas online" value={m?.taxistasOnline ?? 0} accent="text-palm" />
-            <Stat label="Viajes hoy" value={m?.viajesHoy ?? 0} accent="text-atlantic-dark" />
-            <Stat label="Completados" value={m?.viajesCompletados ?? 0} accent="text-palm" />
-            <Stat label="Cancelados" value={m?.viajesCancelados ?? 0} accent="text-coral" />
-            <Stat label="Ingresos totales" value={fmtEur(m?.ingresosTotales)} accent="text-volcanic" />
+            <Stat label={tr("adm.tUsers")} value={m?.totalUsuarios ?? 0} />
+            <Stat label={tr("adm.tClients")} value={m?.totalClientes ?? 0} />
+            <Stat label={tr("adm.tDrivers")} value={m?.totalTaxistas ?? 0} />
+            <Stat label={tr("adm.tPending")} value={m?.taxistasPendientes ?? 0} accent="text-coral" />
+            <Stat label={tr("adm.tOnline")} value={m?.taxistasOnline ?? 0} accent="text-palm" />
+            <Stat label={tr("adm.tToday")} value={m?.viajesHoy ?? 0} accent="text-atlantic-dark" />
+            <Stat label={tr("adm.tCompleted")} value={m?.viajesCompletados ?? 0} accent="text-palm" />
+            <Stat label={tr("adm.tCancelled")} value={m?.viajesCancelados ?? 0} accent="text-coral" />
+            <Stat label={tr("adm.tRevenue")} value={fmtEur(m?.ingresosTotales)} accent="text-volcanic" />
           </div>
         ) : tab === "verificar" ? (
           <div className="space-y-2.5">
             {pendientes.length === 0 ? (
-              <p className="py-16 text-center text-volcanic/50">No hay taxistas pendientes de verificar 🎉</p>
+              <p className="py-16 text-center text-volcanic/50">{tr("adm.noneToVerify")}</p>
             ) : (
               pendientes.map((t) => (
                 <div key={t.id} className="rounded-2xl border border-sand-deep bg-white p-4 shadow-card">
@@ -133,13 +135,13 @@ export default function AdminPanel() {
                         {t.matricula && <span className="rounded-md bg-taxi/20 px-2 py-0.5 font-mono font-black text-volcanic">{t.matricula}</span>}
                         {t.modelo && <span className="rounded-md bg-sand px-2 py-0.5 font-semibold text-volcanic/60">{t.modelo}</span>}
                       </div>
-                      <p className="mt-1 text-[11px] text-volcanic/40">Registrado {fmtFecha(t.creadoEn)}</p>
+                      <p className="mt-1 text-[11px] text-volcanic/40">{tr("adm.registered")} {fmtFecha(t.creadoEn)}</p>
                     </div>
                     <button
                       onClick={() => verificar(t.id, true)}
                       className="shrink-0 rounded-xl bg-palm px-4 py-2 text-sm font-extrabold text-white transition active:scale-95"
                     >
-                      ✓ Verificar
+                      ✓ {tr("adm.verifyBtn")}
                     </button>
                   </div>
                 </div>
@@ -153,16 +155,16 @@ export default function AdminPanel() {
                 <div className="min-w-0 flex-1">
                   <p className="flex items-center gap-1.5 font-bold text-volcanic">
                     <span className="truncate">{u.nombre}</span>
-                    {u.rol === "TAXISTA" && u.verificado && <span title="Verificado" className="text-palm">✓</span>}
-                    {u.bloqueado && <span className="rounded bg-coral/15 px-1.5 text-[10px] font-bold text-coral">BLOQUEADO</span>}
+                    {u.rol === "TAXISTA" && u.verificado && <span title={tr("adm.verified")} className="text-palm">✓</span>}
+                    {u.bloqueado && <span className="rounded bg-coral/15 px-1.5 text-[10px] font-bold text-coral">{tr("adm.blocked")}</span>}
                   </p>
                   <p className="truncate text-xs text-volcanic/55">{u.email} · {u.rol}{u.ratingCount > 0 ? ` · ⭐ ${u.ratingMedia} (${u.ratingCount})` : ""}</p>
                 </div>
                 {u.rol !== "ADMIN" && (
                   u.bloqueado ? (
-                    <button onClick={() => bloquear(u.id, false)} className="shrink-0 rounded-lg bg-palm/15 px-3 py-1.5 text-xs font-bold text-palm">Desbloquear</button>
+                    <button onClick={() => bloquear(u.id, false)} className="shrink-0 rounded-lg bg-palm/15 px-3 py-1.5 text-xs font-bold text-palm">{tr("adm.unblock")}</button>
                   ) : (
-                    <button onClick={() => bloquear(u.id, true)} className="shrink-0 rounded-lg bg-coral/15 px-3 py-1.5 text-xs font-bold text-coral">Bloquear</button>
+                    <button onClick={() => bloquear(u.id, true)} className="shrink-0 rounded-lg bg-coral/15 px-3 py-1.5 text-xs font-bold text-coral">{tr("adm.block")}</button>
                   )
                 )}
               </div>

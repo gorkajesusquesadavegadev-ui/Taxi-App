@@ -3,6 +3,7 @@ import Layout from "../components/Layout.jsx";
 import Spinner from "../components/Spinner.jsx";
 import { IconPin, IconCompass, IconPlane } from "../components/icons.jsx";
 import { api } from "../api/client.js";
+import { useI18n } from "../i18n/index.jsx";
 
 const eur = (v) => `${Number(v).toFixed(2)} €`;
 
@@ -39,6 +40,7 @@ function ZonaCard({ icon: Icon, titulo, sub, precio, destacado }) {
 }
 
 export default function TarifaActual() {
+  const { t: tr } = useI18n();
   const [t, setT] = useState(null);
   const [error, setError] = useState("");
 
@@ -46,7 +48,7 @@ export default function TarifaActual() {
     api
       .tarifaActual()
       .then(setT)
-      .catch((e) => setError(e.message || "No se pudo cargar la tarifa"));
+      .catch((e) => setError(e.message || tr("fare.couldNotLoad")));
 
   useEffect(() => {
     cargar();
@@ -55,7 +57,7 @@ export default function TarifaActual() {
   }, []);
 
   return (
-    <Layout title="Tarifa actual" framed>
+    <Layout title={tr("fare.title")} framed>
       <div className="h-full overflow-y-auto overflow-x-hidden slim-scroll">
         <div className="mx-auto max-w-2xl space-y-4 p-4 lg:p-6">
           {error && <p className="rounded-2xl bg-coral/12 p-4 text-sm text-coral">{error}</p>}
@@ -72,19 +74,19 @@ export default function TarifaActual() {
                 <div className="grain absolute inset-0" />
                 <div className="relative">
                   <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-volcanic/60">
-                    Taxi · Las Palmas de Gran Canaria
+                    {tr("fare.taxiLpgc")}
                   </p>
                   <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight drop-shadow-sm">
-                    Tarifa {t.franja}
+                    {tr("fare.farePrefix")} {t.franja}
                   </h2>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <span className="pill bg-volcanic text-cream">
-                      Bajada de bandera {eur(t.bajadaBandera)}
+                      {tr("fare.flagDrop")} {eur(t.bajadaBandera)}
                     </span>
                     <span className="pill bg-white/80 text-volcanic">
-                      Incluye {t.metrosIncluidos} m
+                      {tr("fare.includes")} {t.metrosIncluidos} m
                     </span>
-                    {t.esFestivo && <span className="pill bg-taxi text-volcanic">Festivo</span>}
+                    {t.esFestivo && <span className="pill bg-taxi text-volcanic">{tr("fare.holiday")}</span>}
                   </div>
                 </div>
               </header>
@@ -92,20 +94,20 @@ export default function TarifaActual() {
               {/* precio por km según zona */}
               <div>
                 <p className="mb-2 px-1 text-xs font-bold uppercase tracking-wider text-volcanic/45">
-                  Precio por kilómetro
+                  {tr("fare.pricePerKm")}
                 </p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                  <ZonaCard icon={IconPin} titulo="Urbano" sub="Casco de Las Palmas" precio={t.kmUrbano} />
+                  <ZonaCard icon={IconPin} titulo={tr("fare.urban")} sub={tr("fare.urbanSub")} precio={t.kmUrbano} />
                   <ZonaCard
                     icon={IconCompass}
-                    titulo="Tarifa 3"
-                    sub="Barrios periféricos"
+                    titulo={tr("fare.tarifa3")}
+                    sub={tr("fare.tarifa3Sub")}
                     precio={t.kmTarifa3}
                   />
                   <ZonaCard
                     icon={IconPlane}
-                    titulo="Interurbano"
-                    sub="Aeropuerto, sur, norte…"
+                    titulo={tr("fare.interurban")}
+                    sub={tr("fare.interurbanSub")}
                     precio={t.kmInterurbano}
                     destacado
                   />
@@ -114,14 +116,10 @@ export default function TarifaActual() {
 
               {/* nota */}
               <div className="surface p-4 text-sm leading-relaxed text-volcanic/65">
-                <p className="font-semibold text-volcanic">¿Cómo se calcula?</p>
-                <p className="mt-1">
-                  La bajada de bandera incluye los primeros {t.metrosIncluidos} m. A partir de ahí se
-                  suma el precio por km de la zona. La franja ({t.franja.toLowerCase()}) se actualiza
-                  sola según la hora, el día y los festivos del calendario oficial.
-                </p>
+                <p className="font-semibold text-volcanic">{tr("fare.howCalc")}</p>
+                <p className="mt-1">{tr("fare.howCalcBody", { m: t.metrosIncluidos })}</p>
                 <p className="mt-2 text-xs text-volcanic/45">
-                  Tarifas oficiales del taxi de Las Palmas de Gran Canaria (BOC nº 150, 2023).
+                  {tr("fare.official")}
                 </p>
               </div>
             </>
