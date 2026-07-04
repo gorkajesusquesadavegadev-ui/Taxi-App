@@ -11,18 +11,19 @@ import { api } from "../api/client.js";
 import { connectWs } from "../api/ws.js";
 import { avisar } from "../utils/prefs.js";
 import { fmtFechaReserva, whatsappLink } from "../utils/reservas.js";
+import { useI18n } from "../i18n/index.jsx";
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
 const TIPO = {
-  TRANSFER: { label: "Transfer", icon: IconPlane },
-  EXCURSION: { label: "Excursión", icon: IconCompass },
-  NORMAL: { label: "Viaje", icon: IconPin },
+  TRANSFER: { k: "nav.transfers", icon: IconPlane },
+  EXCURSION: { k: "res.excursion", icon: IconCompass },
+  NORMAL: { k: "res.trip", icon: IconPin },
 };
 const ESTADO = {
-  PENDIENTE: { label: "Pendiente", cls: "bg-taxi/25 text-volcanic" },
-  ACEPTADA: { label: "Aceptada", cls: "bg-atlantic/15 text-atlantic-dark" },
-  CANCELADA: { label: "Cancelada", cls: "bg-volcanic/10 text-volcanic/55" },
-  COMPLETADA: { label: "Completada", cls: "bg-volcanic/10 text-volcanic/55" },
+  PENDIENTE: { k: "res.pending", cls: "bg-taxi/25 text-volcanic" },
+  ACEPTADA: { k: "res.accepted", cls: "bg-atlantic/15 text-atlantic-dark" },
+  CANCELADA: { k: "res.cancelledSt", cls: "bg-volcanic/10 text-volcanic/55" },
+  COMPLETADA: { k: "res.completedSt", cls: "bg-volcanic/10 text-volcanic/55" },
 };
 
 // orden: primero las próximas (futuras más cercanas a su hora), luego las pasadas
@@ -40,11 +41,13 @@ function ordenar(lista) {
 }
 
 function EstadoChip({ estado }) {
+  const { t } = useI18n();
   const e = ESTADO[estado] || ESTADO.PENDIENTE;
-  return <span className={`pill ${e.cls}`}>{e.label}</span>;
+  return <span className={`pill ${e.cls}`}>{t(e.k)}</span>;
 }
 
 function Tramo({ origen, destino }) {
+  const { t } = useI18n();
   return (
     <div className="flex items-start gap-2.5 text-sm">
       <div className="flex flex-col items-center pt-1.5">
@@ -53,14 +56,15 @@ function Tramo({ origen, destino }) {
         <span className="h-2 w-2 rounded-full bg-atlantic-dark" />
       </div>
       <div className="min-w-0 flex-1 space-y-1">
-        <p className="truncate font-semibold leading-tight">{origen || "Punto de recogida"}</p>
-        <p className="truncate font-semibold leading-tight">{destino || "Destino"}</p>
+        <p className="truncate font-semibold leading-tight">{origen || t("drv.pickup")}</p>
+        <p className="truncate font-semibold leading-tight">{destino || t("drv.dest")}</p>
       </div>
     </div>
   );
 }
 
 function ReservaCard({ r, rol, onAceptar, onCancelar, busy }) {
+  const { t } = useI18n();
   const tipo = TIPO[r.tipo] || TIPO.NORMAL;
   const TipoIcon = tipo.icon;
   const esCliente = rol === "CLIENTE";
@@ -69,7 +73,7 @@ function ReservaCard({ r, rol, onAceptar, onCancelar, busy }) {
   const contactoTel = esCliente ? r.taxistaTelefono : r.clienteTelefono;
   const wa = whatsappLink(
     contactoTel,
-    `Hola${contactoNombre ? " " + contactoNombre : ""}, soy ${esCliente ? "tu cliente" : "tu taxista"} de la reserva CanaryCab de ${tipo.label.toLowerCase()} del ${fmtFechaReserva(r.programadaPara)}.`
+    `CanaryCab · ${t(tipo.k)} · ${fmtFechaReserva(r.programadaPara)}`
   );
   const cancelable = r.estado === "PENDIENTE" || r.estado === "ACEPTADA";
 
@@ -82,7 +86,7 @@ function ReservaCard({ r, rol, onAceptar, onCancelar, busy }) {
           </span>
           <div className="min-w-0 leading-tight">
             <p className="truncate font-display text-sm font-extrabold">
-              {r.detalle || tipo.label}
+              {r.detalle || t(tipo.k)}
             </p>
             <p className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-atlantic-dark">
               <IconCalendar width={12} height={12} />
@@ -103,7 +107,7 @@ function ReservaCard({ r, rol, onAceptar, onCancelar, busy }) {
 
       <div className="mt-3 flex items-center justify-between border-t border-sand-deep/70 pt-3">
         <span className="text-xs uppercase tracking-wider text-volcanic/45">
-          {r.tipo === "NORMAL" ? "Estimado" : "Precio cerrado"}
+          {r.tipo === "NORMAL" ? t("res.estimated") : t("res.closedPrice")}
         </span>
         <span className="font-display text-lg font-extrabold">{fmtEur(r.precioEstimado)}</span>
       </div>
@@ -113,7 +117,7 @@ function ReservaCard({ r, rol, onAceptar, onCancelar, busy }) {
         <div className="mt-3 flex items-center justify-between gap-2 rounded-2xl bg-atlantic/8 px-3 py-2">
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-volcanic/45">
-              {esCliente ? "Tu taxista" : "Tu cliente"}
+              {esCliente ? t("res.yourDriver") : t("res.yourClient")}
             </p>
             <p className="truncate text-sm font-semibold">{contactoNombre}</p>
           </div>
@@ -127,7 +131,7 @@ function ReservaCard({ r, rol, onAceptar, onCancelar, busy }) {
               <IconWhatsapp width={16} height={16} /> WhatsApp
             </a>
           ) : (
-            <span className="shrink-0 text-xs text-volcanic/40">Sin teléfono</span>
+            <span className="shrink-0 text-xs text-volcanic/40">{t("res.noPhone")}</span>
           )}
         </div>
       )}
@@ -136,7 +140,7 @@ function ReservaCard({ r, rol, onAceptar, onCancelar, busy }) {
       <div className="mt-3 flex gap-2">
         {rol === "TAXISTA" && r.estado === "PENDIENTE" && (
           <Button full size="sm" disabled={busy} onClick={() => onAceptar(r)}>
-            {busy ? <Spinner className="border-volcanic/30 border-t-volcanic" /> : "Aceptar reserva"}
+            {busy ? <Spinner className="border-volcanic/30 border-t-volcanic" /> : t("res.acceptBooking")}
           </Button>
         )}
         {cancelable && (rol === "CLIENTE" || r.estado === "ACEPTADA") && (
@@ -147,7 +151,7 @@ function ReservaCard({ r, rol, onAceptar, onCancelar, busy }) {
             disabled={busy}
             onClick={() => onCancelar(r)}
           >
-            Cancelar
+            {t("res.cancel")}
           </Button>
         )}
       </div>
@@ -157,6 +161,7 @@ function ReservaCard({ r, rol, onAceptar, onCancelar, busy }) {
 
 export default function Reservas() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const esTaxista = user?.rol === "TAXISTA";
   const [tab, setTab] = useState("mias"); // taxista: mias (primero) | disponibles
   const [lista, setLista] = useState(null);
@@ -170,7 +175,7 @@ export default function Reservas() {
       else data = tab === "disponibles" ? await api.reservasDisponibles() : await api.reservasTaxista();
       setLista(ordenar(data));
     } catch (e) {
-      setError(e.message || "No se pudo cargar");
+      setError(e.message || t("res.couldNotLoad"));
     }
   }, [esTaxista, tab]);
 
@@ -184,7 +189,7 @@ export default function Reservas() {
     const ws = connectWs((event, data) => {
       if (event === "reserva:new" && esTaxista) cargar(); // el aviso lo da la campana global
       if (event === "reserva:accepted") {
-        if (!esTaxista) avisar("Reserva confirmada", `Un taxista aceptó tu reserva del ${fmtFechaReserva(data.programadaPara)}`);
+        if (!esTaxista) avisar(t("res.confirmedT"), t("res.confirmedD", { fecha: fmtFechaReserva(data.programadaPara) }));
         cargar();
       }
       if (event === "reserva:cancelled" || event === "reserva:taken" || event === "reserva:expired") cargar();
@@ -196,10 +201,10 @@ export default function Reservas() {
     setBusyId(r.id);
     try {
       await api.reservaAceptar(r.id);
-      avisar("Reserva aceptada", `Recoges en ${r.origenTexto || "el punto marcado"} · ${fmtFechaReserva(r.programadaPara)}`);
+      avisar(t("res.acceptedT"), t("res.acceptedD", { lugar: r.origenTexto || t("res.markedPoint"), fecha: fmtFechaReserva(r.programadaPara) }));
       await cargar();
     } catch (e) {
-      setError(e.message || "No se pudo aceptar");
+      setError(e.message || t("res.couldNotAccept"));
     } finally {
       setBusyId(null);
     }
@@ -211,14 +216,14 @@ export default function Reservas() {
       await api.reservaCancelar(r.id);
       await cargar();
     } catch (e) {
-      setError(e.message || "No se pudo cancelar");
+      setError(e.message || t("res.couldNotCancel"));
     } finally {
       setBusyId(null);
     }
   }
 
   return (
-    <Layout title="Reservas" framed>
+    <Layout title={t("nav.reservations")} framed>
       <PullToRefresh onRefresh={cargar}>
         <div className="mx-auto max-w-3xl space-y-4 p-4 lg:p-6">
           {esTaxista && (
@@ -228,8 +233,8 @@ export default function Reservas() {
                   ${tab === "mias" ? "translate-x-1" : "translate-x-[calc(100%+3px)]"}`}
               />
               {[
-                ["mias", "Mis reservas"],
-                ["disponibles", "Aceptar reservas"],
+                ["mias", t("res.myBookings")],
+                ["disponibles", t("res.acceptBookings")],
               ].map(([k, l]) => (
                 <button
                   key={k}
@@ -253,13 +258,13 @@ export default function Reservas() {
               <span className="mb-3 grid h-16 w-16 place-items-center rounded-3xl bg-atlantic/10 text-atlantic-dark">
                 <IconCalendar width={30} height={30} />
               </span>
-              <p className="font-display text-lg font-bold">Sin reservas</p>
+              <p className="font-display text-lg font-bold">{t("res.none")}</p>
               <p className="text-sm text-volcanic/55">
                 {esTaxista
                   ? tab === "disponibles"
-                    ? "No hay reservas pendientes ahora mismo."
-                    : "Aún no has aceptado ninguna reserva."
-                  : "Reserva un transfer, excursión o viaje desde su pantalla."}
+                    ? t("res.noneAvail")
+                    : t("res.noneAccepted")
+                  : t("res.bookFromScreen")}
               </p>
             </div>
           )}

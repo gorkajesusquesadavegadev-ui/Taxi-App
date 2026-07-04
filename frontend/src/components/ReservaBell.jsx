@@ -5,6 +5,7 @@ import { connectWs } from "../api/ws.js";
 import { onToast, toast } from "../utils/toast.js";
 import { fmtFechaReserva } from "../utils/reservas.js";
 import { IconBell, IconCalendar } from "./icons.jsx";
+import { useI18n } from "../i18n/index.jsx";
 
 const STORE = "taya:avisos";
 const cargar = () => {
@@ -14,10 +15,10 @@ const guardar = (items) => localStorage.setItem(STORE, JSON.stringify(items));
 
 // chip de estado por aviso
 const ESTADO = {
-  abierta: { txt: "Disponible", cls: "bg-taxi/25 text-volcanic" },
-  tuya: { txt: "Es tuya", cls: "bg-atlantic/15 text-atlantic-dark" },
-  tomada: { txt: "Ya tomada", cls: "bg-volcanic/10 text-volcanic/50" },
-  caducada: { txt: "Ha caducado", cls: "bg-coral/15 text-coral" },
+  abierta: { k: "bell.available", cls: "bg-taxi/25 text-volcanic" },
+  tuya: { k: "bell.yours", cls: "bg-atlantic/15 text-atlantic-dark" },
+  tomada: { k: "bell.taken", cls: "bg-volcanic/10 text-volcanic/50" },
+  caducada: { k: "bell.expired", cls: "bg-coral/15 text-coral" },
 };
 
 /**
@@ -26,6 +27,7 @@ const ESTADO = {
  * y si vence sin aceptarse a "Ha caducado". Escucha reserva:* en toda la app.
  */
 export default function ReservaBell() {
+  const { t } = useI18n();
   const { user } = useAuth();
   const [items, setItems] = useState(cargar);
   const [unread, setUnread] = useState(0);
@@ -72,7 +74,7 @@ export default function ReservaBell() {
     const ws = connectWs((event, data) => {
       if (!data) return;
       if (event === "reserva:new") {
-        toast("Nueva reserva disponible", `${data.detalle || "Viaje"} · ${fmtFechaReserva(data.programadaPara)}`,
+        toast(t("bell.newBooking"), `${data.detalle || t("bell.tripFallback")} · ${fmtFechaReserva(data.programadaPara)}`,
           "reserva", { reservaId: data.id, estado: "abierta" });
       }
       if (event === "reserva:taken") {
@@ -106,7 +108,7 @@ export default function ReservaBell() {
     <div className="relative" ref={boxRef}>
       <button
         onClick={toggle}
-        aria-label="Avisos de reservas"
+        aria-label={t("bell.aria")}
         className="relative grid h-11 w-11 place-items-center rounded-2xl bg-white text-volcanic shadow-card ring-1 ring-sand-deep/60 transition-transform active:scale-90"
       >
         <IconBell />
@@ -120,7 +122,7 @@ export default function ReservaBell() {
       {open && (
         <div className="fixed inset-x-2 top-[4.25rem] z-[800] animate-fade-up overflow-hidden rounded-2xl bg-white shadow-float ring-1 ring-sand-deep/60 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80">
           <div className="flex items-center justify-between border-b border-sand-deep/60 px-4 py-3">
-            <p className="font-display text-sm font-extrabold">Avisos de reservas</p>
+            <p className="font-display text-sm font-extrabold">{t("bell.title")}</p>
             <button
               onClick={() => {
                 setItems([]);
@@ -128,12 +130,12 @@ export default function ReservaBell() {
               }}
               className="text-xs font-semibold text-volcanic/45 hover:text-volcanic"
             >
-              Limpiar
+              {t("bell.clear")}
             </button>
           </div>
           <div className="slim-scroll max-h-[55vh] overflow-y-auto sm:max-h-80">
             {items.length === 0 ? (
-              <p className="px-4 py-8 text-center text-sm text-volcanic/45">Sin avisos por ahora.</p>
+              <p className="px-4 py-8 text-center text-sm text-volcanic/45">{t("bell.none")}</p>
             ) : (
               items.map((a) => {
                 const est = a.estado ? ESTADO[a.estado] : null;
@@ -152,7 +154,7 @@ export default function ReservaBell() {
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold leading-tight">{a.titulo}</p>
                       {a.cuerpo && <p className="mt-0.5 text-xs leading-snug text-volcanic/55">{a.cuerpo}</p>}
-                      {est && <span className={`pill mt-1.5 ${est.cls}`}>{est.txt}</span>}
+                      {est && <span className={`pill mt-1.5 ${est.cls}`}>{t(est.k)}</span>}
                     </div>
                   </button>
                 );
@@ -166,7 +168,7 @@ export default function ReservaBell() {
             }}
             className="block w-full bg-volcanic px-4 py-3 text-center text-sm font-bold text-cream transition-colors hover:bg-volcanic-800"
           >
-            Ver mis reservas
+            {t("bell.viewMine")}
           </button>
         </div>
       )}

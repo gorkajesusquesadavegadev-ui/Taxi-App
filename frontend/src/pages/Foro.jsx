@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Layout from "../components/Layout.jsx";
+import { useI18n } from "../i18n/index.jsx";
 import Spinner from "../components/Spinner.jsx";
 import { Skeleton } from "../components/Skeleton.jsx";
 import { IconChat, IconSend } from "../components/icons.jsx";
@@ -10,13 +11,13 @@ import { connectWs } from "../api/ws.js";
 const fmtHora = (iso) =>
   new Date(iso).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
 
-const fmtDia = (iso) => {
+const fmtDia = (iso, t) => {
   const d = new Date(iso);
   const hoy = new Date();
   const ayer = new Date();
   ayer.setDate(hoy.getDate() - 1);
-  if (d.toDateString() === hoy.toDateString()) return "Hoy";
-  if (d.toDateString() === ayer.toDateString()) return "Ayer";
+  if (d.toDateString() === hoy.toDateString()) return t("forum.today");
+  if (d.toDateString() === ayer.toDateString()) return t("forum.yesterday");
   return d.toLocaleDateString("es-ES", { day: "numeric", month: "long" });
 };
 
@@ -59,6 +60,7 @@ function Separador({ texto }) {
 }
 
 export default function Foro() {
+  const { t } = useI18n();
   const { user } = useAuth();
   const [mensajes, setMensajes] = useState(null);
   const [texto, setTexto] = useState("");
@@ -81,7 +83,7 @@ export default function Foro() {
         setMensajes(lista);
         scrollAbajo();
       })
-      .catch((e) => alive && setError(e.message || "No se pudo cargar el foro"));
+      .catch((e) => alive && setError(e.message || t("forum.couldNotLoad")));
     return () => {
       alive = false;
     };
@@ -101,12 +103,12 @@ export default function Foro() {
 
   async function enviar(e) {
     e.preventDefault();
-    const t = texto.trim();
-    if (!t || enviando) return;
+    const txt = texto.trim();
+    if (!txt || enviando) return;
     setEnviando(true);
     setError("");
     try {
-      const m = await api.foroPublicar(t);
+      const m = await api.foroPublicar(txt);
       setTexto("");
       if (m && !idsRef.current.has(m.id)) {
         idsRef.current.add(m.id);
@@ -114,7 +116,7 @@ export default function Foro() {
         scrollAbajo();
       }
     } catch (err) {
-      setError(err.message || "No se pudo enviar");
+      setError(err.message || t("forum.couldNotSend"));
     } finally {
       setEnviando(false);
     }
@@ -123,7 +125,7 @@ export default function Foro() {
   let ultimoDia = null;
 
   return (
-    <Layout title="Foro de taxistas" framed>
+    <Layout title={t("forum.title")} framed>
       <div className="flex h-full flex-col">
         {/* lista de mensajes */}
         <div className="slim-scroll flex-1 overflow-y-auto overflow-x-hidden bg-cream px-3 py-4 sm:px-6">
@@ -145,14 +147,14 @@ export default function Foro() {
                 <span className="mb-3 grid h-16 w-16 place-items-center rounded-3xl bg-atlantic/10 text-atlantic-dark">
                   <IconChat width={30} height={30} />
                 </span>
-                <p className="font-display text-lg font-bold">Foro vacío</p>
-                <p className="text-sm text-volcanic/55">Sé el primero en escribir a tus compañeros.</p>
+                <p className="font-display text-lg font-bold">{t("forum.empty")}</p>
+                <p className="text-sm text-volcanic/55">{t("forum.beFirst")}</p>
               </div>
             )}
             {mensajes?.map((m, i) => {
               const propio = Number(m.autorId) === Number(user?.id);
               const prev = mensajes[i - 1];
-              const dia = fmtDia(m.creadoEn);
+              const dia = fmtDia(m.creadoEn, t);
               const nuevoDia = dia !== ultimoDia;
               ultimoDia = dia;
               const mostrarAutor = !prev || prev.autorId !== m.autorId || nuevoDia;
@@ -183,14 +185,14 @@ export default function Foro() {
                 }
               }}
               rows={1}
-              placeholder="Escribe un mensaje…"
+              placeholder={t("forum.writePh")}
               maxLength={1000}
               className="slim-scroll max-h-28 min-h-[2.75rem] flex-1 resize-none rounded-2xl border-2 border-sand-deep bg-cream px-4 py-2.5 text-sm outline-none transition-colors focus:border-taxi focus:bg-white"
             />
             <button
               type="submit"
               disabled={!texto.trim() || enviando}
-              aria-label="Enviar"
+              aria-label={t("forum.send")}
               className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-taxi text-volcanic shadow-card transition-all hover:bg-taxi-dark active:scale-95 disabled:opacity-40"
             >
               {enviando ? <Spinner className="border-volcanic/30 border-t-volcanic" /> : <IconSend />}
