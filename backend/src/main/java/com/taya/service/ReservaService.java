@@ -1,17 +1,13 @@
 package com.taya.service;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.taya.dto.request.CrearReservaRequest;
 import com.taya.dto.response.ReservaResponse;
 import com.taya.model.*;
 import com.taya.repository.ReservaRepository;
 import com.taya.repository.UsuarioRepository;
-import com.taya.websocket.WsSessionRegistry;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -29,12 +25,11 @@ public class ReservaService {
     private final CatalogoService catalogo;
     private final OsrmClient osrm;
     private final TarifaService tarifa;
-    private final WsSessionRegistry registry;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final com.taya.websocket.WsRelay relay;
 
     public ReservaService(ReservaRepository r, UsuarioRepository u, CatalogoService c,
-                          OsrmClient o, TarifaService t, WsSessionRegistry reg) {
-        this.reservas = r; this.usuarios = u; this.catalogo = c; this.osrm = o; this.tarifa = t; this.registry = reg;
+                          OsrmClient o, TarifaService t, com.taya.websocket.WsRelay relay) {
+        this.reservas = r; this.usuarios = u; this.catalogo = c; this.osrm = o; this.tarifa = t; this.relay = relay;
     }
 
     @Transactional
@@ -168,16 +163,7 @@ public class ReservaService {
 
     /** destinatario null = difundir a todos los taxistas; si no, a ese usuario. */
     private void difundir(String event, ReservaResponse dto, Long destinatario) {
-        String json;
-        try { json = mapper.writeValueAsString(Map.of("event", event, "data", dto)); }
-        catch (Exception e) { return; }
-        for (WebSocketSession s : registry.all()) {
-            if (!s.isOpen()) continue;
-            boolean enviar = destinatario != null
-                ? destinatario.equals(s.getAttributes().get("userId"))
-                : "TAXISTA".equals(s.getAttributes().get("rol"));
-            if (!enviar) continue;
-            try { s.sendMessage(new TextMessage(json)); } catch (Exception ignored) {}
-        }
+        if (destinatario != null) relay.toUser(destinatario, event, dto);
+        else relay.toRole("TAXISTA", event, dto);
     }
 }

@@ -1,30 +1,24 @@
 package com.taya.websocket;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.taya.model.Viaje;
 import com.taya.service.TarifaService;
 import com.taya.service.WebPushService;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
 public class TripWsServiceImpl implements TripWsService {
-    private final WsSessionRegistry registry;
     private final TarifaService tarifa;
     private final WebPushService push;
-    private final ObjectMapper mapper = new ObjectMapper();
-    public TripWsServiceImpl(WsSessionRegistry registry, TarifaService tarifa, WebPushService push) {
-        this.registry = registry; this.tarifa = tarifa; this.push = push;
+    private final WsRelay relay;
+    public TripWsServiceImpl(TarifaService tarifa, WebPushService push, WsRelay relay) {
+        this.tarifa = tarifa; this.push = push; this.relay = relay;
     }
 
+    // Entrega vía relay Redis: llega al usuario esté en la instancia que esté.
     private void send(Long userId, String event, Object data) {
-        WebSocketSession s = registry.get(userId);
-        if (s == null || !s.isOpen()) return;
-        try { s.sendMessage(new TextMessage(mapper.writeValueAsString(Map.of("event", event, "data", data)))); }
-        catch (Exception ignored) {}
+        relay.toUser(userId, event, data);
     }
 
     @Override public void enviarNuevoViaje(List<Long> taxistaIds, Viaje v) {

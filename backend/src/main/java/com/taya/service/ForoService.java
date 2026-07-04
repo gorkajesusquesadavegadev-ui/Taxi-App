@@ -4,13 +4,10 @@ import com.taya.dto.response.MensajeForoResponse;
 import com.taya.model.MensajeForo;
 import com.taya.repository.MensajeForoRepository;
 import com.taya.repository.UsuarioRepository;
-import com.taya.websocket.WsSessionRegistry;
+import com.taya.websocket.WsRelay;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Foro público de taxistas (chat de grupo). Persiste cada mensaje y lo difunde
@@ -20,11 +17,10 @@ import java.util.Map;
 public class ForoService {
     private final MensajeForoRepository repo;
     private final UsuarioRepository usuarios;
-    private final WsSessionRegistry registry;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final WsRelay relay;
 
-    public ForoService(MensajeForoRepository repo, UsuarioRepository usuarios, WsSessionRegistry registry) {
-        this.repo = repo; this.usuarios = usuarios; this.registry = registry;
+    public ForoService(MensajeForoRepository repo, UsuarioRepository usuarios, WsRelay relay) {
+        this.repo = repo; this.usuarios = usuarios; this.relay = relay;
     }
 
     /** Historial (orden cronológico ascendente para pintar de arriba a abajo). */
@@ -49,13 +45,7 @@ public class ForoService {
     }
 
     private void difundir(MensajeForoResponse dto) {
-        String json;
-        try {
-            json = mapper.writeValueAsString(Map.of("event", "forum:message", "data", dto));
-        } catch (Exception e) { return; }
-        for (WebSocketSession s : registry.all()) {
-            if (!"TAXISTA".equals(s.getAttributes().get("rol")) || !s.isOpen()) continue;
-            try { s.sendMessage(new TextMessage(json)); } catch (Exception ignored) {}
-        }
+        // Difusión cross-instancia a todos los taxistas conectados.
+        relay.toRole("TAXISTA", "forum:message", dto);
     }
 }

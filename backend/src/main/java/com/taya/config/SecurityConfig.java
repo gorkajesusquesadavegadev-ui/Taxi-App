@@ -26,6 +26,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**", "/ws/**", "/error").permitAll()
+                .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/push/vapid-public-key").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/viajes/seguir/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")

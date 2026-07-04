@@ -4,7 +4,6 @@ import com.taya.model.Usuario;
 import com.taya.model.Viaje;
 import com.taya.repository.UsuarioRepository;
 import com.taya.websocket.TripWsService;
-import com.taya.websocket.WsSessionRegistry;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -13,14 +12,13 @@ public class MatchingService {
     private final UbicacionService ubicacion;
     private final TarifaService tarifa;
     private final TripWsService ws;
-    private final WsSessionRegistry registry;
     private final UsuarioRepository usuarios;
     private final WebPushService push;
 
     public MatchingService(UbicacionService u, TarifaService t, TripWsService ws,
-                           WsSessionRegistry registry, UsuarioRepository usuarios, WebPushService push) {
+                           UsuarioRepository usuarios, WebPushService push) {
         this.ubicacion = u; this.tarifa = t; this.ws = ws;
-        this.registry = registry; this.usuarios = usuarios; this.push = push;
+        this.usuarios = usuarios; this.push = push;
     }
 
     /** Verificado + no bloqueado + (si el viaje requiere taxi adaptado) vehículo accesible. */
@@ -62,8 +60,7 @@ public class MatchingService {
             if (acc && !t.isVehiculoAccesible()) continue;
             if (t.getUltimaLat() == null || t.getUltimaLng() == null) continue;
             if (yaPorWs.contains(t.getId())) continue;                 // ya avisado por WS
-            var s = registry.get(t.getId());
-            if (s != null && s.isOpen()) continue;                     // app abierta: WS/polling lo cubre
+            if (ubicacion.tienePing(t.getId())) continue;              // conectado (cualquier instancia): WS/polling lo cubre
             if (haversineKm(lat, lng, t.getUltimaLat(), t.getUltimaLng()) > radioPush) continue;
             push.enviar(t.getId(), "🚖 Nueva solicitud de viaje", cuerpo, "/", "trip:new");
         }
@@ -77,17 +74,18 @@ public class MatchingService {
         return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
-    /** Filtra: taxistas LIBRES en Redis, verificados (y accesibles si procede), con WS abierto */
+    /** Taxistas LIBRES en Redis, verificados (y accesibles si procede), conectados.
+     *  La presencia se comprueba con el ping global (Redis), no con el registro
+     *  local de sesiones: así funciona con varias instancias del backend. La
+     *  entrega WS viaja por el relay Redis y llega a la instancia que la aloje. */
     private List<Long> libresConSesion(double lat, double lng, double radioKm, boolean requiereAccesible) {
         return ubicacion.libresEnRadio(lat, lng, radioKm)
             .stream()
             .map(UbicacionService.TaxiCercano::taxistaId)
             .filter(id -> aptoPara(id, requiereAccesible))
             .filter(id -> {
-                var s = registry.get(id);
-                if (s != null && s.isOpen()) return true;
-                // Sesión muerta: limpiar entrada fantasma de Redis
-                ubicacion.setDesconectado(id);
+                if (ubicacion.tienePing(id)) return true;
+                ubicacion.setDesconectado(id); // sin ping: fantasma, limpiar Redis
                 return false;
             })
             .toList();
