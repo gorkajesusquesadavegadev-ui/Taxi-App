@@ -194,7 +194,7 @@ export default function AddressSearch({ placeholder, value, onSelect, dotClass =
         </ul>
       )}
       {editing && !searching && q.trim().length >= 3 && results.length === 0 && (
-        <p className="mt-1.5 px-2 text-xs text-volcanic/45">Sin resultados en la isla…</p>
+        <p className="mt-1.5 px-2 text-xs text-volcanic/45">{t("addr.noResults")}</p>
       )}
     </div>
   );

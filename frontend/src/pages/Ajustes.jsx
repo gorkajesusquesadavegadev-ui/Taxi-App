@@ -201,7 +201,7 @@ export default function Ajustes() {
               />
               {sound && (
                 <div className="py-3">
-                  <p className="text-sm font-semibold text-volcanic">Tono de aviso</p>
+                  <p className="text-sm font-semibold text-volcanic">{tr("set.tone")}</p>
                   <div className="mt-2 space-y-1.5">
                     {TONOS.map((t) => (
                       <div

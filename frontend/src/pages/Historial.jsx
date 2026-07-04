@@ -93,7 +93,7 @@ function ViajeCard({ v, index, esTaxista }) {
       {/* recibo PDF descargable (solo viajes completados) */}
       {v.estado === "COMPLETADO" && (
         <button
-          onClick={() => descargarFactura(v)}
+          onClick={() => descargarFactura(v, t)}
           className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-sand-deep bg-white py-2 text-sm font-bold text-volcanic transition-colors hover:border-taxi hover:bg-taxi/10"
         >
           🧾 {t("hist.downloadReceipt")}

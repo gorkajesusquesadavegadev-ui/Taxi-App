@@ -39,3 +39,14 @@ export function useI18n() {
   if (!ctx) return { lang: "es", setLang: () => {}, t: (k) => DICT.es[k] ?? k };
   return ctx;
 }
+
+// Traduce una etiqueta de zona tarifaria que el backend envía en español.
+export function zonaTraducida(t, raw) {
+  if (!raw) return raw;
+  const map = {
+    "Tarifa 1 · Zona urbana": "zone.urban",
+    "Tarifa 3 · Zona periférica": "zone.peripheral",
+    "Interinsular · Fuera del municipio": "zone.interisland",
+  };
+  return map[raw] ? t(map[raw]) : raw;
+}

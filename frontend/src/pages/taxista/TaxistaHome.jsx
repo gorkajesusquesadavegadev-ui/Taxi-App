@@ -13,7 +13,7 @@ import ValorarViaje from "../../components/ValorarViaje.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { activarPush } from "../../api/push.js";
 import { tapExito } from "../../utils/haptics.js";
-import { useI18n } from "../../i18n/index.jsx";
+import { useI18n, zonaTraducida } from "../../i18n/index.jsx";
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
 const TIPO_LABEL = { TRANSFER: "Transfer", EXCURSION: "Excursión" };
@@ -394,7 +394,7 @@ export default function TaxistaHome() {
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-widest text-volcanic/40">{t("drv.appliedFare")}</p>
                   <p className="text-sm font-extrabold text-atlantic-dark">
-                    {incoming.zona || calcZona(incoming.origenLat, incoming.origenLng, incoming.destinoLat, incoming.destinoLng) || "—"}
+                    {zonaTraducida(t, incoming.zona || calcZona(incoming.origenLat, incoming.origenLng, incoming.destinoLat, incoming.destinoLng)) || "—"}
                   </p>
                 </div>
               </div>

@@ -15,7 +15,7 @@ import { api } from "../../api/client.js";
 import { direccionDe, ubicacionPrecisa } from "../../api/geo.js";
 import { activarPush } from "../../api/push.js";
 import { tapLigero, tapFuerte } from "../../utils/haptics.js";
-import { useI18n } from "../../i18n/index.jsx";
+import { useI18n, zonaTraducida } from "../../i18n/index.jsx";
 import { connectWs } from "../../api/ws.js";
 import { avisar } from "../../utils/prefs.js";
 
@@ -59,12 +59,8 @@ const LANDMARKS = [
 ];
 
 const MSG_ESTADO = {
-  SOLICITADO: "Buscando un taxi cercano…",
-  ACEPTADO: "Taxista en camino",
-  LLEGADO: "Tu taxi ha llegado",
-  EN_CURSO: "Viaje en curso",
-  COMPLETADO: "Viaje completado. ¡Gracias!",
-  CANCELADO: "El viaje fue cancelado",
+  SOLICITADO: "ride.searching", ACEPTADO: "ride.driverOnWay", LLEGADO: "ride.arrived",
+  EN_CURSO: "ride.inProgress", COMPLETADO: "ride.completed", CANCELADO: "ride.cancelled",
 };
 
 export default function ClienteHome() {
@@ -100,13 +96,13 @@ export default function ClienteHome() {
   function notificarEstado(estado) {
     if (estado === estadoPrev.current) return;
     estadoPrev.current = estado;
-    if (estado === "ACEPTADO") avisar("Taxi en camino", "Un taxista aceptó tu viaje.");
+    if (estado === "ACEPTADO") avisar(t("ride.notifAcceptedT"), t("ride.notifAcceptedD"));
     if (estado === "LLEGADO") {
-      avisar("¡Tu taxi ha llegado!", "El taxista te espera en el punto de recogida.");
+      avisar(t("ride.notifArrivedT"), t("ride.notifArrivedD"));
       setLlegada(true);
     }
-    if (estado === "EN_CURSO") avisar("Viaje iniciado", "¡Buen viaje!");
-    if (estado === "COMPLETADO") avisar("Viaje completado", "Gracias por viajar con CanaryCab.");
+    if (estado === "EN_CURSO") avisar(t("ride.notifStartedT"), t("ride.notifStartedD"));
+    if (estado === "COMPLETADO") avisar(t("ride.notifCompletedT"), t("ride.notifCompletedD"));
   }
 
   // live socket for trip events
@@ -161,7 +157,7 @@ export default function ClienteHome() {
             ? a
             : c
         );
-        setStatusMsg((m) => MSG_ESTADO[a.estado] || m);
+        setStatusMsg((m) => (MSG_ESTADO[a.estado] ? t(MSG_ESTADO[a.estado]) : m));
         notificarEstado(a.estado); // red de seguridad si el evento WS se perdió
       } catch (_) {
         /* keep current state on transient error */
@@ -240,7 +236,7 @@ export default function ClienteHome() {
         paradas: paradas.filter(Boolean).map((p) => [p.lat, p.lng]),
       })
       .then((e) => alive && setEstimacion(e))
-      .catch(() => alive && setError("No se pudo estimar la tarifa"))
+      .catch(() => alive && setError(t("ride.errEstimate")))
       .finally(() => alive && setEstimando(false));
     return () => {
       alive = false;
@@ -262,7 +258,7 @@ export default function ClienteHome() {
     setError("");
     try {
       const fix = await ubicacionPrecisa();
-      if (!fix) { setError("No se pudo obtener tu ubicación. Activa el GPS."); return; }
+      if (!fix) { setError(t("ride.errLocGps")); return; }
       const punto = { lat: fix.lat, lng: fix.lng, label: "" };
       setOrigen(punto);
       setUserPos({ lat: fix.lat, lng: fix.lng });
@@ -272,7 +268,7 @@ export default function ClienteHome() {
         setError(`Ubicación aproximada (±${Math.round(fix.accuracy)} m). Ajusta el punto en el mapa si hace falta.`);
       }
     } catch (_) {
-      setError("No se pudo obtener tu ubicación.");
+      setError(t("ride.errLoc"));
     } finally {
       setLocalizando(false);
     }
@@ -285,15 +281,15 @@ export default function ClienteHome() {
     try {
       const { token } = await api.compartirViaje(viaje.id);
       const url = `${window.location.origin}/seguir/${token}`;
-      const texto = `Sigue mi taxi en vivo (CanaryCab): ${url}`;
+      const texto = t("ride.shareText", { url });
       if (navigator.share) {
-        await navigator.share({ title: "Sigue mi taxi · CanaryCab", text: texto, url });
+        await navigator.share({ title: t("ride.shareTitle"), text: texto, url });
       } else {
         await navigator.clipboard.writeText(url);
-        setStatusMsg("Enlace de seguimiento copiado.");
+        setStatusMsg(t("ride.linkCopied"));
       }
     } catch (_) {
-      setStatusMsg("No se pudo generar el enlace.");
+      setStatusMsg(t("ride.linkFail"));
     }
   }
 
@@ -304,11 +300,11 @@ export default function ClienteHome() {
     const pos = taxiPos || { lat: viaje.origenLat, lng: viaje.origenLng };
     const mapa = `https://maps.google.com/?q=${pos.lat},${pos.lng}`;
     const datos =
-      `🆘 EMERGENCIA - voy en un taxi (CanaryCab).` +
-      (viaje.taxistaNombre ? ` Taxista: ${viaje.taxistaNombre}.` : "") +
-      (viaje.taxistaMatricula ? ` Matrícula: ${viaje.taxistaMatricula}.` : "") +
-      (viaje.taxistaLicencia ? ` Licencia: ${viaje.taxistaLicencia}.` : "") +
-      ` Mi ubicación: ${mapa}`;
+      t("ride.sosText") +
+      (viaje.taxistaNombre ? ` ${t("ride.sosDriver")}: ${viaje.taxistaNombre}.` : "") +
+      (viaje.taxistaMatricula ? ` ${t("ride.sosPlate")}: ${viaje.taxistaMatricula}.` : "") +
+      (viaje.taxistaLicencia ? ` ${t("ride.sosLicense")}: ${viaje.taxistaLicencia}.` : "") +
+      ` ${t("ride.sosLoc")}: ${mapa}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(datos)}`, "_blank");
   }
 
@@ -369,7 +365,7 @@ export default function ClienteHome() {
       // Web Push: avisar "taxi en camino / ha llegado" aunque cierre la app
       activarPush().catch(() => {});
     } catch (e) {
-      setError(e.message || "No se pudo pedir el taxi");
+      setError(e.message || t("ride.errRequest"));
     } finally {
       setBusy(false);
     }
@@ -488,8 +484,8 @@ export default function ClienteHome() {
                 <IconCar width={20} height={20} />
               </span>
               <div className="min-w-0">
-                <p className="font-display text-sm font-extrabold leading-tight">¡Tu taxi ha llegado!</p>
-                <p className="text-xs text-volcanic/70">Te espera en el punto de recogida.</p>
+                <p className="font-display text-sm font-extrabold leading-tight">{t("ride.arrivedBannerT")}</p>
+                <p className="text-xs text-volcanic/70">{t("ride.arrivedBannerD")}</p>
               </div>
               <button
                 onClick={() => setLlegada(false)}
@@ -526,7 +522,7 @@ export default function ClienteHome() {
                 </div>
                 {TIPO_LABEL[viaje.tipo] && (
                   <span className="pill bg-taxi/20 text-volcanic">
-                    {TIPO_LABEL[viaje.tipo]} · {viaje.detalle} · precio cerrado
+                    {viaje.tipo === "EXCURSION" ? t("res.excursion") : TIPO_LABEL[viaje.tipo]} · {viaje.detalle} · {t("ride.closedPrice")}
                   </span>
                 )}
                 <p className="text-sm text-volcanic/70">
@@ -762,7 +758,7 @@ export default function ClienteHome() {
                         <div className="flex items-center gap-1.5 rounded-xl bg-atlantic/10 px-3 py-1.5">
                           <span className="text-base">🏷️</span>
                           <span className="text-[12px] font-extrabold text-atlantic-dark">
-                            {estimacion.zona || calcZona(origen.lat, origen.lng, destino.lat, destino.lng)}
+                            {zonaTraducida(t, estimacion.zona || calcZona(origen.lat, origen.lng, destino.lat, destino.lng))}
                           </span>
                         </div>
                       )}

@@ -14,9 +14,9 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 function validate(form, mode) {
   const e = {};
-  if (mode === "register" && form.nombre.trim().length < 2) e.nombre = "Escribe tu nombre";
-  if (!EMAIL_RE.test(form.email)) e.email = "Ese email no parece válido";
-  if (form.password.length < 6) e.password = "Mínimo 6 caracteres";
+  if (mode === "register" && form.nombre.trim().length < 2) e.nombre = "val.name";
+  if (!EMAIL_RE.test(form.email)) e.email = "val.email";
+  if (form.password.length < 6) e.password = "val.min6";
   return e;
 }
 
@@ -29,10 +29,10 @@ function strengthOf(pwd) {
   return s;
 }
 const STRENGTH = [
-  { label: "Muy corta", bar: "bg-volcanic/20", text: "text-volcanic/50", w: "w-[12%]" },
-  { label: "Débil", bar: "bg-volcanic/45", text: "text-volcanic/60", w: "w-1/3" },
-  { label: "Buena", bar: "bg-atlantic", text: "text-atlantic-dark", w: "w-2/3" },
-  { label: "Fuerte como el sol", bar: "bg-taxi", text: "text-taxi-dark", w: "w-full" },
+  { label: "pw.veryShort", bar: "bg-volcanic/20", text: "text-volcanic/50", w: "w-[12%]" },
+  { label: "pw.weak", bar: "bg-volcanic/45", text: "text-volcanic/60", w: "w-1/3" },
+  { label: "pw.good", bar: "bg-atlantic", text: "text-atlantic-dark", w: "w-2/3" },
+  { label: "pw.strong", bar: "bg-taxi", text: "text-taxi-dark", w: "w-full" },
 ];
 
 /* =================================================================
@@ -348,12 +348,12 @@ const IconAd = () => (
   </svg>
 );
 
-function AdSlot({ bg = "#0B2E4F", color = "#FFC400", label = "Tu marca aquí" }) {
+function AdSlot({ bg = "#0B2E4F", color = "#FFC400", label = "", t }) {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-1.5" style={{ background: bg }}>
       <span style={{ color, opacity: 0.7 }}><IconAd /></span>
       <p className="text-[8px] font-extrabold uppercase tracking-[0.25em]" style={{ color }}>
-        Espacio publicitario
+        {t ? t("ad.space") : ""}
       </p>
       <p className="text-[7px] font-semibold" style={{ color, opacity: 0.6 }}>
         {label}
@@ -362,11 +362,11 @@ function AdSlot({ bg = "#0B2E4F", color = "#FFC400", label = "Tu marca aquí" })
   );
 }
 
-function Ad1() { return <AdSlot bg="#0B2E4F" color="#FFC400" label="contacto@canarycab.com" />; }
-function Ad2() { return <AdSlot bg="#1577C2" color="#ffffff" label="Tu negocio en Canarias" />; }
-function Ad3() { return <AdSlot bg="#FFC400" color="#0B2E4F" label="Anúnciate con CanaryCab" />; }
-function Ad4() { return <AdSlot bg="#F7FBFE" color="#0B2E4F" label="Llega a miles de usuarios" />; }
-function Ad5() { return <AdSlot bg="#11395F" color="#4AA3DD" label="Patrocina la app canaria" />; }
+function Ad1({ t }) { return <AdSlot t={t} bg="#0B2E4F" color="#FFC400" label="contacto@canarycab.com" />; }
+function Ad2({ t }) { return <AdSlot t={t} bg="#1577C2" color="#ffffff" label="canarycab.com" />; }
+function Ad3({ t }) { return <AdSlot t={t} bg="#FFC400" color="#0B2E4F" label="CanaryCab" />; }
+function Ad4({ t }) { return <AdSlot t={t} bg="#F7FBFE" color="#0B2E4F" label="canarycab.com" />; }
+function Ad5({ t }) { return <AdSlot t={t} bg="#11395F" color="#4AA3DD" label="CanaryCab" />; }
 
 // valla publicitaria: marco + patas, el anuncio va dentro
 function Billboard({ title, children }) {
@@ -384,21 +384,21 @@ function Billboard({ title, children }) {
 }
 
 // un tramo de costa; se pinta dos veces para el bucle sin costuras
-function CostaSegment() {
+function CostaSegment({ t }) {
   return (
     <div className="flex shrink-0 items-end gap-12 px-8">
       <Hito label="Dunas de Maspalomas">
         <DunasSvg />
       </Hito>
-      <Billboard title="Espacio publicitario">
-        <Ad1 />
+      <Billboard title={t("ad.space")}>
+        <Ad1 t={t} />
       </Billboard>
       <PalmSvg />
       <Hito label="Teide · Tenerife">
         <TeideSvg />
       </Hito>
-      <Billboard title="Espacio publicitario">
-        <Ad2 />
+      <Billboard title={t("ad.space")}>
+        <Ad2 t={t} />
       </Billboard>
       <Hito label="Catedral de Santa Ana">
         <CatedralSvg />
@@ -407,8 +407,8 @@ function CostaSegment() {
       <Hito label="Faro de Maspalomas">
         <FaroSvg />
       </Hito>
-      <Billboard title="Espacio publicitario">
-        <Ad3 />
+      <Billboard title={t("ad.space")}>
+        <Ad3 t={t} />
       </Billboard>
       <Hito label="Roque Nublo">
         <RoqueSvg />
@@ -416,15 +416,15 @@ function CostaSegment() {
       <Hito label="Timanfaya · Lanzarote">
         <TimanfayaSvg />
       </Hito>
-      <Billboard title="Espacio publicitario">
-        <Ad4 />
+      <Billboard title={t("ad.space")}>
+        <Ad4 t={t} />
       </Billboard>
       <PalmSvg />
       <Hito label="Jameos del Agua · Lanzarote">
         <JameosSvg />
       </Hito>
-      <Billboard title="Espacio publicitario">
-        <Ad5 />
+      <Billboard title={t("ad.space")}>
+        <Ad5 t={t} />
       </Billboard>
       <Hito label="Garajonay · La Gomera">
         <GarajonayTrees />
@@ -441,24 +441,14 @@ function CostaSegment() {
 }
 
 // pancarta avioneta: mensajes turísticos sin marcas
-const ADS = [
-  "Tu taxi en las Islas Canarias",
-  "Sube al Teide · Tenerife",
-  "Timanfaya · La ruta del fuego",
-  "Dunas de Maspalomas · Gran Canaria",
-  "Garajonay · La Gomera te espera",
-  "Caldera de Taburiente · La Palma",
-  "Corralejo · Fuerteventura",
-  "Jameos del Agua · Lanzarote",
-  "Espacio publicitario · contacto@canarycab.com",
-];
+const AD_KEYS = ["ad.s1","ad.s2","ad.s3","ad.s4","ad.s5","ad.s6","ad.s7","ad.s8","ad.s9"];
 
-function Scene() {
+function Scene({ t }) {
   const [ad, setAd] = useState(0);
   const [honk, setHonk] = useState(false);
 
   useEffect(() => {
-    const id = setInterval(() => setAd((a) => (a + 1) % ADS.length), 7000);
+    const id = setInterval(() => setAd((a) => (a + 1) % AD_KEYS.length), 7000);
     return () => clearInterval(id);
   }, []);
 
@@ -482,7 +472,7 @@ function Scene() {
 
       {/* avión entre islas */}
       <div className="auth-cross bottom-[15.5rem] lg:bottom-auto lg:top-[8%]" style={{ animationDuration: "42s", animationDelay: "-12s" }}>
-        <div className="scene-item auth-bob" title="Vuelo entre islas">
+        <div className="scene-item auth-bob" title={t("scene.flight")}>
           <PlaneSvg width={110} />
         </div>
       </div>
@@ -492,7 +482,7 @@ function Scene() {
         <div className="auth-bob flex items-center" style={{ animationDuration: "4.2s" }}>
           <div className="rounded-md border-2 border-volcanic bg-cream/95 px-3 py-1 shadow-card">
             <span key={ad} className="block animate-fade-up whitespace-nowrap text-[11px] font-extrabold uppercase tracking-wider text-volcanic">
-              {ADS[ad]}
+              {t(AD_KEYS[ad])}
             </span>
           </div>
           <span className="h-0.5 w-8 bg-volcanic/70" />
@@ -522,7 +512,7 @@ function Scene() {
 
       {/* ferry interinsular */}
       <div className="auth-cross bottom-[6.6rem] lg:bottom-[8.4rem]" style={{ animationDuration: "90s", animationDelay: "-35s" }}>
-        <div className="scene-item auth-bob" title="Ferry interinsular" style={{ animationDuration: "5s" }}>
+        <div className="scene-item auth-bob" title={t("scene.ferry")} style={{ animationDuration: "5s" }}>
           <FerrySvg width={210} />
         </div>
       </div>
@@ -536,8 +526,8 @@ function Scene() {
       {/* costa que pasa: hitos + vallas, en bucle (más pequeña en móvil) */}
       <div className="absolute inset-x-0 bottom-[4.4rem] h-0 origin-bottom-left scale-[0.78] lg:bottom-[5.6rem] lg:scale-100">
         <div className="auth-strip bottom-0" style={{ animationDuration: "58s" }}>
-          <CostaSegment />
-          <CostaSegment />
+          <CostaSegment t={t} />
+          <CostaSegment t={t} />
         </div>
       </div>
 
@@ -552,7 +542,7 @@ function Scene() {
         className={`scene-item absolute bottom-7 left-[8%] scale-75 border-0 bg-transparent p-0 sm:scale-90 lg:bottom-9 lg:left-[12%] lg:scale-100 ${
           honk ? "auth-honk" : ""
         }`}
-        title="¡Pita!"
+        title={t("scene.honk")}
       >
         {honk && (
           <span className="absolute -top-8 left-1/2 -translate-x-1/2 animate-pop whitespace-nowrap rounded-full bg-cream px-2.5 py-1 text-[10px] font-extrabold text-volcanic shadow-card">
@@ -599,7 +589,7 @@ export default function Auth() {
   }, []);
 
   const errs = validate(form, mode);
-  const fieldError = (k) => (touched[k] ? errs[k] : "");
+  const fieldError = (k) => (touched[k] && errs[k] ? t(errs[k]) : "");
   const fieldOk = (k) => Boolean(touched[k] && !errs[k] && form[k]);
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const blur = (k) => () => setTouched((t) => ({ ...t, [k]: true }));
@@ -637,7 +627,7 @@ export default function Auth() {
         });
       }
     } catch (err) {
-      setError(err.message || "No se pudo completar");
+      setError(err.message || t("auth.couldNotComplete"));
       failShake();
     } finally {
       setBusy(false);
@@ -652,7 +642,7 @@ export default function Auth() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-volcanic">
-      {mostrarEscena && <Scene />}
+      {mostrarEscena && <Scene t={t} />}
 
       {/* brand chip (solo con el formulario abierto; en portada manda el logo gigante) */}
       {open && (
@@ -704,9 +694,9 @@ export default function Auth() {
             {t("landing.enterOrSignup")}
           </p>
           <div className="pointer-events-auto mt-6 animate-fade-up flex gap-4 text-[10px] font-semibold text-volcanic/40" style={{ animationDelay: "950ms" }}>
-            <Link to="/privacidad" className="hover:text-volcanic/70 underline-offset-2 hover:underline">Privacidad</Link>
-            <Link to="/cookies" className="hover:text-volcanic/70 underline-offset-2 hover:underline">Cookies</Link>
-            <Link to="/terminos" className="hover:text-volcanic/70 underline-offset-2 hover:underline">Términos</Link>
+            <Link to="/privacidad" className="hover:text-volcanic/70 underline-offset-2 hover:underline">{t("legal.privacy")}</Link>
+            <Link to="/cookies" className="hover:text-volcanic/70 underline-offset-2 hover:underline">{t("legal.cookies")}</Link>
+            <Link to="/terminos" className="hover:text-volcanic/70 underline-offset-2 hover:underline">{t("legal.terms")}</Link>
           </div>
         </main>
       )}
@@ -851,7 +841,7 @@ export default function Auth() {
                     />
                   </div>
                   <p className={`mt-1 text-[11px] font-bold uppercase tracking-wider ${sMeta.text}`}>
-                    {sMeta.label}
+                    {t(sMeta.label)}
                   </p>
                 </div>
               )}
