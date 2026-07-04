@@ -11,21 +11,16 @@ const STYLES = {
   DESCONECTADO: "bg-volcanic/10 text-volcanic/60",
 };
 
-const LABELS = {
-  SOLICITADO: "Buscando taxi",
-  ACEPTADO: "Taxi en camino",
-  LLEGADO: "Taxi ha llegado",
-  EN_CURSO: "En viaje",
-  COMPLETADO: "Completado",
-  CANCELADO: "Cancelado",
-};
+import { useI18n } from "../i18n/index.jsx";
 
 export default function Badge({ estado, label, className = "" }) {
+  const { t } = useI18n();
   const style = STYLES[estado] || "bg-volcanic/10 text-volcanic/70";
+  const traducido = estado ? t(`badge.${estado}`) : null;
   return (
     <span className={`pill ${style} ${className}`}>
       <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
-      {label || LABELS[estado] || estado}
+      {label || (traducido && !traducido.startsWith("badge.") ? traducido : estado)}
     </span>
   );
 }

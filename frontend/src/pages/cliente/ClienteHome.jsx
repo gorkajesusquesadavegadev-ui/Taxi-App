@@ -620,7 +620,7 @@ export default function ClienteHome() {
                   </div>
                 )}
                 {viaje.estado === "COMPLETADO" && viaje.taxistaId && (
-                  <ValorarViaje viajeId={viaje.id} etiqueta="el viaje" />
+                  <ValorarViaje viajeId={viaje.id} etiqueta={t("rate.theTrip")} />
                 )}
                 {viaje.estado === "COMPLETADO" || viaje.estado === "CANCELADO" ? (
                   <Button full variant="dark" onClick={cancelar}>

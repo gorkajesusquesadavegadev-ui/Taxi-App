@@ -8,6 +8,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { api } from "../api/client.js";
 import { prefs, TONOS, reproducirTono } from "../utils/prefs.js";
 import { pushSoportado, pushActivo, activarPush, desactivarPush } from "../api/push.js";
+import { useI18n } from "../i18n/index.jsx";
 
 function Toggle({ checked, onChange, label, hint }) {
   return (
@@ -37,6 +38,7 @@ function Toggle({ checked, onChange, label, hint }) {
 
 export default function Ajustes() {
   const { user, setUser, logout } = useAuth();
+  const { t: tr } = useI18n();
   const esTaxista = user?.rol === "TAXISTA";
   const [nombre, setNombre] = useState(user?.nombre || "");
   const [modelo, setModelo] = useState(user?.vehiculoModelo || "");
@@ -77,10 +79,10 @@ export default function Ajustes() {
         vehiculoAccesible: esTaxista ? accesible : null,
       });
       setUser(me);
-      setSavedMsg("Guardado");
+      setSavedMsg(tr("set.saved"));
       setTimeout(() => setSavedMsg(""), 2500);
     } catch (e) {
-      setSavedMsg(e.message || "No se pudo guardar");
+      setSavedMsg(e.message || tr("set.couldNotSave"));
     } finally {
       setSaving(false);
     }
@@ -91,18 +93,18 @@ export default function Ajustes() {
     setPwdMsg(null);
     try {
       await api.cambiarPassword({ actual: pwdActual, nueva: pwdNueva });
-      setPwdMsg({ ok: true, text: "Contraseña actualizada" });
+      setPwdMsg({ ok: true, text: tr("set.pwdUpdated") });
       setPwdActual("");
       setPwdNueva("");
     } catch (e) {
-      setPwdMsg({ ok: false, text: e.message || "No se pudo cambiar" });
+      setPwdMsg({ ok: false, text: e.message || tr("set.couldNotChange") });
     } finally {
       setPwdBusy(false);
     }
   }
 
   return (
-    <Layout title="Ajustes" framed>
+    <Layout title={tr("nav.settings")} framed>
       <div className="h-full overflow-y-auto overflow-x-hidden slim-scroll">
         <div className="mx-auto max-w-xl space-y-4 p-4 lg:p-6">
           {/* perfil */}
@@ -115,39 +117,39 @@ export default function Ajustes() {
                 <p className="truncate font-display text-lg font-extrabold">{user?.nombre}</p>
                 <p className="truncate text-sm text-volcanic/55">{user?.email}</p>
                 <span className="pill mt-1.5 bg-atlantic/12 text-atlantic-dark">
-                  {user?.rol === "TAXISTA" ? "Taxista" : "Cliente"}
+                  {user?.rol === "TAXISTA" ? tr("set.driver") : tr("set.client")}
                 </span>
               </div>
             </div>
 
             <div className="mt-5 space-y-2.5">
               <Input
-                label="Tu nombre"
+                label={tr("set.yourName")}
                 name="nombre"
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                placeholder="Tu nombre"
+                placeholder={tr("set.yourName")}
               />
               <Input
-                label="Teléfono (WhatsApp)"
+                label={tr("auth.phoneWhatsapp")}
                 name="telefono"
                 type="tel"
                 value={telefono}
                 onChange={(e) => setTelefono(e.target.value)}
                 placeholder="612 34 56 78"
-                hint="Para contactar en las reservas"
+                hint={tr("set.forBookings")}
               />
               {esTaxista && (
                 <div className="grid grid-cols-2 gap-2">
                   <Input
-                    label="Modelo"
+                    label={tr("auth.model")}
                     name="vehiculoModelo"
                     value={modelo}
                     onChange={(e) => setModelo(e.target.value)}
                     placeholder="Toyota Prius"
                   />
                   <Input
-                    label="Matrícula"
+                    label={tr("auth.plate")}
                     name="vehiculoMatricula"
                     value={matricula}
                     onChange={(e) => setMatricula(e.target.value)}
@@ -165,7 +167,7 @@ export default function Ajustes() {
                   }`}
                 >
                   <span className="text-base">♿</span>
-                  Vehículo adaptado (silla de ruedas)
+                  {tr("set.accessibleVehicle")}
                   <span className={`ml-auto h-5 w-9 rounded-full p-0.5 transition-colors ${accesible ? "bg-atlantic" : "bg-volcanic/20"}`}>
                     <span className={`block h-4 w-4 rounded-full bg-white transition-transform ${accesible ? "translate-x-4" : ""}`} />
                   </span>
@@ -173,7 +175,7 @@ export default function Ajustes() {
               )}
               <div className="flex items-center gap-3">
                 <Button size="sm" disabled={!dirty || saving} onClick={guardar}>
-                  {saving ? <Spinner className="border-volcanic/30 border-t-volcanic" /> : "Guardar"}
+                  {saving ? <Spinner className="border-volcanic/30 border-t-volcanic" /> : tr("common.save")}
                 </Button>
                 {savedMsg && (
                   <span className="animate-fade-up text-sm font-semibold text-atlantic-dark">
@@ -186,7 +188,7 @@ export default function Ajustes() {
 
           {/* preferencias funcionales */}
           <section className="surface p-5">
-            <h3 className="mb-2 font-display text-base font-extrabold">Preferencias</h3>
+            <h3 className="mb-2 font-display text-base font-extrabold">{tr("set.preferences")}</h3>
             <div className="divide-y divide-sand-deep/60">
               <Toggle
                 checked={sound}
@@ -194,8 +196,8 @@ export default function Ajustes() {
                   setSound(v);
                   prefs.setSound(v);
                 }}
-                label="Sonido de notificaciones"
-                hint="Suena al recibir una solicitud de viaje (taxista)"
+                label={tr("set.notifSound")}
+                hint={tr("set.notifSoundHint")}
               />
               {sound && (
                 <div className="py-3">
@@ -222,7 +224,7 @@ export default function Ajustes() {
                           aria-label={`Escuchar ${t.label}`}
                           className="rounded-lg bg-sand px-2.5 py-1 text-xs font-bold text-volcanic hover:bg-sand-deep"
                         >
-                          ▶ Probar
+                          ▶ {tr("set.test")}
                         </button>
                       </div>
                     ))}
@@ -235,8 +237,8 @@ export default function Ajustes() {
                   setNearby(v);
                   prefs.setNearby(v);
                 }}
-                label="Taxis cercanos en el mapa"
-                hint="Muestra los taxis libres alrededor (cliente)"
+                label={tr("set.nearbyTaxis")}
+                hint={tr("set.nearbyHint")}
               />
               {pushSoportado() && (
                 <Toggle
@@ -245,15 +247,15 @@ export default function Ajustes() {
                     if (v) {
                       const res = await activarPush();
                       setPush(res.ok);
-                      setPushMsg(res.ok ? "✅ Avisos activados." : "⚠️ " + res.motivo);
+                      setPushMsg(res.ok ? tr("set.pushOn") : "⚠️ " + res.motivo);
                     } else {
                       await desactivarPush();
                       setPush(false);
                       setPushMsg("");
                     }
                   }}
-                  label="Avisos con la app cerrada"
-                  hint="Notificaciones push: solicitudes y estado del viaje aunque no tengas la app abierta"
+                  label={tr("set.pushLabel")}
+                  hint={tr("set.pushHint")}
                 />
               )}
             </div>
@@ -262,27 +264,27 @@ export default function Ajustes() {
 
           {/* seguridad */}
           <section className="surface p-5">
-            <h3 className="mb-1 font-display text-base font-extrabold">Seguridad</h3>
+            <h3 className="mb-1 font-display text-base font-extrabold">{tr("set.security")}</h3>
             <p className="mb-3 text-xs text-volcanic/50">
               Cambia tu contraseña verificando la actual.
             </p>
             <div className="space-y-2.5">
               <Input
-                label="Contraseña actual"
+                label={tr("set.currentPwd")}
                 name="pwdActual"
                 type="password"
                 value={pwdActual}
                 onChange={(e) => setPwdActual(e.target.value)}
-                placeholder="tu contraseña de ahora"
+                placeholder={tr("set.currentPwdPh")}
               />
               <Input
-                label="Contraseña nueva"
+                label={tr("set.newPwd")}
                 name="pwdNueva"
                 type="password"
                 value={pwdNueva}
                 onChange={(e) => setPwdNueva(e.target.value)}
                 placeholder="mínimo 6 caracteres"
-                hint={pwdNueva && pwdNueva.length < 6 ? "Mínimo 6 caracteres" : undefined}
+                hint={pwdNueva && pwdNueva.length < 6 ? tr("set.min6") : undefined}
               />
               <div className="flex items-center gap-3">
                 <Button
@@ -291,7 +293,7 @@ export default function Ajustes() {
                   disabled={pwdBusy || !pwdActual || pwdNueva.length < 6}
                   onClick={cambiarPassword}
                 >
-                  {pwdBusy ? <Spinner /> : "Cambiar contraseña"}
+                  {pwdBusy ? <Spinner /> : tr("set.changePwd")}
                 </Button>
                 {pwdMsg && (
                   <span
@@ -308,7 +310,7 @@ export default function Ajustes() {
 
           {/* cuenta */}
           <section className="surface p-5">
-            <h3 className="mb-3 font-display text-base font-extrabold">Cuenta</h3>
+            <h3 className="mb-3 font-display text-base font-extrabold">{tr("set.account")}</h3>
             <Button variant="outline" full onClick={logout}>
               <IconLogout />
               Cerrar sesión

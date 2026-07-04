@@ -13,6 +13,7 @@ import ValorarViaje from "../../components/ValorarViaje.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { activarPush } from "../../api/push.js";
 import { tapExito } from "../../utils/haptics.js";
+import { useI18n } from "../../i18n/index.jsx";
 
 const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
 const TIPO_LABEL = { TRANSFER: "Transfer", EXCURSION: "Excursión" };
@@ -42,12 +43,12 @@ function calcZona(oLat, oLng, dLat, dLng) {
 }
 
 // Toggle pill for online/offline.
-function OnlineToggle({ online, onToggle }) {
+function OnlineToggle({ online, onToggle, t }) {
   return (
     <button
       onClick={onToggle}
       aria-pressed={online}
-      aria-label={online ? "En línea, toca para desconectar" : "Desconectado, toca para conectar"}
+      aria-label={online ? t("drv.onlineToggle") : t("drv.offlineToggle")}
       className={`pill border-2 transition-colors ${
         online
           ? "border-palm bg-palm/15 text-palm"
@@ -55,13 +56,14 @@ function OnlineToggle({ online, onToggle }) {
       }`}
     >
       <span className={`h-2 w-2 rounded-full ${online ? "bg-palm animate-pulse" : "bg-volcanic/30"}`} />
-      {online ? "En línea" : "Desconectado"}
+      {online ? t("drv.online") : t("drv.offline")}
     </button>
   );
 }
 
 export default function TaxistaHome() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [online, setOnline] = useState(() => localStorage.getItem("taya:online") === "1");
   const [pos, setPos] = useState(null); // null = sin fix GPS real todavía
   const [incoming, setIncoming] = useState(null); // trip:new payload
@@ -71,7 +73,7 @@ export default function TaxistaHome() {
   const [dirs, setDirs] = useState(null); // {o, d} reverse-geocoded addresses for active trip
   const [incomingDirs, setIncomingDirs] = useState(null); // {o, d} for incoming offer
   const [zonas, setZonas] = useState(null); // demanda: zonas calientes del big data
-  const [msg, setMsg] = useState("Conéctate para recibir viajes.");
+  const [msg, setMsg] = useState(() => "");
   const wsRef = useRef(null);
   const viajeRef = useRef(null);
   viajeRef.current = viaje;
@@ -152,7 +154,7 @@ export default function TaxistaHome() {
         if (!v) {
           api.estado({ estado: "LIBRE", lat: pos.lat, lng: pos.lng }).catch(() => {});
           wsRef.current?.send("location:update", { lat: pos.lat, lng: pos.lng });
-          setMsg("Conectado. Esperando viajes…");
+          setMsg(t("drv.connected"));
         }
       })
       .catch(() => {});
@@ -228,20 +230,20 @@ export default function TaxistaHome() {
           wsRef.current?.send("trip:ack", { viajeId: data.viajeId });
         }
         if (event === "trip:assigned") {
-          avisar("Reserva activa", `${data.detalle || "Tu reserva"} comienza ahora.`, "viaje");
+          avisar(t("drv.reserveActive"), t("drv.reserveNow"), "viaje");
           api.taxistaActivo().then((v) => v && setViaje(v)).catch(() => {});
         }
         if (event === "trip:cancelled") {
           setViaje(null);
           setIncoming(null);
-          setMsg("El cliente canceló el viaje.");
+          setMsg(t("drv.clientCancelled"));
         }
       },
       (state) => {
         if (state === "open") {
           const p = posRef.current;
-          if (!p) { setMsg("Conectado. Buscando señal GPS…"); return; }
-          setMsg("Conectado. Esperando viajes…");
+          if (!p) { setMsg(t("drv.searchingGps")); return; }
+          setMsg(t("drv.connected"));
           // re-afirmar LIBRE en cada (re)conexión, salvo viaje activo
           api.taxistaActivo()
             .then((v) => {
@@ -280,10 +282,10 @@ export default function TaxistaHome() {
         await api.estado({ estado: "DESCONECTADO" });
         localStorage.setItem("taya:online", "0");
         setOnline(false);
-        setMsg("Desconectado.");
+        setMsg(t("drv.offline") + ".");
       }
     } catch (e) {
-      setMsg(e.message || "Error de conexión");
+      setMsg(e.message || t("common.error"));
     }
   }
 
@@ -291,15 +293,15 @@ export default function TaxistaHome() {
     if (!incoming) return;
     tapExito();
     const id = incoming.viajeId ?? incoming.id;
-    if (!id) { setIncoming(null); setMsg("Solicitud inválida."); return; }
+    if (!id) { setIncoming(null); setMsg(t("drv.invalidReq")); return; }
     try {
       const v = await api.aceptar(id);
       setViaje(v);
       setIncoming(null);
-      setMsg("Viaje aceptado. Dirígete a la recogida.");
+      setMsg(t("drv.tripAccepted"));
     } catch (e) {
       setIncoming(null);
-      setMsg(e.status === 409 ? "Otro taxista lo tomó primero." : "No se pudo aceptar.");
+      setMsg(e.status === 409 ? t("drv.otherTook") : t("drv.couldNotAccept"));
     }
   }
 
@@ -309,7 +311,7 @@ export default function TaxistaHome() {
       setViaje(v);
       setMsg(label);
     } catch (e) {
-      setMsg(e.message || "Error");
+      setMsg(e.message || t("common.error"));
     }
   }
 
@@ -318,9 +320,9 @@ export default function TaxistaHome() {
       // el backend tarifica con la distancia OSRM real del viaje
       const v = await api.finalizar(viaje.id);
       setViaje(v);
-      setMsg(`Completado · ${fmtEur(v.precioFinal)} · ${Number(v.distanciaRealKm).toFixed(1)} km`);
+      setMsg(t("drv.completedFmt", { eur: fmtEur(v.precioFinal), km: Number(v.distanciaRealKm).toFixed(1) }));
     } catch (e) {
-      setMsg(e.message || "Error al finalizar");
+      setMsg(e.message || t("drv.errFinish"));
     }
   }
 
@@ -337,7 +339,7 @@ export default function TaxistaHome() {
     : null;
 
   return (
-    <Layout title="Conducir" framed action={<OnlineToggle online={online} onToggle={toggleOnline} />}>
+    <Layout title={t("nav.drive")} framed action={<OnlineToggle online={online} onToggle={toggleOnline} t={t} />}>
       <div className="relative h-full">
         <div className="absolute inset-0">
           <MapView center={pos ?? LPGC} markers={markers} route={route} zonas={zonas} />
@@ -347,12 +349,12 @@ export default function TaxistaHome() {
         {zonas?.length > 0 && (
           <div className="glass pointer-events-none absolute right-3 top-3 z-[500] rounded-2xl px-3 py-2 shadow-card">
             <p className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-volcanic/50">
-              Demanda
+              {t("drv.demand")}
             </p>
             <div className="mt-1 space-y-0.5 text-[11px] font-semibold text-volcanic/75">
-              <p><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#E03131" }} />Alta</p>
-              <p><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#F08C00" }} />Media</p>
-              <p><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#FFC400" }} />Baja</p>
+              <p><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#E03131" }} />{t("drv.high")}</p>
+              <p><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#F08C00" }} />{t("drv.medium")}</p>
+              <p><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#FFC400" }} />{t("drv.low")}</p>
             </div>
           </div>
         )}
@@ -365,7 +367,7 @@ export default function TaxistaHome() {
               {/* tipo + badge */}
               <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold uppercase tracking-wider text-atlantic-dark">
-                  {TIPO_LABEL[incoming.tipo] ? `Solicitud de ${TIPO_LABEL[incoming.tipo]}` : "Nuevo viaje"}
+                  {TIPO_LABEL[incoming.tipo] ? t("drv.newRequestOf", { tipo: TIPO_LABEL[incoming.tipo] }) : t("drv.newTrip")}
                 </p>
                 <span className="rounded-full bg-taxi/20 px-2.5 py-0.5 text-[11px] font-extrabold text-volcanic">
                   #{incoming.viajeId}
@@ -382,7 +384,7 @@ export default function TaxistaHome() {
               <p className="mt-2 font-display text-3xl font-extrabold text-volcanic">
                 {fmtEur(incoming.precioEstimado)}
                 <span className="ml-2 text-sm font-medium text-volcanic/45">
-                  {TIPO_LABEL[incoming.tipo] ? "precio cerrado" : "estimado"}
+                  {TIPO_LABEL[incoming.tipo] ? t("drv.closedPrice") : t("drv.estimate")}
                 </span>
               </p>
 
@@ -390,7 +392,7 @@ export default function TaxistaHome() {
               <div className="mt-2 flex items-center gap-2 rounded-xl bg-atlantic/10 px-3 py-2">
                 <span className="text-lg">🏷️</span>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-volcanic/40">Tarifa aplicada</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-volcanic/40">{t("drv.appliedFare")}</p>
                   <p className="text-sm font-extrabold text-atlantic-dark">
                     {incoming.zona || calcZona(incoming.origenLat, incoming.origenLng, incoming.destinoLat, incoming.destinoLng) || "—"}
                   </p>
@@ -408,28 +410,28 @@ export default function TaxistaHome() {
                     </div>
                     <div className="min-w-0 flex-1 space-y-2 text-sm">
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-volcanic/40">Recogida</p>
-                        <p className="font-semibold text-volcanic leading-tight">{incomingDirs.o || "Punto de recogida"}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-volcanic/40">{t("drv.pickup")}</p>
+                        <p className="font-semibold text-volcanic leading-tight">{incomingDirs.o || t("drv.pickup")}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-volcanic/40">Destino</p>
-                        <p className="font-semibold text-volcanic leading-tight">{incomingDirs.d || "Destino"}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-volcanic/40">{t("drv.dest")}</p>
+                        <p className="font-semibold text-volcanic leading-tight">{incomingDirs.d || t("drv.dest")}</p>
                       </div>
                     </div>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 text-sm text-volcanic/50">
                     <span className="h-3 w-3 animate-spin rounded-full border-2 border-volcanic/20 border-t-volcanic/60" />
-                    Cargando ruta…
+                    {t("drv.loadingRoute")}
                   </div>
                 )}
               </div>
 
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <Button variant="outline" onClick={() => setIncoming(null)}>
-                  Rechazar
+                  {t("drv.reject")}
                 </Button>
-                <Button onClick={aceptar}>Aceptar</Button>
+                <Button onClick={aceptar}>{t("drv.accept")}</Button>
               </div>
             </div>
           </div>
@@ -466,28 +468,28 @@ export default function TaxistaHome() {
                       <span className="h-2 w-2 rounded-full bg-atlantic-dark" />
                     </div>
                     <div className="min-w-0 flex-1 space-y-1.5">
-                      <p className="truncate font-semibold">{dirs.o || "Punto de recogida"}</p>
-                      <p className="truncate font-semibold">{dirs.d || "Destino"}</p>
+                      <p className="truncate font-semibold">{dirs.o || t("drv.pickup")}</p>
+                      <p className="truncate font-semibold">{dirs.d || t("drv.dest")}</p>
                     </div>
                   </div>
                 )}
-                <p className="text-sm text-volcanic/70">{msg}</p>
+                <p className="text-sm text-volcanic/70">{msg || t("drv.connectToReceive")}</p>
                 <div className="grid grid-cols-3 gap-2">
                   <Button
                     size="sm"
                     variant={viaje.estado === "ACEPTADO" ? "primary" : "outline"}
                     disabled={viaje.estado !== "ACEPTADO"}
-                    onClick={() => avanzar(api.llegada, "Has llegado a la recogida.")}
+                    onClick={() => avanzar(api.llegada, t("drv.arrivedMsg"))}
                   >
-                    Llegué
+                    {t("drv.arrivedBtn")}
                   </Button>
                   <Button
                     size="sm"
                     variant={viaje.estado === "LLEGADO" ? "primary" : "outline"}
                     disabled={viaje.estado !== "LLEGADO"}
-                    onClick={() => avanzar(api.iniciar, "Viaje iniciado.")}
+                    onClick={() => avanzar(api.iniciar, t("drv.startedMsg"))}
                   >
-                    Iniciar
+                    {t("drv.startBtn")}
                   </Button>
                   <Button
                     size="sm"
@@ -495,7 +497,7 @@ export default function TaxistaHome() {
                     disabled={viaje.estado !== "EN_CURSO"}
                     onClick={finalizar}
                   >
-                    Finalizar
+                    {t("drv.finishBtn")}
                   </Button>
                 </div>
               </div>
@@ -511,24 +513,24 @@ export default function TaxistaHome() {
                   </span>
                   <div className="min-w-0">
                     <p className="font-display font-bold">
-                      {viaje?.estado === "COMPLETADO" ? "Carrera completada" : online ? "En línea" : "Desconectado"}
+                      {viaje?.estado === "COMPLETADO" ? t("drv.rideDone") : online ? t("drv.online") : t("drv.offline")}
                     </p>
-                    <p className="truncate text-sm text-volcanic/60">{msg}</p>
+                    <p className="truncate text-sm text-volcanic/60">{msg || t("drv.connectToReceive")}</p>
                   </div>
                   {viaje?.estado === "COMPLETADO" && (
                     <Button size="sm" variant="dark" className="ml-auto" onClick={() => setViaje(null)}>
-                      Listo
+                      {t("drv.ready")}
                     </Button>
                   )}
                 </div>
                 {viaje?.estado === "COMPLETADO" && viaje.clienteId && (
-                  <ValorarViaje viajeId={viaje.id} etiqueta="el cliente" />
+                  <ValorarViaje viajeId={viaje.id} etiqueta={t("rate.theClient")} />
                 )}
                 {!viaje && online && user && user.verificado === false && (
                   <div className="rounded-2xl bg-coral/10 px-4 py-3 text-sm">
-                    <p className="font-bold text-coral">Cuenta pendiente de verificación</p>
+                    <p className="font-bold text-coral">{t("drv.notVerifiedT")}</p>
                     <p className="mt-0.5 text-xs text-volcanic/60">
-                      No recibirás viajes hasta que un administrador apruebe tu licencia. Te avisaremos.
+                      {t("drv.notVerifiedD")}
                     </p>
                   </div>
                 )}

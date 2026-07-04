@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client.js";
+import { useI18n } from "../i18n/index.jsx";
 
 /**
  * Tarjeta de valoración tras un viaje completado. Comprueba si el usuario aún
  * puede valorar (backend) y muestra 5★ + comentario. Se oculta si ya valoró.
  */
-export default function ValorarViaje({ viajeId, etiqueta = "tu viaje" }) {
+export default function ValorarViaje({ viajeId, etiqueta }) {
+  const { t } = useI18n();
+  const label = etiqueta || t("rate.theTrip");
   const [pendiente, setPendiente] = useState(false);
   const [estrellas, setEstrellas] = useState(0);
   const [hover, setHover] = useState(0);
@@ -23,7 +26,7 @@ export default function ValorarViaje({ viajeId, etiqueta = "tu viaje" }) {
   if (!pendiente || enviado) {
     return enviado ? (
       <div className="rounded-2xl bg-palm/10 px-4 py-3 text-center text-sm font-bold text-palm">
-        ¡Gracias por tu valoración! ⭐
+        {t("rate.thanks")}
       </div>
     ) : null;
   }
@@ -43,8 +46,8 @@ export default function ValorarViaje({ viajeId, etiqueta = "tu viaje" }) {
 
   return (
     <div className="rounded-2xl border-2 border-taxi/40 bg-white p-4 shadow-card">
-      <p className="text-center text-sm font-extrabold text-volcanic">¿Qué tal {etiqueta}?</p>
-      <div className="mt-2 flex justify-center gap-1.5" role="radiogroup" aria-label="Puntuación">
+      <p className="text-center text-sm font-extrabold text-volcanic">{t("rate.howWas", { label })}</p>
+      <div className="mt-2 flex justify-center gap-1.5" role="radiogroup" aria-label="★">
         {[1, 2, 3, 4, 5].map((n) => (
           <button
             key={n}
@@ -65,7 +68,7 @@ export default function ValorarViaje({ viajeId, etiqueta = "tu viaje" }) {
         value={comentario}
         onChange={(e) => setComentario(e.target.value)}
         maxLength={500}
-        placeholder="Comentario (opcional)"
+        placeholder={t("rate.commentPh")}
         className="mt-3 w-full rounded-xl border-2 border-sand-deep bg-cream px-3 py-2 text-sm outline-none focus:border-taxi"
       />
       <button
@@ -73,7 +76,7 @@ export default function ValorarViaje({ viajeId, etiqueta = "tu viaje" }) {
         disabled={estrellas < 1 || busy}
         className="mt-2.5 w-full rounded-xl bg-volcanic py-2.5 font-extrabold text-cream transition active:scale-95 disabled:opacity-50"
       >
-        Enviar valoración
+        {t("rate.send")}
       </button>
     </div>
   );
