@@ -14,7 +14,10 @@ import java.util.List;
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwt;
-    public JwtAuthFilter(JwtTokenProvider jwt) { this.jwt = jwt; }
+    private final TokenBlacklist blacklist;
+    public JwtAuthFilter(JwtTokenProvider jwt, TokenBlacklist blacklist) {
+        this.jwt = jwt; this.blacklist = blacklist;
+    }
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest req, @NonNull HttpServletResponse res,
@@ -22,7 +25,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String header = req.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
-            if (jwt.isValid(token)) {
+            if (jwt.isValid(token) && !blacklist.estaRevocado(jwt.getJti(token))) {
                 Long userId = jwt.getUserId(token);
                 var auth = new UsernamePasswordAuthenticationToken(
                     String.valueOf(userId), null,

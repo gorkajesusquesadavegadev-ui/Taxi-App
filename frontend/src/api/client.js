@@ -41,6 +41,7 @@ export const api = {
   // auth
   register: (d) => req("POST", "/auth/register", d),
   login: (d) => req("POST", "/auth/login", d),
+  logout: () => req("POST", "/auth/logout"),
   me: () => req("GET", "/usuarios/me"),
   actualizarMe: (d) => req("PUT", "/usuarios/me", d),
   cambiarPassword: (d) => req("PUT", "/usuarios/me/password", d),

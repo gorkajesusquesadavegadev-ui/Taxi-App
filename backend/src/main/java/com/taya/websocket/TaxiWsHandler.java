@@ -13,17 +13,18 @@ public class TaxiWsHandler extends TextWebSocketHandler {
     private final WsSessionRegistry registry;
     private final UbicacionService ubicacion;
     private final com.taya.websocket.TripWsService trips;
+    private final com.taya.security.TokenBlacklist blacklist;
     private final ObjectMapper mapper = new ObjectMapper();
     public TaxiWsHandler(JwtTokenProvider jwt, WsSessionRegistry registry, UbicacionService ubicacion,
-                         com.taya.websocket.TripWsService trips) {
-        this.jwt = jwt; this.registry = registry; this.ubicacion = ubicacion; this.trips = trips;
+                         com.taya.websocket.TripWsService trips, com.taya.security.TokenBlacklist blacklist) {
+        this.jwt = jwt; this.registry = registry; this.ubicacion = ubicacion; this.trips = trips; this.blacklist = blacklist;
     }
 
     private Long userIdOf(WebSocketSession s) { return (Long) s.getAttributes().get("userId"); }
 
     @Override public void afterConnectionEstablished(WebSocketSession session) {
         String token = tokenFromUri(session.getUri());
-        if (token == null || !jwt.isValid(token)) {
+        if (token == null || !jwt.isValid(token) || blacklist.estaRevocado(jwt.getJti(token))) {
             try { session.close(CloseStatus.POLICY_VIOLATION); } catch (Exception ignored) {} return;
         }
         Long userId = jwt.getUserId(token);

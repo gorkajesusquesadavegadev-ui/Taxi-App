@@ -47,6 +47,8 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    // Revoca el token en el servidor (logout real) antes de limpiarlo local.
+    api.logout().catch(() => {});
     tokenStore.clear();
     setUser(null);
   };
