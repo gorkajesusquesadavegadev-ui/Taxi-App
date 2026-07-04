@@ -10,6 +10,12 @@ import { api } from "../../api/client.js";
 import { useI18n } from "../../i18n/index.jsx";
 
 const fmtEur = (v) => `${Number(v).toFixed(2)} €`;
+// Traduce nombre/descr/duración de la oferta por su id; si no hay clave, usa el valor del backend.
+const ofTxt = (t, id, campo, fallback) => {
+  const k = `of.${id}.${campo}`;
+  const v = t(k);
+  return v === k ? (fallback || "") : v;
+};
 
 function OfertaCard({ oferta, busy, onSolicitar, onReservar, icon: Icon, t }) {
   return (
@@ -20,13 +26,13 @@ function OfertaCard({ oferta, busy, onSolicitar, onReservar, icon: Icon, t }) {
         </span>
         <div className="min-w-0 flex-1">
           <h3 className="font-display text-base font-extrabold leading-tight">
-            {oferta.nombre}
+            {ofTxt(t, oferta.id, "n", oferta.nombre)}
           </h3>
-          <p className="mt-1 text-sm leading-snug text-volcanic/60">{oferta.descripcion}</p>
+          <p className="mt-1 text-sm leading-snug text-volcanic/60">{ofTxt(t, oferta.id, "d", oferta.descripcion)}</p>
         </div>
       </div>
       <div className="mt-3 flex items-center gap-2">
-        <span className="pill bg-sand text-volcanic/70">{oferta.duracion}</span>
+        <span className="pill bg-sand text-volcanic/70">{ofTxt(t, oferta.id, "dur", oferta.duracion)}</span>
         <span className="pill bg-sand text-volcanic/70">{t("of.upTo4")}</span>
       </div>
       <div className="mt-3 border-t border-sand-deep/60 pt-3">
@@ -169,8 +175,8 @@ export default function Ofertas({ tipo }) {
 
       {reservando && (
         <ReservaModal
-          titulo={`${t("of.bookPrefix")} · ${reservando.nombre}`}
-          subtitulo={`${fmtEur(reservando.precio)} ${t("of.closedPrice")} · ${reservando.duracion}`}
+          titulo={`${t("of.bookPrefix")} · ${ofTxt(t, reservando.id, "n", reservando.nombre)}`}
+          subtitulo={`${fmtEur(reservando.precio)} ${t("of.closedPrice")} · ${ofTxt(t, reservando.id, "dur", reservando.duracion)}`}
           onConfirm={confirmarReserva}
           onClose={() => setReservando(null)}
         />
