@@ -45,6 +45,7 @@ export default function ClienteHome() {
   const [fidelidad, setFidelidad] = useState(null);
   const [valorando, setValorando] = useState(null);
   const [reservando, setReservando] = useState(false);
+  const [rutaActiva, setRutaActiva] = useState(null); // geometría real del viaje (OSRM)
   const [sinTaxi, setSinTaxi] = useState(false);
   const [localizando, setLocalizando] = useState(false);
   const [error, setError] = useState("");
@@ -78,6 +79,16 @@ export default function ClienteHome() {
     api.fidelidad().then(setFidelidad).catch(() => {});
   }, [viaje?.estado]);
   useEffect(() => { viajeIdRef.current = viaje?.id ?? null; }, [viaje?.id]);
+
+  // Ruta real por carretera del viaje activo (misma línea que la web)
+  useEffect(() => {
+    if (!viaje?.id) { setRutaActiva(null); return; }
+    let alive = true;
+    api.rutaViaje(viaje.id)
+      .then((r) => alive && r?.puntos?.length > 1 && setRutaActiva(r))
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [viaje?.id]);
 
   // ── Taxis online ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -249,6 +260,16 @@ export default function ClienteHome() {
     : null;
   const libres = taxis.filter((x) => !x.enViaje).length;
 
+  // Ruta a pintar: viaje activo (carretera real) > estimación > recta origen-destino
+  const route =
+    viaje && rutaActiva
+      ? rutaActiva.puntos.map(([lat, lng]) => [lat, lng])
+      : estimacion?.ruta?.length > 1
+        ? estimacion.ruta.map(([lat, lng]) => [lat, lng])
+        : origen && destino
+          ? [[origen.lat, origen.lng], [destino.lat, destino.lng]]
+          : null;
+
   const statusMsg = {
     SOLICITADO: t("ride.searching"),
     ACEPTADO: t("ride.driverOnWay"),
@@ -275,6 +296,7 @@ export default function ClienteHome() {
               }))
             : []),
         ]}
+        route={route}
         onMapPress={async (lat, lng) => {
           if (viaje) return;
           const label = (await direccionDe(lat, lng)) || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
@@ -282,6 +304,18 @@ export default function ClienteHome() {
           else setDestino({ lat, lng, label });
         }}
       />
+
+      {/* FAB recentrar (estilo Uber) */}
+      <Pressable
+        className="absolute right-3 top-24 h-11 w-11 items-center justify-center rounded-full bg-white active:bg-sand"
+        style={SHADOW_CARD}
+        onPress={() => {
+          const p = taxiPos || origen;
+          if (p) mapRef.current?.animateToRegion({ latitude: p.lat, longitude: p.lng });
+        }}
+      >
+        <Text className="text-[18px]">🎯</Text>
+      </Pressable>
 
       {/* banner: el taxi ha llegado */}
       {estado === "LLEGADO" && (

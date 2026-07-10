@@ -43,6 +43,8 @@ export default function TaxistaHome() {
   const [solicitud, setSolicitud] = useState(null);
   const [viaje, setViaje] = useState(null);
   const [zonas, setZonas] = useState([]);
+  const [rutaGeo, setRutaGeo] = useState(null);   // geometría real (OSRM)
+  const [rutaInfo, setRutaInfo] = useState(null); // {min, km}
   const [valorando, setValorando] = useState(null);
   const [msg, setMsg] = useState("");
   const wsRef = useRef(null);
@@ -53,6 +55,20 @@ export default function TaxistaHome() {
   useEffect(() => {
     api.taxistaActivo().then((v) => v && setViaje(v)).catch(() => {});
   }, []);
+
+  // Ruta real por carretera del viaje activo — misma línea que la web
+  useEffect(() => {
+    if (!viaje?.id) { setRutaGeo(null); setRutaInfo(null); return; }
+    let alive = true;
+    api.rutaViaje(viaje.id)
+      .then((r) => {
+        if (!alive) return;
+        if (r?.puntos?.length > 1) setRutaGeo(r.puntos.map(([lat, lng]) => [lat, lng]));
+        if (r?.duracionMin != null) setRutaInfo({ min: Math.round(Number(r.duracionMin)), km: Number(r.km) });
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [viaje?.id]);
 
   useEffect(() => {
     if (!online) { setZonas([]); return; }
@@ -165,7 +181,17 @@ export default function TaxistaHome() {
           ...(viaje?.origenLat != null ? [{ id: "o", lat: viaje.origenLat, lng: viaje.origenLng, kind: "origin" }] : []),
           ...(viaje?.destinoLat != null ? [{ id: "d", lat: viaje.destinoLat, lng: viaje.destinoLng, kind: "destino" }] : []),
         ]}
+        route={enViaje ? rutaGeo : null}
       />
+
+      {/* FAB recentrar */}
+      <Pressable
+        className="absolute right-3 top-24 h-11 w-11 items-center justify-center rounded-full bg-white active:bg-sand"
+        style={SHADOW_CARD}
+        onPress={() => pos && mapRef.current?.animateToRegion({ latitude: pos.lat, longitude: pos.lng })}
+      >
+        <Text className="text-[18px]">🎯</Text>
+      </Pressable>
 
       {/* header: título + toggle + idioma */}
       <View
@@ -183,7 +209,7 @@ export default function TaxistaHome() {
 
       {/* leyenda demanda */}
       {online && zonas.length > 0 && (
-        <View className="absolute right-3 top-28 rounded-2xl bg-cream/95 px-2.5 py-2" style={SHADOW_CARD}>
+        <View className="absolute right-3 top-40 rounded-2xl bg-cream/95 px-2.5 py-2" style={SHADOW_CARD}>
           <Text className="font-bodybold text-[9px] uppercase tracking-wider text-volcanic/50">{t("drv.demand")}</Text>
           <Text className="mt-0.5 font-bodysemi text-[11px] text-volcanic">🔴 {t("drv.high")}</Text>
           <Text className="font-bodysemi text-[11px] text-volcanic">🟠 {t("drv.medium")}</Text>
@@ -205,6 +231,13 @@ export default function TaxistaHome() {
                 <Text className="font-bodybold text-[12px] text-volcanic">{viaje.detalle}</Text>
               </View>
             ) : null}
+
+            {rutaInfo && (
+              <Text className="font-display text-[14px] text-atlantic-dark">
+                {rutaInfo.min} min
+                <Text className="font-bodymed text-[12px] text-volcanic/50">  {rutaInfo.km.toFixed(1)} km</Text>
+              </Text>
+            )}
 
             {/* origen → destino con línea de puntos */}
             <View className="flex-row items-start gap-2.5">
