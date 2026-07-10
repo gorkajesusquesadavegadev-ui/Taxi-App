@@ -22,6 +22,8 @@ const KINDS = {
   dark: { box: "bg-volcanic", txt: "text-white" },
   danger: { box: "bg-coral", txt: "text-white" },
   ghost: { box: "bg-white border-2 border-sand-deep", txt: "text-volcanic" },
+  outline: { box: "bg-transparent border-2 border-volcanic/15", txt: "text-volcanic" },
+  sea: { box: "bg-atlantic", txt: "text-white" },
 };
 
 export function Btn({ title, onPress, kind = "primary", disabled, busy, className = "" }) {

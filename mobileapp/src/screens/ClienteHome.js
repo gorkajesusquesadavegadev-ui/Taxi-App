@@ -1,18 +1,23 @@
+// Home del cliente — espejo de pages/cliente/ClienteHome.jsx (web, layout móvil).
 import { useEffect, useRef, useState, useCallback } from "react";
-import { View, Text, Pressable, Linking, Share, ScrollView, Switch } from "react-native";
+import { View, Text, Pressable, Linking, Share, ActivityIndicator } from "react-native";
 import { Marker } from "react-native-maps";
 import Mapa from "../components/Mapa";
 import { api } from "../api/client";
 import { connectWs } from "../api/ws";
-import { ubicacionPrecisa, buscarDirecciones, direccionDe } from "../api/geo";
+import { ubicacionPrecisa, direccionDe } from "../api/geo";
 import { useAuth } from "../context/AuthContext";
-import { useI18n } from "../i18n";
+import { useI18n, zonaTraducida } from "../i18n";
 import LangSwitcher from "../components/LangSwitcher";
+import Sheet from "../components/Sheet";
+import AddressSearch from "../components/AddressSearch";
+import Badge from "../components/Badge";
 import ValorarModal from "../components/ValorarModal";
 import ReservaModal from "../components/ReservaModal";
-import { Btn, Input, Card, SHADOW_CARD } from "../components/UI";
+import { Btn, Input, SHADOW_CARD } from "../components/UI";
 
 const GC = { latitude: 28.1, longitude: -15.43, latitudeDelta: 0.4, longitudeDelta: 0.4 };
+const fmtEur = (x) => (x == null ? "—" : `${Number(x).toFixed(2)} €`);
 
 function haversineKm(a, b) {
   const toRad = (x) => (x * Math.PI) / 180;
@@ -24,17 +29,14 @@ function haversineKm(a, b) {
 }
 
 export default function ClienteHome() {
-  const { user } = useAuth();
   const { t } = useI18n();
+  useAuth();
   const [origen, setOrigen] = useState(null);
   const [destino, setDestino] = useState(null);
-  const [paradas, setParadas] = useState([]);
-  const [queryDest, setQueryDest] = useState("");
-  const [queryParada, setQueryParada] = useState("");
-  const [buscandoParada, setBuscandoParada] = useState(false);
-  const [sugerencias, setSugerencias] = useState([]);
+  const [paradas, setParadas] = useState([]); // [point|null]
   const [accesible, setAccesible] = useState(false);
   const [estimacion, setEstimacion] = useState(null);
+  const [estimando, setEstimando] = useState(false);
   const [viaje, setViaje] = useState(null);
   const [taxiPos, setTaxiPos] = useState(null);
   const [taxis, setTaxis] = useState([]);
@@ -45,15 +47,18 @@ export default function ClienteHome() {
   const [valorando, setValorando] = useState(null);
   const [reservando, setReservando] = useState(false);
   const [sinTaxi, setSinTaxi] = useState(false);
+  const [localizando, setLocalizando] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const mapRef = useRef(null);
   const viajeIdRef = useRef(null);
 
-  // ── GPS inicial → origen ──────────────────────────────────────────────────
-  const localizar = useCallback(async () => {
+  // ── GPS → origen (con dirección real) ─────────────────────────────────────
+  const usarMiUbicacion = useCallback(async () => {
+    setLocalizando(true);
     setError("");
     const p = await ubicacionPrecisa();
+    setLocalizando(false);
     if (!p) { setError(t("ride.errLocGps")); return; }
     const label = (await direccionDe(p.lat, p.lng)) || `${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;
     setOrigen({ lat: p.lat, lng: p.lng, label });
@@ -61,19 +66,21 @@ export default function ClienteHome() {
       { latitude: p.lat, longitude: p.lng, latitudeDelta: 0.02, longitudeDelta: 0.02 }, 600
     );
   }, []);
-  useEffect(() => { localizar(); }, [localizar]);
+  useEffect(() => { usarMiUbicacion(); }, [usarMiUbicacion]);
 
-  // ── Restaurar viaje activo + favoritos + fidelidad ────────────────────────
   useEffect(() => {
     api.activo().then((v) => v && setViaje(v)).catch(() => {});
-    api.favoritos().then((f) => setFavoritos(f || [])).catch(() => {});
+    cargarFavs();
   }, []);
+  async function cargarFavs() {
+    try { setFavoritos((await api.favoritos()) || []); } catch (_) {}
+  }
   useEffect(() => {
     api.fidelidad().then(setFidelidad).catch(() => {});
   }, [viaje?.estado]);
   useEffect(() => { viajeIdRef.current = viaje?.id ?? null; }, [viaje?.id]);
 
-  // ── Taxis online cercanos ─────────────────────────────────────────────────
+  // ── Taxis online ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!origen) return;
     let alive = true;
@@ -86,7 +93,7 @@ export default function ClienteHome() {
     return () => { alive = false; clearInterval(id); };
   }, [origen?.lat, origen?.lng]);
 
-  // ── WebSocket eventos del viaje ───────────────────────────────────────────
+  // ── WebSocket ─────────────────────────────────────────────────────────────
   useEffect(() => {
     const ws = connectWs((event, data) => {
       if (event === "trip:accepted") {
@@ -110,56 +117,41 @@ export default function ClienteHome() {
     return () => ws.close();
   }, []);
 
-  // ── Aviso "sin taxi" a los 45 s buscando ──────────────────────────────────
+  // ── Sin taxi tras 45 s ────────────────────────────────────────────────────
   useEffect(() => {
     if (!viaje || viaje.estado !== "SOLICITADO") { setSinTaxi(false); return; }
     const id = setTimeout(() => setSinTaxi(true), 45_000);
     return () => clearTimeout(id);
   }, [viaje?.id, viaje?.estado]);
 
-  // ── Autocomplete (destino o parada) ───────────────────────────────────────
-  const query = buscandoParada ? queryParada : queryDest;
-  useEffect(() => {
-    if (query.trim().length < 3) { setSugerencias([]); return; }
-    const id = setTimeout(() => {
-      buscarDirecciones(query).then(setSugerencias).catch(() => setSugerencias([]));
-    }, 400);
-    return () => clearTimeout(id);
-  }, [query]);
-
-  function elegirSugerencia(item) {
-    setSugerencias([]);
-    if (buscandoParada) {
-      setParadas((p) => [...p, item]);
-      setQueryParada("");
-      setBuscandoParada(false);
-      return;
-    }
-    setDestino(item);
-    if (origen) {
-      mapRef.current?.fitToCoordinates(
-        [
-          { latitude: origen.lat, longitude: origen.lng },
-          { latitude: item.lat, longitude: item.lng },
-        ],
-        { edgePadding: { top: 120, bottom: 380, left: 60, right: 60 }, animated: true }
-      );
-    }
-  }
-
   // ── Estimación ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!origen || !destino) { setEstimacion(null); return; }
     let alive = true;
+    setEstimando(true);
     api.estimar({
       origenLat: origen.lat, origenLng: origen.lng,
       destinoLat: destino.lat, destinoLng: destino.lng,
-      paradas: paradas.map((p) => [p.lat, p.lng]),
+      paradas: paradas.filter(Boolean).map((p) => [p.lat, p.lng]),
     })
       .then((e) => alive && setEstimacion(e))
-      .catch(() => alive && setError(t("ride.errEstimate")));
+      .catch(() => alive && setError(t("ride.errEstimate")))
+      .finally(() => alive && setEstimando(false));
     return () => { alive = false; };
-  }, [origen?.lat, destino?.lat, destino?.lng, paradas.length]);
+  }, [origen?.lat, origen?.lng, destino?.lat, destino?.lng, paradas]);
+
+  // Encajar mapa al elegir destino
+  useEffect(() => {
+    if (origen && destino) {
+      mapRef.current?.fitToCoordinates(
+        [
+          { latitude: origen.lat, longitude: origen.lng },
+          { latitude: destino.lat, longitude: destino.lng },
+        ],
+        { edgePadding: { top: 110, bottom: 420, left: 60, right: 60 }, animated: true }
+      );
+    }
+  }, [origen?.lat, destino?.lat, destino?.lng]);
 
   // ── Acciones ──────────────────────────────────────────────────────────────
   async function pedir() {
@@ -171,7 +163,7 @@ export default function ClienteHome() {
         destinoLat: destino.lat, destinoLng: destino.lng,
         origenTexto: origen.label || null, destinoTexto: destino.label || null,
         requiereAccesible: accesible,
-        paradas: paradas.map((p) => [p.lat, p.lng]),
+        paradas: paradas.filter(Boolean).map((p) => [p.lat, p.lng]),
       });
       setViaje(v);
     } catch (e) {
@@ -189,17 +181,18 @@ export default function ClienteHome() {
   }
 
   async function cancelar() {
-    if (!viaje) return;
-    try { await api.cancelar(viaje.id); } catch (_) {}
-    limpiar();
+    if (viaje && !["COMPLETADO", "CANCELADO"].includes(viaje.estado)) {
+      try { await api.cancelar(viaje.id); } catch (_) {}
+    }
+    reset(true);
   }
 
-  function limpiar() {
-    setViaje(null); setTaxiPos(null); setDestino(null); setQueryDest("");
-    setParadas([]); setEstimacion(null); setSinTaxi(false);
+  function reset(todo = false) {
+    if (todo) { setViaje(null); setTaxiPos(null); }
+    setDestino(null); setParadas([]); setEstimacion(null); setSinTaxi(false); setError("");
   }
 
-  async function compartir() {
+  async function compartirViaje() {
     if (!viaje) return;
     try {
       const { token } = await api.compartirViaje(viaje.id);
@@ -220,20 +213,22 @@ export default function ClienteHome() {
     await Share.share({ message: partes.join("\n") });
   }
 
+  function pickFavorito(f) {
+    const punto = { lat: f.lat, lng: f.lng, label: f.direccion || f.etiqueta };
+    if (!origen) setOrigen(punto);
+    else setDestino(punto);
+  }
+
   async function guardarFav() {
     const p = destino || origen;
     if (!p || !etiquetaFav.trim()) return;
     try {
       await api.favoritoCrear({ etiqueta: etiquetaFav.trim(), direccion: p.label || null, lat: p.lat, lng: p.lng });
       setEtiquetaFav(""); setGuardandoFav(false);
-      setFavoritos((await api.favoritos()) || []);
+      cargarFavs();
     } catch (e) {
       setError(e.message || t("fav.couldNotSave"));
     }
-  }
-
-  async function borrarFav(id) {
-    try { await api.favoritoBorrar(id); setFavoritos((f) => f.filter((x) => x.id !== id)); } catch (_) {}
   }
 
   async function crearReserva({ programadaPara, notas }) {
@@ -244,223 +239,356 @@ export default function ClienteHome() {
       programadaPara, notas,
     });
     setReservando(false);
-    limpiar();
+    reset();
   }
 
   // ── Derivados ─────────────────────────────────────────────────────────────
   const estado = viaje?.estado;
-  const enCurso = estado && !["COMPLETADO", "CANCELADO"].includes(estado);
+  const enCurso = !!viaje;
   const etaMin = taxiPos && viaje?.origenLat
     ? Math.max(1, Math.round((haversineKm(taxiPos, { lat: viaje.origenLat, lng: viaje.origenLng }) / 28) * 60))
     : null;
+  const libres = taxis.filter((x) => !x.enViaje).length;
 
-  const estadoTxt = {
+  const statusMsg = {
     SOLICITADO: t("ride.searching"),
     ACEPTADO: t("ride.driverOnWay"),
     LLEGADO: t("ride.hasArrived"),
     EN_CURSO: t("ride.inProgress"),
     COMPLETADO: t("ride.completed"),
+    CANCELADO: t("ride.cancelled"),
   }[estado];
-
-  const libres = taxis.filter((x) => !x.enViaje).length;
 
   return (
     <View className="flex-1 bg-cream">
       <Mapa ref={mapRef} style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} initialRegion={GC} showsUserLocation>
-        {origen && <Marker coordinate={{ latitude: origen.lat, longitude: origen.lng }} pinColor="#1577C2" />}
-        {destino && <Marker coordinate={{ latitude: destino.lat, longitude: destino.lng }} pinColor="#0B5C9E" />}
-        {paradas.map((p, i) => (
-          <Marker key={`p${i}`} coordinate={{ latitude: p.lat, longitude: p.lng }} pinColor="#E8AF00" />
+        {origen && <Marker coordinate={{ latitude: origen.lat, longitude: origen.lng }} pinColor="#FFC400" />}
+        {paradas.filter(Boolean).map((p, i) => (
+          <Marker key={`p${i}`} coordinate={{ latitude: p.lat, longitude: p.lng }} pinColor="#0B2E4F" />
         ))}
+        {destino && <Marker coordinate={{ latitude: destino.lat, longitude: destino.lng }} pinColor="#0B5C9E" />}
         {taxiPos && (
           <Marker coordinate={{ latitude: taxiPos.lat, longitude: taxiPos.lng }}>
-            <Text className="text-[26px]">🚕</Text>
+            <Text style={{ fontSize: 26 }}>🚕</Text>
           </Marker>
         )}
         {!enCurso && taxis.map((tx, i) => (
           <Marker key={tx.taxistaId ?? i} coordinate={{ latitude: tx.lat, longitude: tx.lng }} opacity={tx.enViaje ? 0.45 : 1}>
-            <Text className="text-[26px]">🚕</Text>
+            <Text style={{ fontSize: 26 }}>🚕</Text>
           </Marker>
         ))}
       </Mapa>
 
-      {/* header glass */}
-      <View
-        className="absolute left-3 right-3 top-12 flex-row items-center justify-between rounded-2xl bg-cream/95 px-3 py-2"
-        style={SHADOW_CARD}
-      >
-        <Text className="font-displayblack text-[16px] text-volcanic">
-          Canary<Text className="text-taxi-dark">Cab</Text>
-        </Text>
-        <View className="flex-row items-center gap-2">
-          {!enCurso && (
-            <View className="rounded-full bg-sand px-2 py-1">
-              <Text className="font-bodybold text-[11px] text-volcanic">🚕 {libres} {t("ride.taxisFree")}</Text>
+      {/* banner: el taxi ha llegado */}
+      {estado === "LLEGADO" && (
+        <View className="absolute inset-x-3 top-12 items-center" style={{ zIndex: 20 }}>
+          <View className="flex-row items-center gap-3 rounded-2xl bg-taxi px-4 py-3" style={SHADOW_CARD}>
+            <View className="h-9 w-9 items-center justify-center rounded-xl bg-volcanic">
+              <Text className="text-[18px]">🚕</Text>
             </View>
-          )}
-          <LangSwitcher />
+            <View className="shrink">
+              <Text className="font-display text-[13px] text-volcanic">{t("ride.arrivedBannerT")}</Text>
+              <Text className="font-bodysemi text-[12px] text-volcanic/70">{t("ride.arrivedBannerD")}</Text>
+            </View>
+          </View>
         </View>
-      </View>
+      )}
 
-      {/* hoja inferior */}
-      <View className="absolute bottom-2 left-2.5 right-2.5">
-        {!enCurso ? (
-          <Card>
-            <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: 420 }}>
-              {fidelidad && fidelidad.faltanParaRecompensa === 0 && (
-                <Text className="mb-1.5 font-bodybold text-[13px] text-atlantic-dark">🎁 {t("ride.freeRideReady")}</Text>
-              )}
-              {fidelidad && fidelidad.faltanParaRecompensa > 0 && (
-                <Text className="mb-1.5 font-bodybold text-[12px] text-atlantic-dark">
-                  ⭐ {fidelidad.completados} {t("ride.trips")} · {fidelidad.faltanParaRecompensa} {t("ride.toNextFree")}
-                </Text>
-              )}
+      {/* chip de ayuda flotante (como la web) */}
+      {!viaje && (
+        <View className="absolute inset-x-3 top-12 flex-row items-center justify-center" pointerEvents="box-none">
+          <View className="max-w-[75%] rounded-full bg-volcanic/90 px-3.5 py-1.5">
+            <Text className="text-center font-bodybold text-[12px] text-cream" numberOfLines={1}>
+              {!origen ? t("ride.helperPickup") : !destino ? t("ride.helperDest") : t("ride.helperReady")}
+            </Text>
+          </View>
+          <View className="absolute right-0"><LangSwitcher /></View>
+        </View>
+      )}
 
-              <Text className="font-bodysemi text-[13px] text-volcanic/60" numberOfLines={1}>
-                📍 {origen?.label || t("ride.locating")}
+      {/* bottom sheet plegable */}
+      <Sheet>
+        {viaje ? (
+          <View className="gap-3">
+            <View className="flex-row items-center justify-between">
+              <Badge estado={viaje.estado} />
+              <Text className="font-display text-[18px] text-volcanic">
+                {fmtEur(viaje.precioFinal ?? viaje.precioEstimado)}
               </Text>
-              <Pressable onPress={localizar}>
-                <Text className="mt-2 font-bodybold text-[13px] text-atlantic-dark">🛰️ {t("ride.useMyLocation")}</Text>
-              </Pressable>
+            </View>
+            <View className="flex-row items-center gap-2">
+              <Text className="font-bodysemi text-[14px] text-volcanic/70">{statusMsg}</Text>
+              {!["COMPLETADO", "CANCELADO"].includes(estado) && <ActivityIndicator size="small" color="#E8AF00" />}
+            </View>
 
-              {favoritos.length > 0 && (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
-                  {favoritos.map((f) => (
-                    <Pressable
-                      key={f.id}
-                      className="mr-2 rounded-full bg-sand px-3 py-1.5"
-                      onPress={() => elegirSugerencia({ lat: f.lat, lng: f.lng, label: f.direccion || f.etiqueta })}
-                      onLongPress={() => borrarFav(f.id)}
-                    >
-                      <Text className="font-bodybold text-[12px] text-volcanic">⭐ {f.etiqueta}</Text>
-                    </Pressable>
-                  ))}
-                </ScrollView>
-              )}
-
-              <Input
-                placeholder={t("ride.destPh")}
-                value={destino ? destino.label : queryDest}
-                onChangeText={(v) => { setDestino(null); setBuscandoParada(false); setQueryDest(v); }}
-                className="mt-2.5"
-              />
-
-              {paradas.map((p, i) => (
-                <View key={i} className="mt-2 flex-row items-center gap-2">
-                  <Text className="flex-1 font-bodysemi text-[13px] text-volcanic/80" numberOfLines={1}>🟡 {p.label}</Text>
-                  <Pressable onPress={() => setParadas((ps) => ps.filter((_, j) => j !== i))} hitSlop={8}>
-                    <Text className="font-bodybold text-[15px] text-coral">✕</Text>
-                  </Pressable>
+            {/* Tu taxi: matrícula + licencia + contacto (igual que la web) */}
+            {viaje.taxistaId && ["ACEPTADO", "LLEGADO", "EN_CURSO"].includes(estado) && (
+              <View className="rounded-2xl border-2 border-taxi/40 bg-taxi/10 p-3">
+                <View className="flex-row items-center justify-between">
+                  <Text className="font-bodybold text-[10px] uppercase tracking-[2px] text-volcanic/55">
+                    {t("ride.yourTaxi")}
+                  </Text>
+                  {estado === "ACEPTADO" && etaMin != null && (
+                    <View className="rounded-full bg-volcanic px-2.5 py-1">
+                      <Text className="font-display text-[11px] text-taxi">⏱️ {t("ride.arrivesIn", { min: etaMin })}</Text>
+                    </View>
+                  )}
+                  {estado === "LLEGADO" && (
+                    <View className="rounded-full bg-palm px-2.5 py-1">
+                      <Text className="font-bodybold text-[11px] text-white">{t("ride.hasArrived")}</Text>
+                    </View>
+                  )}
                 </View>
-              ))}
-              {buscandoParada ? (
-                <Input placeholder={t("ride.stopPh")} value={queryParada} onChangeText={setQueryParada} className="mt-2" autoFocus />
-              ) : (
-                destino && paradas.length < 2 && (
-                  <Pressable onPress={() => setBuscandoParada(true)}>
-                    <Text className="mt-2 font-bodybold text-[13px] text-atlantic-dark">➕ {t("ride.addStop")}</Text>
-                  </Pressable>
-                )
-              )}
-
-              {sugerencias.length > 0 && (
-                <View className="mt-1">
-                  {sugerencias.map((item, i) => (
-                    <Pressable key={item.label + i} className="border-b border-sand py-2.5 active:bg-sand" onPress={() => elegirSugerencia(item)}>
-                      <Text className="font-body text-[14px] text-volcanic" numberOfLines={1}>📍 {item.label}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              )}
-
-              <View className="mt-2.5 flex-row items-center justify-between">
-                <Text className="font-bodybold text-[13px] text-volcanic">♿ {t("ride.needAccessible")}</Text>
-                <Switch value={accesible} onValueChange={setAccesible}
-                  trackColor={{ false: "#CFE0EE", true: "#FFC400" }} thumbColor="#fff" />
-              </View>
-
-              {estimacion && (
-                <>
-                  <View className="mt-2.5 flex-row items-baseline gap-2.5">
-                    <Text className="font-display text-[22px] text-volcanic">
-                      ~{Number(estimacion.precio ?? estimacion.precioEstimado ?? 0).toFixed(2)} €
+                <View className="mt-1.5 flex-row items-center justify-between gap-3">
+                  <View className="shrink">
+                    <Text className="font-display text-[15px] text-volcanic" numberOfLines={1}>
+                      {viaje.taxistaNombre || "Taxista"}{viaje.taxistaVerificado ? " ✓" : ""}
                     </Text>
-                    <Text className="font-bodysemi text-[13px] text-volcanic/60">
-                      {(estimacion.distanciaKm ?? 0).toFixed(1)} {t("common.km")} · {Math.round(estimacion.duracionMin ?? 0)} {t("common.min")}
+                    <Text className="font-bodymed text-[13px] text-volcanic/65" numberOfLines={1}>
+                      {viaje.taxistaModelo || ""}
+                      {viaje.taxistaRatingCount > 0 ? `  · ⭐ ${viaje.taxistaRating} (${viaje.taxistaRatingCount})` : ""}
                     </Text>
                   </View>
-                  <Text className="mt-0.5 font-body text-[11px] text-volcanic/40">{t("ride.meterNote")}</Text>
-                </>
-              )}
+                  {viaje.taxistaMatricula && (
+                    <View className="rounded-lg border-2 border-volcanic bg-white px-2.5 py-1">
+                      <Text className="font-bodybold text-[15px] tracking-widest text-volcanic">{viaje.taxistaMatricula}</Text>
+                    </View>
+                  )}
+                </View>
+                <View className="mt-2 flex-row items-center gap-2">
+                  {viaje.taxistaLicencia && (
+                    <View className="rounded-md bg-volcanic/10 px-2 py-1">
+                      <Text className="font-bodybold text-[12px] text-volcanic/70">
+                        {t("ride.licensePrefix")} {viaje.taxistaLicencia}
+                      </Text>
+                    </View>
+                  )}
+                  {viaje.taxistaTelefono && (
+                    <Pressable
+                      className="ml-auto rounded-xl bg-volcanic px-3 py-1.5 active:scale-95"
+                      onPress={() => Linking.openURL(`tel:${viaje.taxistaTelefono}`)}
+                    >
+                      <Text className="font-bodybold text-[14px] text-cream">📞 {t("ride.call")}</Text>
+                    </Pressable>
+                  )}
+                </View>
+              </View>
+            )}
 
-              {(destino || origen) && !guardandoFav && (
-                <Pressable onPress={() => setGuardandoFav(true)}>
-                  <Text className="mt-2 font-bodybold text-[13px] text-atlantic-dark">⭐ {t("fav.saveAddress")}</Text>
+            {/* compartir + SOS */}
+            {["ACEPTADO", "LLEGADO", "EN_CURSO"].includes(estado) && (
+              <View className="flex-row gap-2">
+                <Pressable
+                  className="flex-1 items-center rounded-2xl border border-sand-deep bg-white py-2.5 active:bg-atlantic/10"
+                  onPress={compartirViaje}
+                >
+                  <Text className="font-bodybold text-[14px] text-volcanic">🔗 {t("ride.share")}</Text>
                 </Pressable>
-              )}
-              {guardandoFav && (
-                <View className="mt-2 flex-row gap-2">
-                  <Input placeholder={t("fav.savePh")} value={etiquetaFav} onChangeText={setEtiquetaFav} className="flex-1" />
-                  <Btn title="✓" onPress={guardarFav} className="px-4" />
+                <Pressable className="flex-1 items-center rounded-2xl bg-coral/15 py-2.5 active:bg-coral/25" onPress={sos}>
+                  <Text className="font-bodybold text-[14px] text-coral">🆘 {t("ride.sos")}</Text>
+                </Pressable>
+              </View>
+            )}
+
+            {/* sin taxi tras 45 s */}
+            {sinTaxi && estado === "SOLICITADO" && (
+              <View className="rounded-xl bg-taxi/15 px-3 py-2.5">
+                <Text className="font-bodysemi text-[14px] text-volcanic">{t("ride.noTaxisNear")}</Text>
+                <Text className="mt-0.5 font-body text-[12px] text-volcanic/60">{t("ride.stillSearching")}</Text>
+                <Pressable className="mt-2 items-center rounded-xl bg-taxi py-2 active:scale-95" onPress={reintentar}>
+                  <Text className="font-bodybold text-[14px] text-volcanic">{t("ride.retrySearch")}</Text>
+                </Pressable>
+              </View>
+            )}
+
+            {["COMPLETADO", "CANCELADO"].includes(estado) ? (
+              <Btn title={t("ride.newTrip")} kind="dark" onPress={cancelar} />
+            ) : (
+              <Btn title={t("ride.cancelTrip")} kind="danger" onPress={cancelar} />
+            )}
+          </View>
+        ) : (
+          <View className="gap-3">
+            {/* mi ubicación */}
+            <Pressable
+              className="w-full flex-row items-center justify-center gap-2 rounded-2xl bg-atlantic/10 px-3 py-2.5 active:bg-atlantic/20"
+              onPress={usarMiUbicacion}
+              disabled={localizando}
+            >
+              {localizando
+                ? <><ActivityIndicator size="small" color="#0B5C9E" /><Text className="font-bodybold text-[14px] text-atlantic-dark"> {t("ride.locating")}</Text></>
+                : <Text className="font-bodybold text-[14px] text-atlantic-dark">📍 {t("ride.useMyLocation")}</Text>}
+            </Pressable>
+
+            {/* recogida */}
+            <AddressSearch placeholder={t("ride.pickupPh")} value={origen} onSelect={setOrigen} dotClass="bg-taxi" />
+
+            {/* paradas */}
+            {paradas.map((p, i) => (
+              <View key={i} className="flex-row items-center gap-1.5">
+                <View className="flex-1">
+                  <AddressSearch
+                    placeholder={t("ride.stopPh", { n: i + 1 })}
+                    value={p}
+                    onSelect={(pt) => setParadas((arr) => arr.map((x, j) => (j === i ? pt : x)))}
+                    dotClass="bg-volcanic"
+                  />
+                </View>
+                <Pressable
+                  className="h-9 w-9 items-center justify-center rounded-xl bg-sand active:bg-coral/15"
+                  onPress={() => setParadas((arr) => arr.filter((_, j) => j !== i))}
+                >
+                  <Text className="font-bodybold text-[16px] text-volcanic/60">×</Text>
+                </Pressable>
+              </View>
+            ))}
+
+            {/* destino */}
+            <AddressSearch placeholder={t("ride.destPh")} value={destino} onSelect={setDestino} dotClass="bg-atlantic-dark" />
+
+            {paradas.length < 3 && (
+              <Pressable onPress={() => setParadas((arr) => [...arr, null])}>
+                <Text className="font-bodybold text-[14px] text-atlantic-dark">➕ {t("ride.addStop")}</Text>
+              </Pressable>
+            )}
+            {(origen || destino) && (
+              <Pressable onPress={() => reset()}>
+                <Text className="font-bodysemi text-[13px] text-atlantic-dark">{t("ride.resetPoints")}</Text>
+              </Pressable>
+            )}
+
+            {/* favoritos */}
+            {(favoritos.length > 0 || destino || origen) && (
+              <View className="gap-2">
+                {favoritos.length > 0 && (
+                  <View className="flex-row flex-wrap gap-2">
+                    {favoritos.map((f) => (
+                      <Pressable
+                        key={f.id}
+                        className="rounded-full bg-sand px-3 py-1.5 active:bg-sand-deep"
+                        onPress={() => pickFavorito(f)}
+                        onLongPress={() => api.favoritoBorrar(f.id).then(cargarFavs).catch(() => {})}
+                      >
+                        <Text className="font-bodybold text-[12px] text-volcanic">⭐ {f.etiqueta}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
+                {(destino || origen) && !guardandoFav && (
+                  <Pressable onPress={() => setGuardandoFav(true)}>
+                    <Text className="font-bodybold text-[13px] text-atlantic-dark">⭐ {t("fav.saveAddress")}</Text>
+                  </Pressable>
+                )}
+                {guardandoFav && (
+                  <View className="flex-row gap-2">
+                    <Input placeholder={t("fav.savePh")} value={etiquetaFav} onChangeText={setEtiquetaFav} className="flex-1" />
+                    <Btn title="✓" onPress={guardarFav} className="px-4" />
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* taxi adaptado (mini-switch como la web) */}
+            <Pressable
+              className={`w-full flex-row items-center gap-2 rounded-2xl border-2 px-3 py-2 ${
+                accesible ? "border-atlantic bg-atlantic/10" : "border-sand-deep bg-white"
+              }`}
+              onPress={() => setAccesible((a) => !a)}
+            >
+              <Text className="text-[16px]">♿</Text>
+              <Text className={`font-bodybold text-[14px] ${accesible ? "text-atlantic-dark" : "text-volcanic/60"}`}>
+                {t("ride.needAccessible")}
+              </Text>
+              <View className={`ml-auto h-5 w-9 rounded-full p-0.5 ${accesible ? "bg-atlantic" : "bg-volcanic/20"}`}>
+                <View className={`h-4 w-4 rounded-full bg-white ${accesible ? "self-end" : "self-start"}`} />
+              </View>
+            </Pressable>
+
+            {/* fidelidad */}
+            {fidelidad && fidelidad.completados > 0 && (
+              <View className="rounded-2xl border border-taxi/40 bg-taxi/10 px-3 py-2.5">
+                <View className="flex-row items-center justify-between">
+                  <Text className="font-bodybold text-[14px] text-volcanic">
+                    {fidelidad.nivel === "Oro" ? "🥇" : fidelidad.nivel === "Plata" ? "🥈" : "🥉"} Cliente {fidelidad.nivel}
+                  </Text>
+                  <Text className="font-bodysemi text-[12px] text-volcanic/60">{fidelidad.completados} {t("ride.trips")}</Text>
+                </View>
+                <View className="mt-1.5 h-2 overflow-hidden rounded-full bg-white">
+                  <View className="h-full rounded-full bg-taxi" style={{ width: `${(fidelidad.progreso / 10) * 100}%` }} />
+                </View>
+                <Text className="mt-1 font-bodysemi text-[11px] text-volcanic/60">
+                  {fidelidad.faltanParaRecompensa === 0
+                    ? t("ride.freeRideReady")
+                    : t("ride.toNextFree", { n: fidelidad.faltanParaRecompensa })}
+                </Text>
+              </View>
+            )}
+
+            {/* estimación estilo Google */}
+            <View className="rounded-2xl bg-sand px-4 py-3">
+              {estimando ? (
+                <View className="flex-row items-center justify-between">
+                  <Text className="font-bodysemi text-[14px] text-volcanic/70">{t("ride.calcRoute")}</Text>
+                  <ActivityIndicator size="small" color="#0B2E4F" />
+                </View>
+              ) : estimacion ? (
+                <View className="gap-1.5">
+                  <View className="flex-row items-center justify-between">
+                    <Text className="font-display text-[17px] text-atlantic-dark">
+                      {estimacion.duracionMin != null && Number(estimacion.duracionMin) > 0
+                        ? `${Math.max(1, Math.round(Number(estimacion.duracionMin)))} min`
+                        : ""}
+                      <Text className="font-bodymed text-[12px] text-volcanic/50">
+                        {"  "}{Number(estimacion.distanciaKm).toFixed(1)} km
+                      </Text>
+                    </Text>
+                    <Text className="font-display text-[17px] text-volcanic">{fmtEur(estimacion.precioEstimado)}</Text>
+                  </View>
+                  {estimacion.zona && (
+                    <View className="flex-row items-center gap-1.5 rounded-xl bg-atlantic/10 px-3 py-1.5">
+                      <Text className="text-[15px]">🏷️</Text>
+                      <Text className="font-bodybold text-[12px] text-atlantic-dark">{zonaTraducida(t, estimacion.zona)}</Text>
+                    </View>
+                  )}
+                </View>
+              ) : (
+                <View className="flex-row items-center justify-between">
+                  <Text className="font-bodysemi text-[14px] text-volcanic/70">{t("ride.estimated")}</Text>
+                  <Text className="font-body text-[13px] text-volcanic/40">{t("ride.pickOriginDest")}</Text>
                 </View>
               )}
-
-              {error ? <Text className="mt-2 font-bodybold text-[13px] text-coral">{error}</Text> : null}
-
-              <Btn title={`🚕 ${t("ride.requestNow")}`} onPress={pedir} busy={busy}
-                disabled={!origen || !destino} className="mt-3" />
-              <Btn title={`📅 ${t("ride.book")}`} kind="ghost" onPress={() => setReservando(true)}
-                disabled={!origen || !destino} className="mt-2" />
-            </ScrollView>
-          </Card>
-        ) : (
-          <Card>
-            <Text className="font-display text-[16px] text-volcanic">{estadoTxt}</Text>
-            {estado === "ACEPTADO" && etaMin != null && (
-              <Text className="mt-1.5 font-bodybold text-[14px] text-atlantic-dark">
-                ⏱️ {t("ride.arrivesIn")} ~{etaMin} {t("common.min")}
-              </Text>
-            )}
-            {viaje?.taxistaNombre && (
-              <Text className="mt-2 font-bodysemi text-[14px] text-volcanic/80">
-                🚕 {viaje.taxistaNombre}
-                {viaje.taxistaVerificado ? " ✓" : ""}
-                {viaje.taxistaRating ? ` · ⭐ ${Number(viaje.taxistaRating).toFixed(1)}` : ""}
-              </Text>
-            )}
-            {(viaje?.taxistaMatricula || viaje?.taxistaLicencia) && (
-              <Text className="mt-1 font-bodysemi text-[13px] text-volcanic/60">
-                {viaje.taxistaModelo ? `${viaje.taxistaModelo} · ` : ""}
-                {viaje.taxistaMatricula || ""}
-                {viaje.taxistaLicencia ? ` · ${t("ride.licensePrefix")} ${viaje.taxistaLicencia}` : ""}
-              </Text>
-            )}
-            {sinTaxi && estado === "SOLICITADO" && (
-              <>
-                <Text className="mt-2.5 font-bodybold text-[13px] text-coral">😕 {t("ride.stillSearching")}</Text>
-                <Btn title={t("ride.retrySearch")} kind="ghost" className="mt-2" onPress={reintentar} />
-              </>
-            )}
-            <View className="mt-3 flex-row gap-2">
-              {viaje?.taxistaTelefono && (
-                <Btn title="📞" kind="ghost" className="flex-1" onPress={() => Linking.openURL(`tel:${viaje.taxistaTelefono}`)} />
-              )}
-              {["EN_CURSO", "ACEPTADO", "LLEGADO"].includes(estado) && (
-                <>
-                  <Btn title={`🔗 ${t("ride.share")}`} kind="ghost" className="flex-[2]" onPress={compartir} />
-                  <Btn title="🆘" kind="danger" className="flex-1" onPress={sos} />
-                </>
-              )}
             </View>
-            {["SOLICITADO", "ACEPTADO", "LLEGADO"].includes(estado) && (
-              <Btn title={t("ride.cancelTrip")} kind="danger" className="mt-2" onPress={cancelar} />
+
+            {error ? <Text className="font-bodymed text-[14px] text-coral">{error}</Text> : null}
+
+            {/* taxis disponibles */}
+            {taxis.length > 0 && (
+              <Text className="text-center font-bodybold text-[12px] text-palm">
+                {libres > 0 ? t("ride.taxisFree", { n: libres }) : t("ride.taxisBusy", { n: taxis.length })}
+              </Text>
             )}
-            {estado === "COMPLETADO" && (
-              <Btn title={t("ride.newTrip")} className="mt-2" onPress={limpiar} />
-            )}
-          </Card>
+
+            {/* reservar (1/3) + pedir ahora (2/3) */}
+            <View className="flex-row gap-2">
+              <Btn
+                title={`📅 ${t("ride.book")}`}
+                kind="ghost"
+                disabled={!origen || !destino}
+                onPress={() => setReservando(true)}
+                className="flex-1"
+              />
+              <Btn
+                title={t("ride.requestNow")}
+                disabled={!origen || !destino}
+                busy={busy}
+                onPress={pedir}
+                className="flex-[2]"
+              />
+            </View>
+            <Text className="text-center font-body text-[11px] text-volcanic/45">{t("ride.meterNote")}</Text>
+          </View>
         )}
-      </View>
+      </Sheet>
 
       {valorando != null && (
         <ValorarModal viajeId={valorando} quien="trip" onClose={() => setValorando(null)} />

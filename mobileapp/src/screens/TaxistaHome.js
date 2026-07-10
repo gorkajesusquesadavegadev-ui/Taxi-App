@@ -1,5 +1,6 @@
+// Home del taxista — espejo de pages/taxista/TaxistaHome.jsx (web, layout móvil).
 import { useEffect, useRef, useState, useCallback } from "react";
-import { View, Text, Switch, Modal, Linking } from "react-native";
+import { View, Text, Modal, Linking, Pressable } from "react-native";
 import { Marker, Circle } from "react-native-maps";
 import Mapa from "../components/Mapa";
 import * as Location from "expo-location";
@@ -9,11 +10,31 @@ import { pedirPermisoUbicacion } from "../api/geo";
 import { useAuth } from "../context/AuthContext";
 import { useI18n, zonaTraducida } from "../i18n";
 import LangSwitcher from "../components/LangSwitcher";
+import Sheet from "../components/Sheet";
+import Badge from "../components/Badge";
 import ValorarModal from "../components/ValorarModal";
 import { Btn, Card, SHADOW_CARD } from "../components/UI";
 
 const GC = { latitude: 28.1, longitude: -15.43, latitudeDelta: 0.4, longitudeDelta: 0.4 };
 const NIVEL_COLOR = { ALTO: "#E0313166", MEDIO: "#F08C0055", BAJO: "#FFC40044" };
+const fmtEur = (x) => (x == null ? "—" : `${Number(x).toFixed(2)} €`);
+
+// Toggle píldora online/offline — espejo del OnlineToggle web.
+function OnlineToggle({ online, onToggle, t }) {
+  return (
+    <Pressable
+      onPress={onToggle}
+      className={`flex-row items-center gap-1.5 rounded-full border-2 px-3 py-1.5 ${
+        online ? "border-palm bg-palm/15" : "border-volcanic/15 bg-white"
+      }`}
+    >
+      <View className={`h-2 w-2 rounded-full ${online ? "bg-palm" : "bg-volcanic/30"}`} />
+      <Text className={`font-bodybold text-[13px] ${online ? "text-palm" : "text-volcanic/55"}`}>
+        {online ? t("drv.online") : t("drv.offline")}
+      </Text>
+    </Pressable>
+  );
+}
 
 export default function TaxistaHome() {
   const { user } = useAuth();
@@ -82,7 +103,8 @@ export default function TaxistaHome() {
     hbRef.current = setInterval(() => wsRef.current?.send("heartbeat", {}), 25_000);
   }, []);
 
-  async function toggle(v) {
+  async function toggleOnline() {
+    const v = !online;
     setOnline(v);
     setMsg("");
     try { await api.estado({ disponible: v }); } catch (_) {}
@@ -120,8 +142,8 @@ export default function TaxistaHome() {
       if (accion === "finalizar") {
         const r = await api.finalizar(viaje.id);
         const id = viaje.id;
-        setViaje(null);
-        setMsg(`✅ ${t("drv.rideDone")}${r?.precio ? ` · ${Number(r.precio).toFixed(2)} €` : ""}`);
+        setViaje({ ...viaje, estado: "COMPLETADO", precioFinal: r?.precio ?? viaje.precioEstimado });
+        setMsg(`✅ ${t("drv.rideDone")}`);
         setValorando(id);
       }
     } catch (e) {
@@ -130,6 +152,7 @@ export default function TaxistaHome() {
   }
 
   const estado = viaje?.estado;
+  const enViaje = viaje && estado !== "COMPLETADO";
   const noVerificado = user && user.verificado === false;
 
   return (
@@ -140,13 +163,28 @@ export default function TaxistaHome() {
             fillColor={NIVEL_COLOR[z.nivel] || NIVEL_COLOR.BAJO} strokeColor="transparent" />
         ))}
         {viaje?.origenLat != null && (
-          <Marker coordinate={{ latitude: viaje.origenLat, longitude: viaje.origenLng }} pinColor="#1577C2" title={t("drv.pickup")} />
+          <Marker coordinate={{ latitude: viaje.origenLat, longitude: viaje.origenLng }} pinColor="#FFC400" title={t("drv.pickup")} />
         )}
         {viaje?.destinoLat != null && (
           <Marker coordinate={{ latitude: viaje.destinoLat, longitude: viaje.destinoLng }} pinColor="#0B5C9E" title={t("drv.dest")} />
         )}
       </Mapa>
 
+      {/* header: título + toggle + idioma */}
+      <View
+        className="absolute left-3 right-3 top-12 flex-row items-center justify-between rounded-2xl bg-cream/95 px-3 py-2"
+        style={SHADOW_CARD}
+      >
+        <Text className="font-displayblack text-[15px] text-volcanic">
+          Canary<Text className="text-taxi-dark">Cab</Text>
+        </Text>
+        <View className="flex-row items-center gap-2">
+          <OnlineToggle online={online} onToggle={toggleOnline} t={t} />
+          <LangSwitcher />
+        </View>
+      </View>
+
+      {/* leyenda demanda */}
       {online && zonas.length > 0 && (
         <View className="absolute right-3 top-28 rounded-2xl bg-cream/95 px-2.5 py-2" style={SHADOW_CARD}>
           <Text className="font-bodybold text-[9px] uppercase tracking-wider text-volcanic/50">{t("drv.demand")}</Text>
@@ -156,59 +194,100 @@ export default function TaxistaHome() {
         </View>
       )}
 
-      <View
-        className="absolute left-3 right-3 top-12 flex-row items-center justify-between rounded-2xl bg-cream/95 px-3 py-2"
-        style={SHADOW_CARD}
-      >
-        <Text className="font-displayblack text-[16px] text-volcanic">
-          Canary<Text className="text-taxi-dark">Cab</Text> 🚕
-        </Text>
-        <LangSwitcher />
-      </View>
-
-      <View className="absolute bottom-2 left-2.5 right-2.5">
-        <Card>
-          {noVerificado && (
-            <View className="mb-2.5 rounded-xl bg-taxi/20 p-2.5">
-              <Text className="font-bodybold text-[13px] text-volcanic">⏳ {t("drv.notVerifiedT")}</Text>
-              <Text className="mt-0.5 font-bodysemi text-[12px] text-volcanic/70">{t("drv.notVerifiedD")}</Text>
-            </View>
-          )}
-          <View className="flex-row items-center">
-            <View className="flex-1">
-              <Text className="font-display text-[15px] text-volcanic">🚕 {user?.nombre?.split(" ")[0]}</Text>
-              <Text className={`mt-0.5 font-bodybold text-[13px] ${online ? "text-atlantic" : "text-volcanic/40"}`}>
-                {online ? `● ${t("drv.online")}` : `○ ${t("drv.offline")}`}
+      <Sheet>
+        {enViaje ? (
+          <View className="gap-3">
+            <View className="flex-row items-center justify-between">
+              <Badge estado={viaje.estado} />
+              <Text className="font-display text-[18px] text-volcanic">
+                {fmtEur(viaje.precioFinal ?? viaje.precioEstimado)}
               </Text>
             </View>
-            <Switch value={online} onValueChange={toggle}
-              trackColor={{ false: "#CFE0EE", true: "#FFC400" }} thumbColor="#fff" />
-          </View>
+            {viaje.detalle ? (
+              <View className="self-start rounded-full bg-taxi/20 px-3 py-1.5">
+                <Text className="font-bodybold text-[12px] text-volcanic">{viaje.detalle}</Text>
+              </View>
+            ) : null}
 
-          {msg ? <Text className="mt-2.5 font-bodybold text-[13px] text-atlantic-dark">{msg}</Text> : null}
-
-          {viaje && (
-            <View className="mt-3 border-t border-sand pt-3">
-              <Text className="font-bodysemi text-[14px] text-volcanic/80" numberOfLines={1}>📍 {viaje.origenTexto || "—"}</Text>
-              <Text className="mt-1 font-bodysemi text-[14px] text-volcanic/80" numberOfLines={1}>🏁 {viaje.destinoTexto || "—"}</Text>
-              {viaje.clienteNombre ? (
-                <Text className="mt-1.5 font-bodybold text-[13px] text-atlantic-dark">🧍 {viaje.clienteNombre}</Text>
-              ) : null}
-              {viaje.clienteTelefono ? (
-                <Btn title={`📞 ${t("ride.call")}`} kind="ghost" className="mt-3"
-                  onPress={() => Linking.openURL(`tel:${viaje.clienteTelefono}`)} />
-              ) : null}
-              {estado === "ACEPTADO" && <Btn title={t("drv.arrivedBtn")} className="mt-3" onPress={() => avanzar("llegada")} />}
-              {estado === "LLEGADO" && <Btn title={t("drv.startBtn")} className="mt-3" onPress={() => avanzar("iniciar")} />}
-              {estado === "EN_CURSO" && <Btn title={t("drv.finishBtn")} kind="dark" className="mt-3" onPress={() => avanzar("finalizar")} />}
+            {/* origen → destino con línea de puntos */}
+            <View className="flex-row items-start gap-2.5">
+              <View className="items-center pt-1">
+                <View className="h-2 w-2 rounded-full bg-taxi" />
+                <View className="my-0.5 h-4 w-px bg-volcanic/20" />
+                <View className="h-2 w-2 rounded-full bg-atlantic-dark" />
+              </View>
+              <View className="flex-1 gap-1.5">
+                <Text className="font-bodysemi text-[13px] text-volcanic" numberOfLines={1}>
+                  {viaje.origenTexto || t("drv.pickup")}
+                </Text>
+                <Text className="font-bodysemi text-[13px] text-volcanic" numberOfLines={1}>
+                  {viaje.destinoTexto || t("drv.dest")}
+                </Text>
+              </View>
             </View>
-          )}
 
-          {!viaje && online && <Text className="mt-2.5 font-bodysemi text-[13px] text-volcanic/50">{t("drv.ready")}</Text>}
-          {!online && <Text className="mt-2.5 font-bodysemi text-[13px] text-volcanic/50">{t("drv.connectToReceive")}</Text>}
-        </Card>
-      </View>
+            {viaje.clienteNombre ? (
+              <View className="flex-row items-center gap-2">
+                <Text className="flex-1 font-bodysemi text-[13px] text-volcanic/70" numberOfLines={1}>
+                  🧍 {viaje.clienteNombre}
+                </Text>
+                {viaje.clienteTelefono ? (
+                  <Pressable
+                    className="rounded-xl bg-volcanic px-3 py-1.5 active:scale-95"
+                    onPress={() => Linking.openURL(`tel:${viaje.clienteTelefono}`)}
+                  >
+                    <Text className="font-bodybold text-[13px] text-cream">📞 {t("ride.call")}</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            ) : null}
 
+            <Text className="font-bodysemi text-[13px] text-volcanic/70">{msg || t("drv.connectToReceive")}</Text>
+
+            {/* 3 fases: llegada / iniciar / finalizar */}
+            <View className="flex-row gap-2">
+              <Btn title={t("drv.arrivedBtn")} kind={estado === "ACEPTADO" ? "primary" : "outline"}
+                disabled={estado !== "ACEPTADO"} onPress={() => avanzar("llegada")} className="flex-1 px-1 py-2.5" />
+              <Btn title={t("drv.startBtn")} kind={estado === "LLEGADO" ? "primary" : "outline"}
+                disabled={estado !== "LLEGADO"} onPress={() => avanzar("iniciar")} className="flex-1 px-1 py-2.5" />
+              <Btn title={t("drv.finishBtn")} kind={estado === "EN_CURSO" ? "primary" : "outline"}
+                disabled={estado !== "EN_CURSO"} onPress={() => avanzar("finalizar")} className="flex-1 px-1 py-2.5" />
+            </View>
+          </View>
+        ) : (
+          <View className="gap-3">
+            <View className="flex-row items-center gap-3">
+              <View className={`h-11 w-11 items-center justify-center rounded-2xl ${online ? "bg-atlantic/15" : "bg-volcanic/10"}`}>
+                <Text className="text-[20px]">🚕</Text>
+              </View>
+              <View className="min-w-0 flex-1">
+                <Text className="font-display text-[15px] text-volcanic">
+                  {estado === "COMPLETADO" ? t("drv.rideDone") : online ? t("drv.online") : t("drv.offline")}
+                </Text>
+                <Text className="font-bodysemi text-[13px] text-volcanic/60" numberOfLines={1}>
+                  {msg || t("drv.connectToReceive")}
+                </Text>
+              </View>
+              {estado === "COMPLETADO" && (
+                <Btn title={t("drv.ready")} kind="dark" className="px-3 py-2" onPress={() => setViaje(null)} />
+              )}
+            </View>
+
+            {!viaje && online && noVerificado && (
+              <View className="rounded-2xl bg-coral/10 px-4 py-3">
+                <Text className="font-bodybold text-[14px] text-coral">{t("drv.notVerifiedT")}</Text>
+                <Text className="mt-0.5 font-body text-[12px] text-volcanic/60">{t("drv.notVerifiedD")}</Text>
+              </View>
+            )}
+
+            {!online && (
+              <Btn title={`🟢 ${t("drv.onlineToggle")}`} onPress={toggleOnline} />
+            )}
+          </View>
+        )}
+      </Sheet>
+
+      {/* solicitud entrante */}
       <Modal visible={!!solicitud} transparent animationType="slide" onRequestClose={() => setSolicitud(null)}>
         <View className="flex-1 justify-end bg-volcanic/60 p-3.5">
           <Card className="pb-6">
