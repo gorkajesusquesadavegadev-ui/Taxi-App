@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "CanaryCab",
+    "slug": "canarycab",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.canarycab.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "CanaryCab usa tu ubicación para mostrarte taxis cercanos y calcular rutas."
+      }
+    },
+    "android": {
+      "package": "com.canarycab.app",
+      "versionCode": 1,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#FFC627",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "CanaryCab usa tu ubicación para mostrarte taxis cercanos y calcular rutas."
+        }
+      ],
+      "expo-font"
+    ],
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
