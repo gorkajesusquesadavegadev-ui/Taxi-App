@@ -1,7 +1,6 @@
 // Home del taxista — espejo de pages/taxista/TaxistaHome.jsx (web, layout móvil).
 import { useEffect, useRef, useState, useCallback } from "react";
 import { View, Text, Modal, Linking, Pressable } from "react-native";
-import { Marker, Circle } from "react-native-maps";
 import Mapa from "../components/Mapa";
 import * as Location from "expo-location";
 import { api } from "../api/client";
@@ -157,18 +156,16 @@ export default function TaxistaHome() {
 
   return (
     <View className="flex-1 bg-cream">
-      <Mapa ref={mapRef} style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} initialRegion={GC} showsUserLocation>
-        {zonas.map((z, i) => (
-          <Circle key={i} center={{ latitude: z.lat, longitude: z.lng }} radius={z.radioM || 500}
-            fillColor={NIVEL_COLOR[z.nivel] || NIVEL_COLOR.BAJO} strokeColor="transparent" />
-        ))}
-        {viaje?.origenLat != null && (
-          <Marker coordinate={{ latitude: viaje.origenLat, longitude: viaje.origenLng }} pinColor="#FFC400" title={t("drv.pickup")} />
-        )}
-        {viaje?.destinoLat != null && (
-          <Marker coordinate={{ latitude: viaje.destinoLat, longitude: viaje.destinoLng }} pinColor="#0B5C9E" title={t("drv.dest")} />
-        )}
-      </Mapa>
+      <Mapa
+        ref={mapRef}
+        style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+        circles={zonas.map((z) => ({ lat: z.lat, lng: z.lng, radius: z.radioM || 500, nivel: z.nivel }))}
+        markers={[
+          ...(pos ? [{ id: "yo", lat: pos.lat, lng: pos.lng, kind: "taxi" }] : []),
+          ...(viaje?.origenLat != null ? [{ id: "o", lat: viaje.origenLat, lng: viaje.origenLng, kind: "origin" }] : []),
+          ...(viaje?.destinoLat != null ? [{ id: "d", lat: viaje.destinoLat, lng: viaje.destinoLng, kind: "destino" }] : []),
+        ]}
+      />
 
       {/* header: título + toggle + idioma */}
       <View

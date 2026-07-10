@@ -1,7 +1,6 @@
 // Home del cliente — espejo de pages/cliente/ClienteHome.jsx (web, layout móvil).
 import { useEffect, useRef, useState, useCallback } from "react";
 import { View, Text, Pressable, Linking, Share, ActivityIndicator } from "react-native";
-import { Marker } from "react-native-maps";
 import Mapa from "../components/Mapa";
 import { api } from "../api/client";
 import { connectWs } from "../api/ws";
@@ -261,23 +260,28 @@ export default function ClienteHome() {
 
   return (
     <View className="flex-1 bg-cream">
-      <Mapa ref={mapRef} style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} initialRegion={GC} showsUserLocation>
-        {origen && <Marker coordinate={{ latitude: origen.lat, longitude: origen.lng }} pinColor="#FFC400" />}
-        {paradas.filter(Boolean).map((p, i) => (
-          <Marker key={`p${i}`} coordinate={{ latitude: p.lat, longitude: p.lng }} pinColor="#0B2E4F" />
-        ))}
-        {destino && <Marker coordinate={{ latitude: destino.lat, longitude: destino.lng }} pinColor="#0B5C9E" />}
-        {taxiPos && (
-          <Marker coordinate={{ latitude: taxiPos.lat, longitude: taxiPos.lng }}>
-            <Text style={{ fontSize: 26 }}>🚕</Text>
-          </Marker>
-        )}
-        {!enCurso && taxis.map((tx, i) => (
-          <Marker key={tx.taxistaId ?? i} coordinate={{ latitude: tx.lat, longitude: tx.lng }} opacity={tx.enViaje ? 0.45 : 1}>
-            <Text style={{ fontSize: 26 }}>🚕</Text>
-          </Marker>
-        ))}
-      </Mapa>
+      <Mapa
+        ref={mapRef}
+        style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+        markers={[
+          ...(origen ? [{ id: "o", lat: origen.lat, lng: origen.lng, kind: "origin" }] : []),
+          ...paradas.filter(Boolean).map((p, i) => ({ id: `p${i}`, lat: p.lat, lng: p.lng, kind: "stop" })),
+          ...(destino ? [{ id: "d", lat: destino.lat, lng: destino.lng, kind: "destino" }] : []),
+          ...(taxiPos ? [{ id: "tx", lat: taxiPos.lat, lng: taxiPos.lng, kind: "taxi" }] : []),
+          ...(!enCurso
+            ? taxis.map((tx, i) => ({
+                id: `t${tx.taxistaId ?? i}`, lat: tx.lat, lng: tx.lng,
+                kind: tx.enViaje ? "carOcupado" : "taxi",
+              }))
+            : []),
+        ]}
+        onMapPress={async (lat, lng) => {
+          if (viaje) return;
+          const label = (await direccionDe(lat, lng)) || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+          if (!origen) setOrigen({ lat, lng, label });
+          else setDestino({ lat, lng, label });
+        }}
+      />
 
       {/* banner: el taxi ha llegado */}
       {estado === "LLEGADO" && (
