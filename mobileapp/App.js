@@ -37,7 +37,18 @@ function Tabs() {
     headerShown: false,
     tabBarActiveTintColor: "#0B2E4F",
     tabBarInactiveTintColor: "#0B2E4F66",
-    tabBarStyle: { backgroundColor: "#FFFFFF", borderTopColor: "#CFE0EE" },
+    tabBarStyle: {
+      backgroundColor: "#FFFFFF",
+      borderTopColor: "#CFE0EE80",
+      height: 60,
+      paddingBottom: 8,
+      paddingTop: 6,
+      shadowColor: "#0B2E4F",
+      shadowOpacity: 0.08,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: -4 },
+      elevation: 10,
+    },
     tabBarLabelStyle: { fontFamily: "InstrumentSans_700Bold", fontSize: 10 },
   };
 
