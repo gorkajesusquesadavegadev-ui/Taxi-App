@@ -172,25 +172,23 @@ export default function TaxistaHome() {
     );
     wsRef.current = ws;
 
-    // Primer fix rápido + seguimiento continuo (sin filtro de distancia:
-    // parado en la parada también cuenta — los pings salen cada 3 s igual).
-    Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
-      .then((p) => {
-        const fix = { lat: p.coords.latitude, lng: p.coords.longitude };
-        posRef.current = fix;
-        setPos(fix);
-        afirmarLibre(fix);
-      })
-      .catch(() => {});
-
+    // Cascada de fixes, del más rápido al más preciso — en interior el GPS puro
+    // puede no dar fix nunca; sin posición jamás se declara LIBRE y no llegan viajes.
+    const usarFix = (p) => {
+      if (!p) return;
+      const fix = { lat: p.coords.latitude, lng: p.coords.longitude };
+      posRef.current = fix;
+      setPos(fix);
+      afirmarLibre(fix);
+    };
+    // 1) Última posición conocida del sistema: instantánea (aunque sea algo vieja)
+    Location.getLastKnownPositionAsync().then(usarFix).catch(() => {});
+    // 2) Fix rápido de red/wifi
+    Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }).then(usarFix).catch(() => {});
+    // 3) Seguimiento continuo (High funciona en interior; sin filtro de distancia)
     watchRef.current = await Location.watchPositionAsync(
-      { accuracy: Location.Accuracy.BestForNavigation, timeInterval: 2000, distanceInterval: 0 },
-      (p) => {
-        const fix = { lat: p.coords.latitude, lng: p.coords.longitude };
-        posRef.current = fix;
-        setPos(fix);
-        afirmarLibre(fix);
-      }
+      { accuracy: Location.Accuracy.High, timeInterval: 2000, distanceInterval: 0 },
+      usarFix
     );
 
     // Ping de posición cada 3 s con el último fix real (aunque estés parado)
