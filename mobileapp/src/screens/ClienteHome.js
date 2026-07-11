@@ -15,7 +15,6 @@ import ValorarModal from "../components/ValorarModal";
 import ReservaModal from "../components/ReservaModal";
 import { Btn, Input, SHADOW_CARD } from "../components/UI";
 
-const GC = { latitude: 28.1, longitude: -15.43, latitudeDelta: 0.4, longitudeDelta: 0.4 };
 const fmtEur = (x) => (x == null ? "—" : `${Number(x).toFixed(2)} €`);
 
 function haversineKm(a, b) {
@@ -150,18 +149,7 @@ export default function ClienteHome() {
     return () => { alive = false; };
   }, [origen?.lat, origen?.lng, destino?.lat, destino?.lng, paradas]);
 
-  // Encajar mapa al elegir destino
-  useEffect(() => {
-    if (origen && destino) {
-      mapRef.current?.fitToCoordinates(
-        [
-          { latitude: origen.lat, longitude: origen.lng },
-          { latitude: destino.lat, longitude: destino.lng },
-        ],
-        { edgePadding: { top: 110, bottom: 420, left: 60, right: 60 }, animated: true }
-      );
-    }
-  }, [origen?.lat, destino?.lat, destino?.lng]);
+  // (El encuadre del mapa lo hace la propia ruta al pintarse — ver Mapa.pintarRuta)
 
   // ── Acciones ──────────────────────────────────────────────────────────────
   async function pedir() {

@@ -14,8 +14,6 @@ import Badge from "../components/Badge";
 import ValorarModal from "../components/ValorarModal";
 import { Btn, Card, SHADOW_CARD } from "../components/UI";
 
-const GC = { latitude: 28.1, longitude: -15.43, latitudeDelta: 0.4, longitudeDelta: 0.4 };
-const NIVEL_COLOR = { ALTO: "#E0313166", MEDIO: "#F08C0055", BAJO: "#FFC40044" };
 const fmtEur = (x) => (x == null ? "—" : `${Number(x).toFixed(2)} €`);
 
 // Toggle píldora online/offline — espejo del OnlineToggle web.
