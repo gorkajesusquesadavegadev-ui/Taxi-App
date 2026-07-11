@@ -48,6 +48,9 @@ export default function TaxistaHome() {
   const wsRef = useRef(null);
   const watchRef = useRef(null);
   const hbRef = useRef(null);
+  const locRef = useRef(null);        // intervalo de pings cada 3 s
+  const posRef = useRef(null);        // último fix GPS real (nunca posición falsa)
+  const afirmadoRef = useRef(false);  // ya declaramos LIBRE al backend
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -81,48 +84,95 @@ export default function TaxistaHome() {
     wsRef.current?.close(); wsRef.current = null;
     watchRef.current?.remove(); watchRef.current = null;
     if (hbRef.current) clearInterval(hbRef.current);
+    if (locRef.current) clearInterval(locRef.current);
+    afirmadoRef.current = false;
+  }, []);
+
+  // Declara LIBRE al backend (Redis GEO + disponibilidad persistente) y manda el primer ping.
+  // Igual que la web: api.estado({estado:"LIBRE", lat, lng}) — salvo que haya viaje activo.
+  const afirmarLibre = useCallback((p) => {
+    if (afirmadoRef.current || !p) return;
+    afirmadoRef.current = true;
+    setMsg(t("drv.connected"));
+    api.taxistaActivo()
+      .then((v) => {
+        if (!v) api.estado({ estado: "LIBRE", lat: p.lat, lng: p.lng }).catch(() => {});
+      })
+      .catch(() => {});
+    wsRef.current?.send("location:update", { lat: p.lat, lng: p.lng });
   }, []);
 
   const encender = useCallback(async () => {
     const ok = await pedirPermisoUbicacion();
     if (!ok) { setMsg(t("ride.errLocGps")); setOnline(false); return; }
 
-    const ws = connectWs((event, data) => {
-      if (event === "trip:new") {
-        setSolicitud(data);
-        ws.send("trip:ack", { viajeId: data.viajeId });
+    const ws = connectWs(
+      (event, data) => {
+        if (event === "trip:new") {
+          setSolicitud(data);
+          ws.send("trip:ack", { viajeId: data.viajeId });
+        }
+        if (event === "trip:assigned") {
+          setSolicitud(null);
+          api.taxistaActivo().then((v) => v && setViaje(v)).catch(() => {});
+        }
+        if (event === "trip:cancelled") {
+          setSolicitud(null);
+          setViaje(null);
+          setMsg(t("drv.clientCancelled"));
+        }
+      },
+      (state) => {
+        // Al (re)conectar el WS, reafirmar LIBRE con el último fix (como la web)
+        if (state === "open") {
+          afirmadoRef.current = false;
+          if (posRef.current) afirmarLibre(posRef.current);
+          else setMsg(t("drv.searchingGps"));
+        }
       }
-      if (event === "trip:assigned") {
-        setSolicitud(null);
-        api.taxistaActivo().then((v) => v && setViaje(v)).catch(() => {});
-      }
-      if (event === "trip:cancelled") {
-        setSolicitud(null);
-        setViaje(null);
-        setMsg(t("drv.clientCancelled"));
-      }
-    });
+    );
     wsRef.current = ws;
 
+    // Primer fix rápido + seguimiento continuo (sin filtro de distancia:
+    // parado en la parada también cuenta — los pings salen cada 3 s igual).
+    Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
+      .then((p) => {
+        const fix = { lat: p.coords.latitude, lng: p.coords.longitude };
+        posRef.current = fix;
+        setPos(fix);
+        afirmarLibre(fix);
+      })
+      .catch(() => {});
+
     watchRef.current = await Location.watchPositionAsync(
-      { accuracy: Location.Accuracy.BestForNavigation, timeInterval: 4000, distanceInterval: 15 },
+      { accuracy: Location.Accuracy.BestForNavigation, timeInterval: 2000, distanceInterval: 0 },
       (p) => {
         const fix = { lat: p.coords.latitude, lng: p.coords.longitude };
+        posRef.current = fix;
         setPos(fix);
-        wsRef.current?.send("location:update", fix);
+        afirmarLibre(fix);
       }
     );
 
+    // Ping de posición cada 3 s con el último fix real (aunque estés parado)
+    locRef.current = setInterval(() => {
+      const p = posRef.current;
+      if (p) wsRef.current?.send("location:update", { lat: p.lat, lng: p.lng });
+    }, 3000);
     hbRef.current = setInterval(() => wsRef.current?.send("heartbeat", {}), 25_000);
-  }, []);
+  }, [afirmarLibre]);
 
   async function toggleOnline() {
-    const v = !online;
-    setOnline(v);
     setMsg("");
-    try { await api.estado({ disponible: v }); } catch (_) {}
-    if (v) encender();
-    else apagar();
+    if (!online) {
+      setOnline(true);
+      encender();
+    } else {
+      try { await api.estado({ estado: "DESCONECTADO" }); } catch (_) {}
+      setOnline(false);
+      apagar();
+      setMsg(t("drv.offline") + ".");
+    }
   }
 
   useEffect(() => () => apagar(), [apagar]);
@@ -135,11 +185,12 @@ export default function TaxistaHome() {
 
   async function aceptar() {
     if (!solicitud) return;
+    const id = solicitud.viajeId ?? solicitud.id;
+    if (!id) { setSolicitud(null); setMsg(t("drv.invalidReq")); return; }
     try {
-      await api.aceptar(solicitud.viajeId);
-      setSolicitud(null);
-      const v = await api.taxistaActivo();
+      const v = await api.aceptar(id);
       if (v) setViaje(v);
+      setSolicitud(null);
       setMsg(`✅ ${t("drv.tripAccepted")}`);
     } catch (e) {
       setSolicitud(null);
