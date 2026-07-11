@@ -38,6 +38,7 @@ export default function TaxistaHome() {
   const { user } = useAuth();
   const { t } = useI18n();
   const [online, setOnline] = useState(false);
+  const [wsEstado, setWsEstado] = useState("closed"); // diagnóstico tiempo real
   const [pos, setPos] = useState(null);
   const [solicitud, setSolicitud] = useState(null);
   const [viaje, setViaje] = useState(null);
@@ -173,6 +174,8 @@ export default function TaxistaHome() {
         }
       },
       (state) => {
+        console.log("[taxista][ws]", state);
+        setWsEstado(state);
         // Al (re)conectar el WS, reafirmar LIBRE con el último fix (como la web)
         if (state === "open") {
           afirmadoRef.current = false;
@@ -202,10 +205,14 @@ export default function TaxistaHome() {
       usarFix
     );
 
-    // Ping de posición cada 3 s con el último fix real (aunque estés parado)
+    // Ping de posición cada 3 s con el último fix real (aunque estés parado).
+    // Doble canal: WS (tiempo real) + REST (a prueba de balas — si el WS se cae,
+    // el backend sigue viéndote y el sondeo de pendientes funciona igual).
     locRef.current = setInterval(() => {
       const p = posRef.current;
-      if (p) wsRef.current?.send("location:update", { lat: p.lat, lng: p.lng });
+      if (!p) return;
+      wsRef.current?.send("location:update", { lat: p.lat, lng: p.lng });
+      api.ping({ lat: p.lat, lng: p.lng }).catch(() => {});
     }, 3000);
     hbRef.current = setInterval(() => wsRef.current?.send("heartbeat", {}), 25_000);
   }, [afirmarLibre]);
@@ -299,6 +306,9 @@ export default function TaxistaHome() {
           Canary<Text className="text-taxi-dark">Cab</Text>
         </Text>
         <View className="flex-row items-center gap-2">
+          {online && (
+            <Text className="text-[13px]">{wsEstado === "open" ? "⚡" : "🐢"}</Text>
+          )}
           <OnlineToggle online={online} onToggle={toggleOnline} t={t} />
           <LangSwitcher />
         </View>

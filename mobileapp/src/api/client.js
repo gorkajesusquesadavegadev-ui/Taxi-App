@@ -77,6 +77,7 @@ export const api = {
     req("GET", `/taxistas/cercanos?lat=${lat}&lng=${lng}${radio ? `&radio=${radio}` : ""}`),
   taxistasOnline: (lat, lng) => req("GET", `/taxistas/online?lat=${lat}&lng=${lng}`),
   estado: (d) => req("PUT", "/taxista/estado", d),
+  ping: (d) => req("POST", "/taxista/ping", d),
   aceptar: (id) => req("PUT", `/viajes/${id}/aceptar`),
   llegada: (id) => req("PUT", `/viajes/${id}/llegada`),
   iniciar: (id) => req("PUT", `/viajes/${id}/iniciar`),

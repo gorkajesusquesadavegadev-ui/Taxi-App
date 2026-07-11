@@ -126,6 +126,24 @@ export default function ClienteHome() {
     return () => ws.close();
   }, []);
 
+  // Red de seguridad: sondear el viaje activo cada 8 s. Si el WS del móvil se
+  // cae, los cambios de estado (aceptado/llegó/en curso/completado) llegan igual.
+  useEffect(() => {
+    if (!viaje?.id || ["COMPLETADO", "CANCELADO"].includes(viaje.estado)) return;
+    const id = setInterval(async () => {
+      try {
+        const v = await api.viaje(viaje.id);
+        if (!v) return;
+        setViaje((prev) => {
+          if (!prev || prev.id !== v.id) return prev;
+          if (v.estado !== prev.estado && v.estado === "COMPLETADO") setValorando(v.id);
+          return { ...prev, ...v };
+        });
+      } catch (_) {}
+    }, 8000);
+    return () => clearInterval(id);
+  }, [viaje?.id, viaje?.estado]);
+
   // ── Sin taxi tras 45 s ────────────────────────────────────────────────────
   useEffect(() => {
     if (!viaje || viaje.estado !== "SOLICITADO") { setSinTaxi(false); return; }

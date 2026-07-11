@@ -13,11 +13,28 @@ public class TaxistaController {
     private final TarifaService tarifa;
     private final ViajeService viajes;
     private final UsuarioRepository usuarios;
-    public TaxistaController(UbicacionService u, TarifaService t, ViajeService v, UsuarioRepository usuarios) {
-        this.ubicacion=u; this.tarifa=t; this.viajes=v; this.usuarios=usuarios;
+    private final com.taya.websocket.TripWsService trips;
+    public TaxistaController(UbicacionService u, TarifaService t, ViajeService v, UsuarioRepository usuarios,
+                             com.taya.websocket.TripWsService trips) {
+        this.ubicacion=u; this.tarifa=t; this.viajes=v; this.usuarios=usuarios; this.trips=trips;
     }
 
     public record EstadoRequest(String estado, Double lat, Double lng) {}
+
+    /**
+     * Ping de posición por REST — equivalente al 'location:update' del WebSocket.
+     * La app móvil lo usa como canal paralelo: si el WS se cae (redes móviles,
+     * app en Expo Go, etc.), el taxista sigue visible, despachable y con el
+     * fallback de 'pendiente-cercano' operativo solo con HTTPS.
+     */
+    public record PingRequest(double lat, double lng) {}
+    @PostMapping("/ping")
+    public void ping(@AuthenticationPrincipal String uid, @RequestBody PingRequest r) {
+        Long id = Long.valueOf(uid);
+        ubicacion.actualizarUbicacion(id, r.lat(), r.lng());
+        Long clienteId = ubicacion.clienteDelViaje(id);
+        if (clienteId != null) trips.enviarUbicacionTaxi(clienteId, r.lat(), r.lng());
+    }
 
     @PutMapping("/estado")
     @Transactional
