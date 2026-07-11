@@ -1,6 +1,6 @@
 // Home del taxista — espejo de pages/taxista/TaxistaHome.jsx (web, layout móvil).
 import { useEffect, useRef, useState, useCallback } from "react";
-import { View, Text, Modal, Linking, Pressable } from "react-native";
+import { View, Text, Modal, Linking, Pressable, Vibration, AppState } from "react-native";
 import Mapa from "../components/Mapa";
 import * as Location from "expo-location";
 import { api } from "../api/client";
@@ -52,6 +52,45 @@ export default function TaxistaHome() {
   const posRef = useRef(null);        // último fix GPS real (nunca posición falsa)
   const afirmadoRef = useRef(false);  // ya declaramos LIBRE al backend
   const mapRef = useRef(null);
+  const solicitudRef = useRef(null);  // acceso desde intervalos sin re-crear closures
+  const viajeRef = useRef(null);
+  useEffect(() => { solicitudRef.current = solicitud; }, [solicitud]);
+  useEffect(() => { viajeRef.current = viaje; }, [viaje]);
+
+  // Solicitud entrante: vibrar como la web (beep+vibrate)
+  function recibirSolicitud(data) {
+    setSolicitud(data);
+    Vibration.vibrate([0, 400, 150, 400]);
+  }
+
+  // Red de seguridad (igual que la web): sondear viajes pendientes cerca cada 5 s.
+  // Cubre avisos WS perdidos (app en segundo plano, microcortes, reconexiones).
+  useEffect(() => {
+    if (!online) return;
+    const id = setInterval(async () => {
+      if (solicitudRef.current || viajeRef.current) return;
+      try {
+        const pend = await api.pendienteCercano();
+        if (pend && !solicitudRef.current) {
+          // pendienteCercano devuelve ViajeResponse (campo `id`); el modal espera `viajeId`
+          recibirSolicitud({ ...pend, viajeId: pend.viajeId ?? pend.id });
+        }
+      } catch (_) {}
+    }, 5000);
+    return () => clearInterval(id);
+  }, [online]);
+
+  // Al volver la app a primer plano: comprobar al instante si hay viaje pendiente
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (st) => {
+      if (st === "active" && online && !solicitudRef.current && !viajeRef.current) {
+        api.pendienteCercano()
+          .then((pend) => pend && recibirSolicitud({ ...pend, viajeId: pend.viajeId ?? pend.id }))
+          .catch(() => {});
+      }
+    });
+    return () => sub.remove();
+  }, [online]);
 
   useEffect(() => {
     api.taxistaActivo().then((v) => v && setViaje(v)).catch(() => {});
@@ -109,7 +148,7 @@ export default function TaxistaHome() {
     const ws = connectWs(
       (event, data) => {
         if (event === "trip:new") {
-          setSolicitud(data);
+          recibirSolicitud(data);
           ws.send("trip:ack", { viajeId: data.viajeId });
         }
         if (event === "trip:assigned") {
@@ -373,6 +412,12 @@ export default function TaxistaHome() {
             <Text className="mb-2 font-display text-[18px] text-volcanic">🚖 {t("drv.newTrip")}</Text>
             {solicitud?.detalle ? (
               <Text className="font-bodysemi text-[14px] text-volcanic/80" numberOfLines={2}>🌋 {solicitud.detalle}</Text>
+            ) : null}
+            {solicitud?.origenTexto ? (
+              <Text className="font-bodysemi text-[14px] text-volcanic/80" numberOfLines={1}>📍 {solicitud.origenTexto}</Text>
+            ) : null}
+            {solicitud?.destinoTexto ? (
+              <Text className="mt-1 font-bodysemi text-[14px] text-volcanic/80" numberOfLines={1}>🏁 {solicitud.destinoTexto}</Text>
             ) : null}
             {solicitud?.zona ? (
               <Text className="mt-1 font-bodysemi text-[14px] text-volcanic/80" numberOfLines={1}>🗺️ {zonaTraducida(t, solicitud.zona)}</Text>
