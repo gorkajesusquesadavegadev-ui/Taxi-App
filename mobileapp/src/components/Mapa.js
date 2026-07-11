@@ -14,8 +14,15 @@ import { WebView } from "react-native-webview";
 
 const HTML = `<!DOCTYPE html><html><head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  onerror="this.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  // Fallback de CDN: si unpkg falla, cargar de cdnjs antes de arrancar.
+  if (typeof L === 'undefined') {
+    document.write('<scr'+'ipt src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"><\\/scr'+'ipt>');
+  }
+</script>
 <style>
   html,body,#map{margin:0;padding:0;height:100%;width:100%;background:#E8F1F8}
   .leaflet-control-attribution{font-size:8px}
@@ -34,6 +41,17 @@ const HTML = `<!DOCTYPE html><html><head>
   /* taxis se deslizan suave entre pings (estilo Uber) */
   .glide{transition:transform 1.1s linear}
 </style></head><body><div id="map"></div><script>
+  function reportar(msg){
+    try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'maperror', msg: String(msg) })); } catch(e){}
+  }
+  window.onerror = function(m, s, l){ reportar(m + ' @' + l); };
+  if (typeof L === 'undefined') {
+    document.getElementById('map').innerHTML =
+      '<div style="display:grid;place-items:center;height:100%;font-family:sans-serif;color:#0B2E4F;text-align:center;padding:20px">'+
+      '<div>🗺️<br/>No se pudo cargar el mapa.<br/><b>Comprueba la conexión a internet.</b></div></div>';
+    reportar('Leaflet no cargó (CDN inaccesible)');
+    throw new Error('leaflet-missing');
+  }
   var map = L.map('map', { zoomControl: false, attributionControl: true })
     .setView([28.1235, -15.4363], 12);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png', {
@@ -168,8 +186,10 @@ const Mapa = forwardRef(function Mapa({ markers = [], circles = [], route = null
             pendientes.current = [];
           }
           if (m.type === "press" && onMapPress) onMapPress(m.lat, m.lng);
+          if (m.type === "maperror") console.log("[mapa] ERROR dentro del WebView:", m.msg);
         } catch (_) {}
       }}
+      onError={(e) => console.log("[mapa] WebView error:", e.nativeEvent?.description)}
     />
   );
 });
