@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { View, Text, Modal, Linking, Pressable, Vibration, AppState } from "react-native";
 import Mapa from "../components/Mapa";
 import * as Location from "expo-location";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import { api } from "../api/client";
 import { connectWs } from "../api/ws";
 import { pedirPermisoUbicacion } from "../api/geo";
@@ -80,17 +81,21 @@ export default function TaxistaHome() {
     return () => clearInterval(id);
   }, [online]);
 
-  // Al volver la app a primer plano: comprobar al instante si hay viaje pendiente
+  // Al volver la app a primer plano: re-declararse LIBRE (el estado en Redis
+  // expira a los 60 s congelada) y comprobar al instante si hay viaje pendiente.
   useEffect(() => {
     const sub = AppState.addEventListener("change", (st) => {
-      if (st === "active" && online && !solicitudRef.current && !viajeRef.current) {
+      if (st !== "active" || !online) return;
+      afirmadoRef.current = false;
+      if (posRef.current && !viajeRef.current) afirmarLibre(posRef.current);
+      if (!solicitudRef.current && !viajeRef.current) {
         api.pendienteCercano()
           .then((pend) => pend && recibirSolicitud({ ...pend, viajeId: pend.viajeId ?? pend.id }))
           .catch(() => {});
       }
     });
     return () => sub.remove();
-  }, [online]);
+  }, [online, afirmarLibre]);
 
   useEffect(() => {
     api.taxistaActivo().then((v) => v && setViaje(v)).catch(() => {});
@@ -125,6 +130,7 @@ export default function TaxistaHome() {
     if (hbRef.current) clearInterval(hbRef.current);
     if (locRef.current) clearInterval(locRef.current);
     afirmadoRef.current = false;
+    deactivateKeepAwake("taxista-online").catch?.(() => {});
   }, []);
 
   // Declara LIBRE al backend (Redis GEO + disponibilidad persistente) y manda el primer ping.
@@ -144,6 +150,11 @@ export default function TaxistaHome() {
   const encender = useCallback(async () => {
     const ok = await pedirPermisoUbicacion();
     if (!ok) { setMsg(t("ride.errLocGps")); setOnline(false); return; }
+
+    // Pantalla siempre encendida mientras estás en línea: si Android congela
+    // la app (pantalla apagada), los pings paran y el backend te expira a los
+    // 60 s → desapareces del mapa y no te llegan viajes. Como Uber.
+    activateKeepAwakeAsync("taxista-online").catch(() => {});
 
     const ws = connectWs(
       (event, data) => {
