@@ -33,17 +33,23 @@ export async function ubicacionPrecisa({ maxWaitMs = 7000, buenaPrecision = 25 }
       if (timer) clearTimeout(timer);
       resolve(mejor);
     };
+    const considerar = (p) => {
+      if (!p) return;
+      const fix = { lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy ?? 9999 };
+      if (!mejor || fix.accuracy < mejor.accuracy) mejor = fix;
+      if (fix.accuracy <= buenaPrecision) finish();
+    };
+    // Cascada (igual que el taxista): en interior el GPS puro puede no dar fix
+    // nunca — sin esto, el cliente se queda sin origen y no ve taxis ni puede pedir.
+    Location.getLastKnownPositionAsync().then(considerar).catch(() => {});
+    Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }).then(considerar).catch(() => {});
     try {
       sub = await Location.watchPositionAsync(
-        { accuracy: Location.Accuracy.BestForNavigation, timeInterval: 800, distanceInterval: 0 },
-        (p) => {
-          const fix = { lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy ?? 999 };
-          if (!mejor || fix.accuracy < mejor.accuracy) mejor = fix;
-          if (fix.accuracy <= buenaPrecision) finish();
-        }
+        { accuracy: Location.Accuracy.High, timeInterval: 800, distanceInterval: 0 },
+        considerar
       );
     } catch {
-      return finish();
+      /* seguimos con lastKnown/Balanced hasta el timeout */
     }
     timer = setTimeout(finish, maxWaitMs);
   });

@@ -90,11 +90,14 @@ export default function ClienteHome() {
   }, [viaje?.id]);
 
   // ── Taxis online ──────────────────────────────────────────────────────────
+  // Siempre visibles: sin GPS todavía se consulta centrado en Las Palmas
+  // (radio 60 km cubre la isla) — el cliente ve los taxis nada más entrar.
   useEffect(() => {
-    if (!origen) return;
     let alive = true;
+    const lat = origen?.lat ?? 28.1235;
+    const lng = origen?.lng ?? -15.4363;
     const load = () =>
-      api.taxistasOnline(origen.lat, origen.lng)
+      api.taxistasOnline(lat, lng)
         .then((d) => alive && setTaxis(d || []))
         .catch(() => {});
     load();
