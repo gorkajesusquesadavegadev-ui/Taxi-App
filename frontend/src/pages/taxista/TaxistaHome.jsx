@@ -126,20 +126,29 @@ export default function TaxistaHome() {
     return () => { alive = false; };
   }, [incoming?.viajeId]);
 
-  // GPS real del taxista. Rechaza fixes basura (geolocalización por IP da
-  // accuracy de miles de m): un taxi DEBE publicar su posición real, no una
-  // aproximación de ciudad — si no, el cliente lo ve donde no está.
+  // GPS real del taxista. Prefiere fixes precisos (≤1000 m); la geolocalización
+  // por IP/wifi de un PC da precisión de km — se acepta SOLO como último recurso
+  // tras 12 s sin fix bueno (para poder probar desde ordenador). Si el permiso
+  // está bloqueado en el navegador, se avisa claramente en pantalla.
+  const [gpsBloqueado, setGpsBloqueado] = useState(false);
+  const coarseRef = useRef(null); // mejor fix aproximado visto
   useEffect(() => {
     if (!navigator.geolocation) return;
     const id = navigator.geolocation.watchPosition(
       (p) => {
-        if (p.coords.accuracy > 1000) return; // IP-based garbage, ignorar
-        setPos({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy });
+        setGpsBloqueado(false);
+        const fix = { lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy };
+        if (fix.accuracy <= 1000) { setPos(fix); return; }
+        if (!coarseRef.current || fix.accuracy < coarseRef.current.accuracy) coarseRef.current = fix;
       },
-      () => {},
+      (err) => { if (err && err.code === 1) setGpsBloqueado(true); }, // 1 = permiso denegado
       { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
     );
-    return () => navigator.geolocation.clearWatch(id);
+    // Último recurso: sin fix preciso en 12 s, usar el aproximado (PC de pruebas)
+    const fallback = setTimeout(() => {
+      setPos((actual) => actual ?? coarseRef.current ?? null);
+    }, 12000);
+    return () => { navigator.geolocation.clearWatch(id); clearTimeout(fallback); };
   }, []);
 
   // Si el taxista se puso online antes de tener GPS, el handler "open" no pudo
@@ -532,6 +541,12 @@ export default function TaxistaHome() {
                     <p className="mt-0.5 text-xs text-volcanic/60">
                       {t("drv.notVerifiedD")}
                     </p>
+                  </div>
+                )}
+                {gpsBloqueado && (
+                  <div className="rounded-2xl bg-coral/10 px-4 py-3 text-sm">
+                    <p className="font-bold text-coral">📵 {t("drv.gpsBlockedT")}</p>
+                    <p className="mt-0.5 text-xs text-volcanic/60">{t("drv.gpsBlockedD")}</p>
                   </div>
                 )}
               </div>
