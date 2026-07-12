@@ -133,6 +133,13 @@ public class ViajeService {
 
     @Transactional
     public ViajeResponse aceptar(Long viajeId, Long taxistaId) {
+        // Solo taxistas verificados (y no bloqueados) pueden aceptar viajes:
+        // el matching ya los filtra, pero el endpoint debe imponerlo igualmente.
+        usuarios.findById(taxistaId).ifPresent(u -> {
+            if (!u.isVerificado() || u.isBloqueado())
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Cuenta pendiente de verificación por el administrador");
+        });
         int updated = viajes.aceptarSiDisponible(viajeId, taxistaId, Instant.now());
         if (updated == 0)
             throw new ResponseStatusException(HttpStatus.CONFLICT, "viaje ya no disponible");
@@ -363,6 +370,10 @@ public class ViajeService {
      * Used by taxista frontend every 5s to catch any WS-missed dispatch.
      */
     public ViajeResponse pendienteCercanoParaTaxista(Long taxistaId) {
+        // Mismo filtro que el matching: los no verificados/bloqueados no ven
+        // viajes pendientes (este endpoint es el canal de sondeo del taxista).
+        var taxista = usuarios.findById(taxistaId).orElse(null);
+        if (taxista == null || !taxista.isVerificado() || taxista.isBloqueado()) return null;
         String ubic = ubicacion.ubicacion(taxistaId);
         if (ubic == null) return null;
         String[] parts = ubic.split(",");

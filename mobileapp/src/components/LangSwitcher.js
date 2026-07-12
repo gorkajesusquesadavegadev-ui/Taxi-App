@@ -1,26 +1,28 @@
+// Selector de idioma — píldoras de texto (los emoji de bandera se renderizan
+// mal o como letras en muchos Android; texto = perfecto en cualquier equipo).
 import { View, Text, Pressable } from "react-native";
 import { useI18n } from "../i18n";
 
-const LANGS = [
-  { id: "es", flag: "🇪🇸" },
-  { id: "en", flag: "🇬🇧" },
-  { id: "de", flag: "🇩🇪" },
-];
+const LANGS = ["es", "en", "de"];
 
 export default function LangSwitcher() {
   const { lang, setLang } = useI18n();
   return (
-    <View className="flex-row gap-1.5">
+    <View className="flex-row overflow-hidden rounded-full border border-volcanic/15 bg-white/90">
       {LANGS.map((l) => (
         <Pressable
-          key={l.id}
-          onPress={() => setLang(l.id)}
-          accessibilityLabel={l.id}
-          className={`rounded-full border px-2 py-1 ${
-            lang === l.id ? "border-taxi bg-sand opacity-100" : "border-transparent opacity-50"
-          }`}
+          key={l}
+          onPress={() => setLang(l)}
+          accessibilityLabel={l}
+          className={`px-2.5 py-1.5 ${lang === l ? "bg-volcanic" : ""}`}
         >
-          <Text className="text-[17px]">{l.flag}</Text>
+          <Text
+            className={`font-bodybold text-[11px] uppercase tracking-wide ${
+              lang === l ? "text-taxi" : "text-volcanic/55"
+            }`}
+          >
+            {l}
+          </Text>
         </Pressable>
       ))}
     </View>
