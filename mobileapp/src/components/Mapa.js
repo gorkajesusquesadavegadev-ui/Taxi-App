@@ -40,6 +40,15 @@ const HTML = `<!DOCTYPE html><html><head>
     background:#0B2E4F;border:3px solid #fff;box-shadow:0 4px 12px -2px rgba(11,46,79,.6)}
   /* taxis se deslizan suave entre pings (estilo Uber) */
   .glide{transition:transform 1.1s linear}
+  /* radar de búsqueda: ondas que se expanden desde el punto de recogida */
+  .taya-radar{position:relative;width:30px;height:30px}
+  .taya-radar span{position:absolute;inset:0;margin:auto;width:22px;height:22px;border-radius:50%;
+    border:3px solid #FFC400;animation:radar 2.2s ease-out infinite}
+  .taya-radar span:nth-child(2){animation-delay:.7s}
+  .taya-radar span:nth-child(3){animation-delay:1.4s}
+  .taya-radar i{position:absolute;inset:0;margin:auto;width:14px;height:14px;border-radius:50%;
+    background:#FFC400;border:3px solid #fff;box-shadow:0 2px 8px rgba(11,46,79,.5)}
+  @keyframes radar{0%{transform:scale(.5);opacity:.9}100%{transform:scale(4.5);opacity:0}}
 </style></head><body><div id="map"></div><script>
   function reportar(msg){
     try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'maperror', msg: String(msg) })); } catch(e){}
@@ -77,10 +86,13 @@ const HTML = `<!DOCTYPE html><html><head>
         '<path d="M6 17v1.5M18 17v1.5M5 17h14"/><circle cx="7.5" cy="16.5" r="1.3"/><circle cx="16.5" cy="16.5" r="1.3"/></svg></div>' });
   }
   var taxiIcon = carIcon('#FFC400'), ocupadoIcon = carIcon('#94a3b8');
+  var radarIcon = L.divIcon({ className:'', iconSize:[30,30], iconAnchor:[15,15],
+    html: '<div class="taya-radar"><span></span><span></span><span></span><i></i></div>' });
   function iconFor(kind){
     if (kind === 'taxi') return taxiIcon;
     if (kind === 'carOcupado') return ocupadoIcon;
     if (kind === 'destino') return flagIcon;
+    if (kind === 'radar') return radarIcon;
     return dotIcon(kind);
   }
 

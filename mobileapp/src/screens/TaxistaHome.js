@@ -1,6 +1,6 @@
 // Home del taxista — espejo de pages/taxista/TaxistaHome.jsx (web, layout móvil).
 import { useEffect, useRef, useState, useCallback } from "react";
-import { View, Text, Modal, Linking, Pressable, Vibration, AppState } from "react-native";
+import { View, Text, Modal, Linking, Pressable, Vibration, AppState, Animated, Easing } from "react-native";
 import Mapa from "../components/Mapa";
 import * as Location from "expo-location";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
@@ -59,10 +59,17 @@ export default function TaxistaHome() {
   useEffect(() => { solicitudRef.current = solicitud; }, [solicitud]);
   useEffect(() => { viajeRef.current = viaje; }, [viaje]);
 
-  // Solicitud entrante: vibrar como la web (beep+vibrate)
+  // Solicitud entrante: vibrar + cuenta atrás de 30 s (barra estilo Uber)
+  const cuentaAtras = useRef(new Animated.Value(1)).current;
   function recibirSolicitud(data) {
     setSolicitud(data);
     Vibration.vibrate([0, 400, 150, 400]);
+    cuentaAtras.setValue(1);
+    Animated.timing(cuentaAtras, {
+      toValue: 0, duration: 30_000, easing: Easing.linear, useNativeDriver: false,
+    }).start(({ finished }) => {
+      if (finished) setSolicitud((s) => (s && s.viajeId === data.viajeId ? null : s));
+    });
   }
 
   // Red de seguridad (igual que la web): sondear viajes pendientes cerca cada 5 s.
@@ -428,6 +435,13 @@ export default function TaxistaHome() {
       <Modal visible={!!solicitud} transparent animationType="slide" onRequestClose={() => setSolicitud(null)}>
         <View className="flex-1 justify-end bg-volcanic/60 p-3.5">
           <Card className="pb-6">
+            {/* barra de tiempo restante (30 s) */}
+            <View className="mb-3 h-1.5 overflow-hidden rounded-full bg-sand">
+              <Animated.View
+                className="h-full rounded-full bg-taxi"
+                style={{ width: cuentaAtras.interpolate({ inputRange: [0, 1], outputRange: ["0%", "100%"] }) }}
+              />
+            </View>
             <Text className="mb-2 font-display text-[18px] text-volcanic">🚖 {t("drv.newTrip")}</Text>
             {solicitud?.detalle ? (
               <Text className="font-bodysemi text-[14px] text-volcanic/80" numberOfLines={2}>🌋 {solicitud.detalle}</Text>

@@ -35,6 +35,7 @@ function Tabs() {
   const { t } = useI18n();
   const opts = {
     headerShown: false,
+    animation: "shift",
     tabBarActiveTintColor: "#0B2E4F",
     tabBarInactiveTintColor: "#0B2E4F66",
     tabBarStyle: {

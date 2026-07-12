@@ -291,6 +291,10 @@ export default function ClienteHome() {
         ref={mapRef}
         style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
         markers={[
+          // radar de búsqueda mientras se asigna taxi
+          ...(estado === "SOLICITADO" && viaje?.origenLat
+            ? [{ id: "radar", lat: viaje.origenLat, lng: viaje.origenLng, kind: "radar" }]
+            : []),
           ...(origen ? [{ id: "o", lat: origen.lat, lng: origen.lng, kind: "origin" }] : []),
           ...paradas.filter(Boolean).map((p, i) => ({ id: `p${i}`, lat: p.lat, lng: p.lng, kind: "stop" })),
           ...(destino ? [{ id: "d", lat: destino.lat, lng: destino.lng, kind: "destino" }] : []),
