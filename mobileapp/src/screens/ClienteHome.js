@@ -127,7 +127,8 @@ export default function ClienteHome() {
   }, []);
 
   // Red de seguridad: sondear el viaje activo cada 8 s. Si el WS del móvil se
-  // cae, los cambios de estado (aceptado/llegó/en curso/completado) llegan igual.
+  // cae, los cambios de estado (aceptado/llegó/en curso/completado) llegan igual,
+  // y la posición del taxi asignado se saca de taxistas/online (se ve moverse).
   useEffect(() => {
     if (!viaje?.id || ["COMPLETADO", "CANCELADO"].includes(viaje.estado)) return;
     const id = setInterval(async () => {
@@ -139,6 +140,12 @@ export default function ClienteHome() {
           if (v.estado !== prev.estado && v.estado === "COMPLETADO") setValorando(v.id);
           return { ...prev, ...v };
         });
+        // Posición en vivo del taxi asignado (fallback sin WS)
+        if (v.taxistaId && v.origenLat != null) {
+          const cerca = await api.taxistasOnline(v.origenLat, v.origenLng);
+          const mio = (cerca || []).find((x) => x.taxistaId === v.taxistaId);
+          if (mio) setTaxiPos({ lat: mio.lat, lng: mio.lng });
+        }
       } catch (_) {}
     }, 8000);
     return () => clearInterval(id);
