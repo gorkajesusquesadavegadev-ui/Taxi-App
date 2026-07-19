@@ -166,7 +166,7 @@ export default function Ofertas({ tipo }) {
                   onSolicitar={() => solicitar(o)}
                   onReservar={() => setReservando(o)}
                   t={t}
-                  precioLabel={esTransfer ? t("of.closedPrice") : t("of.approxPrice")}
+                  precioLabel={t("of.approxPrice")}
                 />
               ))}
             </div>
@@ -177,7 +177,7 @@ export default function Ofertas({ tipo }) {
       {reservando && (
         <ReservaModal
           titulo={`${t("of.bookPrefix")} · ${ofTxt(t, reservando.id, "n", reservando.nombre)}`}
-          subtitulo={`${fmtEur(reservando.precio)} ${esTransfer ? t("of.closedPrice") : t("of.approxPrice")} · ${ofTxt(t, reservando.id, "dur", reservando.duracion)}`}
+          subtitulo={`${fmtEur(reservando.precio)} ${t("of.approxPrice")} · ${ofTxt(t, reservando.id, "dur", reservando.duracion)}`}
           onConfirm={confirmarReserva}
           onClose={() => setReservando(null)}
         />
