@@ -42,6 +42,28 @@ export default function OfertasScreen() {
     return () => clearTimeout(id);
   }, [queryRec]);
 
+  // Transfers: re-preciar desde la recogida elegida (mismo criterio que la web).
+  const [preciosRecogida, setPreciosRecogida] = useState({});
+  useEffect(() => {
+    const esT = tipo === "transfers";
+    if (!esT || !recogida || !items?.length) { setPreciosRecogida({}); return; }
+    let alive = true;
+    Promise.all(
+      items.map((o) =>
+        api.estimar({
+          origenLat: recogida.lat, origenLng: recogida.lng,
+          destinoLat: o.destinoLat, destinoLng: o.destinoLng, paradas: [],
+        })
+          .then((e) => [o.id, e.precioEstimado])
+          .catch(() => null)
+      )
+    ).then((pares) => {
+      if (!alive) return;
+      setPreciosRecogida(Object.fromEntries(pares.filter(Boolean)));
+    });
+    return () => { alive = false; };
+  }, [tipo, recogida?.lat, recogida?.lng, items]);
+
   async function usarGps() {
     const p = await ubicacionPrecisa();
     if (p) setRecogida({ lat: p.lat, lng: p.lng, label: t("ride.useMyLocation") });
@@ -126,7 +148,9 @@ export default function OfertasScreen() {
           <Card className="mb-2.5">
             <View className="flex-row items-start justify-between gap-2">
               <Text className="flex-1 font-display text-[15px] text-volcanic">{ofTxt(t, o.id, "n", o.nombre)}</Text>
-              <Text className="font-display text-[17px] text-taxi-dark">{Number(o.precio).toFixed(0)} €</Text>
+              <Text className="font-display text-[17px] text-taxi-dark">
+                {Number(preciosRecogida[o.id] ?? o.precio).toFixed(0)} €
+              </Text>
             </View>
             <Text className="mt-1 font-body text-[13px] leading-[18px] text-volcanic/70">{ofTxt(t, o.id, "d", o.descripcion)}</Text>
             <Text className="mt-1.5 font-bodysemi text-[12px] text-volcanic/50">

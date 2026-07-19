@@ -80,6 +80,28 @@ export default function Ofertas({ tipo }) {
     };
   }, [tipo]);
 
+  // Transfers: re-preciar desde la recogida elegida (no es lo mismo salir de
+  // Jamat que de Santa Catalina). Excursiones: precio fijo por duración.
+  const [preciosRecogida, setPreciosRecogida] = useState({});
+  useEffect(() => {
+    if (!esTransfer || !recogida || !items?.length) { setPreciosRecogida({}); return; }
+    let alive = true;
+    Promise.all(
+      items.map((o) =>
+        api.estimar({
+          origenLat: recogida.lat, origenLng: recogida.lng,
+          destinoLat: o.destinoLat, destinoLng: o.destinoLng, paradas: [],
+        })
+          .then((e) => [o.id, e.precioEstimado])
+          .catch(() => null)
+      )
+    ).then((pares) => {
+      if (!alive) return;
+      setPreciosRecogida(Object.fromEntries(pares.filter(Boolean)));
+    });
+    return () => { alive = false; };
+  }, [esTransfer, recogida?.lat, recogida?.lng, items]);
+
   async function solicitar(oferta) {
     setBusyId(oferta.id);
     setError("");
@@ -160,7 +182,7 @@ export default function Ofertas({ tipo }) {
               {items.map((o) => (
                 <OfertaCard
                   key={o.id}
-                  oferta={o}
+                  oferta={preciosRecogida[o.id] != null ? { ...o, precio: preciosRecogida[o.id] } : o}
                   icon={esTransfer ? IconPlane : IconCompass}
                   busy={busyId === o.id}
                   onSolicitar={() => solicitar(o)}

@@ -121,7 +121,18 @@ public class ViajeService {
         v.setDestinoLat(of.destinoLat()); v.setDestinoLng(of.destinoLng());
         v.setDestinoTexto(of.nombre()); // origenTexto lo resuelve el backfill async
         v.setDistanciaEstimadaKm(BigDecimal.valueOf(ruta.km()));
-        v.setPrecioEstimado(of.precio()); // precio cerrado del catálogo, no taxímetro
+        // TRANSFER: tarifa vigente sobre la ruta REAL desde la recogida elegida
+        // (no es lo mismo salir de Jamat que de Santa Catalina).
+        // EXCURSIÓN: precio por duración del catálogo, independiente de la recogida.
+        if (of.tipo() == com.taya.model.TipoViaje.TRANSFER) {
+            java.math.BigDecimal p;
+            try {
+                p = tarifa.precioPorRuta(oLat, oLng, of.destinoLat(), of.destinoLng(), ruta.km());
+            } catch (Exception e) { p = of.precio(); }
+            v.setPrecioEstimado(p != null ? p : of.precio());
+        } else {
+            v.setPrecioEstimado(of.precio());
+        }
         v.setTipo(of.tipo());
         v.setDetalle(of.nombre());
         v.setOfertaId(of.id());
