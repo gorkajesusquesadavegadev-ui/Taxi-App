@@ -17,7 +17,7 @@ const ofTxt = (t, id, campo, fallback) => {
   return v === k ? (fallback || "") : v;
 };
 
-function OfertaCard({ oferta, busy, onSolicitar, onReservar, icon: Icon, t }) {
+function OfertaCard({ oferta, busy, onSolicitar, onReservar, icon: Icon, t, precioLabel }) {
   return (
     <article className="surface flex flex-col p-4 transition-shadow hover:shadow-float">
       <div className="flex items-start gap-3">
@@ -38,7 +38,7 @@ function OfertaCard({ oferta, busy, onSolicitar, onReservar, icon: Icon, t }) {
       <div className="mt-3 border-t border-sand-deep/60 pt-3">
         <p className="font-display text-xl font-extrabold">
           {fmtEur(oferta.precio)}
-          <span className="ml-1 text-xs font-medium text-volcanic/45">{t("of.closedPrice")}</span>
+          <span className="ml-1 text-xs font-medium text-volcanic/45">{precioLabel}</span>
         </p>
         <div className="mt-2 grid grid-cols-2 gap-2">
           <Button size="sm" variant="outline" onClick={onReservar}>
@@ -166,6 +166,7 @@ export default function Ofertas({ tipo }) {
                   onSolicitar={() => solicitar(o)}
                   onReservar={() => setReservando(o)}
                   t={t}
+                  precioLabel={esTransfer ? t("of.closedPrice") : t("of.approxPrice")}
                 />
               ))}
             </div>
@@ -176,7 +177,7 @@ export default function Ofertas({ tipo }) {
       {reservando && (
         <ReservaModal
           titulo={`${t("of.bookPrefix")} · ${ofTxt(t, reservando.id, "n", reservando.nombre)}`}
-          subtitulo={`${fmtEur(reservando.precio)} ${t("of.closedPrice")} · ${ofTxt(t, reservando.id, "dur", reservando.duracion)}`}
+          subtitulo={`${fmtEur(reservando.precio)} ${esTransfer ? t("of.closedPrice") : t("of.approxPrice")} · ${ofTxt(t, reservando.id, "dur", reservando.duracion)}`}
           onConfirm={confirmarReserva}
           onClose={() => setReservando(null)}
         />

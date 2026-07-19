@@ -130,7 +130,7 @@ export default function OfertasScreen() {
             </View>
             <Text className="mt-1 font-body text-[13px] leading-[18px] text-volcanic/70">{ofTxt(t, o.id, "d", o.descripcion)}</Text>
             <Text className="mt-1.5 font-bodysemi text-[12px] text-volcanic/50">
-              {o.duracion ? `⏱️ ${ofTxt(t, o.id, "dur", o.duracion)} · ` : ""}👥 {t("of.upTo4")} · {t("of.closedPrice")}
+              {o.duracion ? `⏱️ ${ofTxt(t, o.id, "dur", o.duracion)} · ` : ""}👥 {t("of.upTo4")} · {esTransfer ? t("of.closedPrice") : t("of.approxPrice")}
             </Text>
             <View className="mt-2.5 flex-row gap-2">
               <Btn title={`🚕 ${t("of.now")}`} className="flex-1" busy={busyId === o.id} onPress={() => pedirAhora(o)} />
