@@ -1,6 +1,6 @@
 // Ajustes: perfil, contraseña, idioma, legal, cuenta — espejo de Ajustes.jsx.
 import { useState } from "react";
-import { View, Text, ScrollView, Switch, Linking } from "react-native";
+import { View, Text, ScrollView, Switch, Linking, Share, Pressable } from "react-native";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useI18n } from "../i18n";
@@ -24,6 +24,14 @@ export default function AjustesScreen() {
   const [pwdNueva, setPwdNueva] = useState("");
   const [msgPwd, setMsgPwd] = useState(null);
   const [busyPwd, setBusyPwd] = useState(false);
+
+  // RGPD: exportar datos + eliminar cuenta
+  const [exportando, setExportando] = useState(false);
+  const [exportMsg, setExportMsg] = useState("");
+  const [confirmandoBorrado, setConfirmandoBorrado] = useState(false);
+  const [pwdBorrado, setPwdBorrado] = useState("");
+  const [borrando, setBorrando] = useState(false);
+  const [borradoMsg, setBorradoMsg] = useState("");
 
   async function guardarPerfil() {
     setBusyPerfil(true); setMsgPerfil(null);
@@ -55,6 +63,29 @@ export default function AjustesScreen() {
       setMsgPwd({ ok: false, text: e.message || t("set.couldNotChange") });
     } finally {
       setBusyPwd(false);
+    }
+  }
+
+  async function exportarDatos() {
+    setExportando(true); setExportMsg("");
+    try {
+      const datos = await api.exportarMisDatos();
+      await Share.share({ message: JSON.stringify(datos, null, 2), title: "Mis datos CanaryCab" });
+    } catch (e) {
+      setExportMsg(e.message || "No se pudo exportar");
+    } finally {
+      setExportando(false);
+    }
+  }
+
+  async function eliminarCuenta() {
+    setBorrando(true); setBorradoMsg("");
+    try {
+      await api.eliminarCuenta({ password: pwdBorrado });
+      logout();
+    } catch (e) {
+      setBorradoMsg(e.message || "No se pudo eliminar la cuenta");
+      setBorrando(false);
     }
   }
 
@@ -116,6 +147,40 @@ export default function AjustesScreen() {
         )}
         <Btn title={t("set.changePwd")} kind="dark" onPress={cambiarPwd} busy={busyPwd}
           disabled={!pwdActual || !pwdNueva} className="mt-3" />
+      </Card>
+
+      <Card className="mb-3.5">
+        <Text className="mb-1 font-display text-[14px] text-volcanic">Tus datos</Text>
+        <Text className="font-body text-[12px] text-volcanic/50">
+          Descarga una copia de todo lo que guardamos de ti, o elimina tu cuenta por completo.
+        </Text>
+        <Btn title={exportando ? "Exportando…" : "⬇️ Descargar mis datos"} kind="ghost" busy={exportando}
+          onPress={exportarDatos} className="mt-3" />
+        {exportMsg ? <Text className="mt-1.5 font-bodybold text-[12px] text-coral">{exportMsg}</Text> : null}
+
+        {!confirmandoBorrado ? (
+          <Pressable onPress={() => setConfirmandoBorrado(true)} className="mt-3">
+            <Text className="font-bodybold text-[13px] text-coral">Eliminar mi cuenta permanentemente</Text>
+          </Pressable>
+        ) : (
+          <View className="mt-3 rounded-2xl border-2 border-coral/30 bg-coral/5 p-3">
+            <Text className="font-bodybold text-[13px] text-coral">¿Seguro que quieres eliminar tu cuenta?</Text>
+            <Text className="mt-1 font-body text-[11px] text-volcanic/60">
+              Perfil, teléfono, favoritos y mensajes del foro se eliminan de inmediato. El historial
+              de viajes se conserva anónimo 5 años por obligación fiscal, sin datos que te identifiquen.
+            </Text>
+            <Input value={pwdBorrado} onChangeText={setPwdBorrado} secureTextEntry
+              placeholder="Confirma tu contraseña" className="mt-2.5" />
+            <View className="mt-2.5 flex-row items-center gap-3">
+              <Btn title={borrando ? "Eliminando…" : "Sí, eliminar"} kind="danger" busy={borrando}
+                disabled={!pwdBorrado} onPress={eliminarCuenta} className="flex-1" />
+              <Pressable onPress={() => { setConfirmandoBorrado(false); setPwdBorrado(""); setBorradoMsg(""); }}>
+                <Text className="font-bodysemi text-[13px] text-volcanic/60">Cancelar</Text>
+              </Pressable>
+            </View>
+            {borradoMsg ? <Text className="mt-2 font-bodybold text-[12px] text-coral">{borradoMsg}</Text> : null}
+          </View>
+        )}
       </Card>
 
       <Card className="mb-3.5">

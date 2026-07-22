@@ -45,10 +45,16 @@ public class TaxistaController {
         else ubicacion.setDesconectado(id);
         // Disponibilidad persistente para PUSH (no caduca al cerrar la app).
         // 'Desconectar' explícito = no disponible; conectar = disponible + posición.
+        // Minimización de datos (RGPD art. 5.1.c): la última posición solo se
+        // conserva mientras el taxista está disponible para recibir avisos
+        // push; al desconectar se borra, tal y como indica la política de
+        // privacidad ("no se almacena de forma permanente").
         usuarios.findById(id).ifPresent(u -> {
             u.setDisponible(libre);
             if (libre && r.lat() != null && r.lng() != null) {
                 u.setUltimaLat(r.lat()); u.setUltimaLng(r.lng());
+            } else if (!libre) {
+                u.setUltimaLat(null); u.setUltimaLng(null);
             }
             usuarios.save(u);
         });

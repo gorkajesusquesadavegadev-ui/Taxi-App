@@ -8,6 +8,7 @@ import java.util.List;
 public interface ValoracionRepository extends JpaRepository<Valoracion, Long> {
     boolean existsByViajeIdAndAutorId(Long viajeId, Long autorId);
     List<Valoracion> findByDestinatarioIdOrderByCreadoEnDesc(Long destinatarioId);
+    List<Valoracion> findByAutorId(Long autorId);
 
     @Query("select coalesce(avg(v.estrellas), 0) from Valoracion v where v.destinatarioId = :uid")
     double mediaDe(@Param("uid") Long uid);

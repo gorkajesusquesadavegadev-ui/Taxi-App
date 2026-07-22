@@ -6,4 +6,5 @@ import java.util.List;
 public interface MensajeForoRepository extends JpaRepository<MensajeForo, Long> {
     /** Últimos 100 mensajes (más recientes primero); el frontend los invierte. */
     List<MensajeForo> findTop100ByOrderByCreadoEnDesc();
+    List<MensajeForo> findByAutorId(Long autorId);
 }

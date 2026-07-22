@@ -44,7 +44,12 @@ export const LEGAL = {
         },
         {
           t: "6. Derechos del usuario",
-          p: ["De acuerdo con el RGPD y la LOPDGDD, puede ejercer sus derechos de **acceso, rectificación, supresión, limitación, portabilidad y oposición** enviando un correo a **privacidad@canarycab.com**. También puede presentar una reclamación ante la Agencia Española de Protección de Datos (www.aepd.es)."],
+          p: [
+            "De acuerdo con el RGPD y la LOPDGDD, puede ejercer sus derechos de **acceso, rectificación, supresión, limitación, portabilidad y oposición**.",
+            "**Acceso y portabilidad:** desde Ajustes → Tus datos → «Descargar mis datos» puede obtener al instante una copia completa en formato JSON de todo lo que guardamos sobre usted.",
+            "**Supresión:** desde Ajustes → Tus datos → «Eliminar mi cuenta» puede borrar su cuenta de forma inmediata y autónoma, sin necesidad de escribirnos. El historial de viajes se conserva de forma **anónima** 5 años por obligación fiscal (art. 17.3.b RGPD), pero deja de estar vinculado a su identidad.",
+            "Para rectificación, limitación u oposición, o cualquier otra consulta, escriba a **privacidad@canarycab.com**. También puede presentar una reclamación ante la Agencia Española de Protección de Datos (www.aepd.es).",
+          ],
         },
         {
           t: "7. Seguridad",
@@ -182,7 +187,12 @@ export const LEGAL = {
         },
         {
           t: "6. Your rights",
-          p: ["Under the GDPR and Spanish LOPDGDD you may exercise your rights of **access, rectification, erasure, restriction, portability and objection** by emailing **privacidad@canarycab.com**. You may also lodge a complaint with the Spanish Data Protection Agency (www.aepd.es)."],
+          p: [
+            "Under the GDPR and Spanish LOPDGDD you may exercise your rights of **access, rectification, erasure, restriction, portability and objection**.",
+            "**Access and portability:** from Settings → Your data → \"Download my data\" you can instantly get a full copy in JSON format of everything we hold about you.",
+            "**Erasure:** from Settings → Your data → \"Delete my account\" you can delete your account immediately and on your own, with no need to contact us. Trip history is kept **anonymised** for 5 years for tax purposes (art. 17.3.b GDPR), but is no longer linked to your identity.",
+            "For rectification, restriction or objection, or any other enquiry, email **privacidad@canarycab.com**. You may also lodge a complaint with the Spanish Data Protection Agency (www.aepd.es).",
+          ],
         },
         {
           t: "7. Security",
@@ -320,7 +330,12 @@ export const LEGAL = {
         },
         {
           t: "6. Ihre Rechte",
-          p: ["Gemäß DSGVO und spanischem LOPDGDD können Sie Ihre Rechte auf **Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch** per E-Mail an **privacidad@canarycab.com** ausüben. Sie können auch eine Beschwerde bei der spanischen Datenschutzbehörde einreichen (www.aepd.es)."],
+          p: [
+            "Gemäß DSGVO und spanischem LOPDGDD können Sie Ihre Rechte auf **Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch** ausüben.",
+            "**Auskunft und Datenübertragbarkeit:** Unter Einstellungen → Ihre Daten → „Meine Daten herunterladen“ erhalten Sie sofort eine vollständige Kopie aller über Sie gespeicherten Daten im JSON-Format.",
+            "**Löschung:** Unter Einstellungen → Ihre Daten → „Konto löschen“ können Sie Ihr Konto sofort und eigenständig löschen, ohne uns kontaktieren zu müssen. Die Fahrtenhistorie wird aus steuerlichen Gründen **anonymisiert** 5 Jahre aufbewahrt (Art. 17 Abs. 3 lit. b DSGVO), ist aber nicht mehr mit Ihrer Identität verknüpft.",
+            "Für Berichtigung, Einschränkung oder Widerspruch sowie sonstige Anfragen wenden Sie sich an **privacidad@canarycab.com**. Sie können auch eine Beschwerde bei der spanischen Datenschutzbehörde einreichen (www.aepd.es).",
+          ],
         },
         {
           t: "7. Sicherheit",

@@ -58,6 +58,13 @@ export default function Ajustes() {
   const [pwdNueva, setPwdNueva] = useState("");
   const [pwdBusy, setPwdBusy] = useState(false);
   const [pwdMsg, setPwdMsg] = useState(null); // {ok, text}
+  // RGPD: exportar datos + eliminar cuenta
+  const [exportando, setExportando] = useState(false);
+  const [exportMsg, setExportMsg] = useState("");
+  const [confirmandoBorrado, setConfirmandoBorrado] = useState(false);
+  const [pwdBorrado, setPwdBorrado] = useState("");
+  const [borrando, setBorrando] = useState(false);
+  const [borradoMsg, setBorradoMsg] = useState("");
 
   const dirty =
     (nombre.trim() !== (user?.nombre || "") && nombre.trim().length >= 2) ||
@@ -100,6 +107,39 @@ export default function Ajustes() {
       setPwdMsg({ ok: false, text: e.message || tr("set.couldNotChange") });
     } finally {
       setPwdBusy(false);
+    }
+  }
+
+  async function exportarDatos() {
+    setExportando(true);
+    setExportMsg("");
+    try {
+      const datos = await api.exportarMisDatos();
+      const blob = new Blob([JSON.stringify(datos, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `canarycab-mis-datos-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setExportMsg(e.message || "No se pudo exportar");
+    } finally {
+      setExportando(false);
+    }
+  }
+
+  async function eliminarCuenta() {
+    setBorrando(true);
+    setBorradoMsg("");
+    try {
+      await api.eliminarCuenta({ password: pwdBorrado });
+      logout();
+    } catch (e) {
+      setBorradoMsg(e.message || "No se pudo eliminar la cuenta");
+      setBorrando(false);
     }
   }
 
@@ -305,6 +345,73 @@ export default function Ajustes() {
                   </span>
                 )}
               </div>
+            </div>
+          </section>
+
+          {/* tus datos (RGPD: acceso, portabilidad, supresión) */}
+          <section className="surface p-5">
+            <h3 className="mb-1 font-display text-base font-extrabold">Tus datos</h3>
+            <p className="mb-3 text-xs text-volcanic/50">
+              Puedes descargar una copia de todo lo que guardamos de ti, o eliminar tu cuenta
+              por completo. Más detalles en nuestra{" "}
+              <a href="/privacidad" className="font-semibold text-atlantic-dark underline-offset-2 hover:underline">
+                Política de Privacidad
+              </a>.
+            </p>
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-3">
+                <Button variant="outline" size="sm" disabled={exportando} onClick={exportarDatos}>
+                  {exportando ? <Spinner className="border-volcanic/30 border-t-volcanic" /> : "⬇️ Descargar mis datos"}
+                </Button>
+                {exportMsg && <span className="text-sm font-semibold text-coral">{exportMsg}</span>}
+              </div>
+
+              {!confirmandoBorrado ? (
+                <button
+                  type="button"
+                  onClick={() => setConfirmandoBorrado(true)}
+                  className="text-sm font-semibold text-coral underline-offset-2 hover:underline"
+                >
+                  Eliminar mi cuenta permanentemente
+                </button>
+              ) : (
+                <div className="rounded-2xl border-2 border-coral/30 bg-coral/5 p-4">
+                  <p className="text-sm font-bold text-coral">¿Seguro que quieres eliminar tu cuenta?</p>
+                  <p className="mt-1 text-xs text-volcanic/60">
+                    Esta acción no se puede deshacer. Tu perfil, teléfono, favoritos y mensajes del
+                    foro se eliminan de inmediato. El historial de viajes se conserva de forma
+                    anónima 5 años por obligación fiscal (art. 17.3.b RGPD), sin ningún dato que te
+                    identifique.
+                  </p>
+                  <div className="mt-3 space-y-2.5">
+                    <Input
+                      label="Confirma tu contraseña"
+                      type="password"
+                      value={pwdBorrado}
+                      onChange={(e) => setPwdBorrado(e.target.value)}
+                      placeholder="Tu contraseña actual"
+                    />
+                    <div className="flex items-center gap-3">
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        disabled={borrando || !pwdBorrado}
+                        onClick={eliminarCuenta}
+                      >
+                        {borrando ? <Spinner /> : "Sí, eliminar mi cuenta"}
+                      </Button>
+                      <button
+                        type="button"
+                        onClick={() => { setConfirmandoBorrado(false); setPwdBorrado(""); setBorradoMsg(""); }}
+                        className="text-sm font-semibold text-volcanic/60 hover:underline"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                    {borradoMsg && <p className="text-sm font-semibold text-coral">{borradoMsg}</p>}
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 
