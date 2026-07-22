@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
 import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { I18nProvider } from "./i18n/index.jsx";
@@ -12,6 +13,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <I18nProvider>
         <AuthProvider>
           <App />
+          <Analytics />
         </AuthProvider>
       </I18nProvider>
     </BrowserRouter>
