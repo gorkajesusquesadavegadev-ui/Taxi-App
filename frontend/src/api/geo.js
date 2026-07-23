@@ -49,61 +49,90 @@ export function ubicacionPrecisa({ maxWaitMs = 7000, buenaPrecision = 25 } = {})
   });
 }
 
-/** Autocomplete: query → [{lat, lng, label}] con números de portal exactos */
-export async function buscarDirecciones(q) {
-  // ── 1. Cartociudad (IGN) — todos los portales de España ──────────────────
-  try {
-    const r = await fetch(
-      `${CARTOCIUDAD}/candidatesJsonp?q=${encodeURIComponent(q)}&limit=20`,
-      { headers: { "User-Agent": "CanaryCab/1.0 gorquesadave@gmail.com" } }
-    );
-    if (r.ok) {
-      const data = parseJsonp(await r.text());
-      const seen = new Set();
-      const out = [];
-      for (const x of data) {
-        if (!CANARY_PROV.has(x.provinceCode)) continue; // solo Canarias
-        const lat = Number(x.lat);
-        const lng = Number(x.lng);
-        if (!lat || !lng || Math.abs(lat) < 0.001) continue; // descarta coords inválidas
-        const label = title(x.address || "");
-        if (!label || seen.has(label.toLowerCase())) continue;
-        seen.add(label.toLowerCase());
-        out.push({ lat, lng, label });
-        if (out.length === 8) break;
-      }
-      if (out.length > 0) return out;
-    }
-  } catch (_) {}
+// Cartociudad clasifica cada resultado con un "type". portal/callejero traen
+// número de portal real (dirección exacta) — de fiar. Todo lo demás
+// (toponimo, poblacion, municipio...) es un punto de área aproximado: para
+// "Parque Hospital Insular" devuelve el jardín, no el edificio del hospital;
+// para un aeropuerto puede devolver un tramo de carretera cualquiera. Esos
+// tipos vagos NO deben ganarle a un POI real de Nominatim (que sí indexa
+// hospitales/aeropuertos/estaciones como el edificio/instalación exacta).
+const CARTO_TIPO_EXACTO = new Set(["portal", "callejero", "via"]);
 
-  // ── 2. Nominatim (OSM) — fallback para POIs, aeropuertos, lugares ────────
-  try {
-    const r = await fetch(
-      `${NOMINATIM}/search?format=jsonv2&q=${encodeURIComponent(q)}` +
-      `&limit=10&viewbox=${VIEWBOX}&bounded=1&accept-language=es&addressdetails=1&countrycodes=es`,
-      { headers: { "User-Agent": "CanaryCab/1.0 gorquesadave@gmail.com" } }
-    );
-    if (!r.ok) return [];
-    const d = await r.json();
-    const seen = new Set();
-    const out = [];
-    for (const x of d || []) {
-      const a = x.address || {};
-      const via = a.road || a.pedestrian || a.square || a.aeroway || a.amenity || "";
-      const num = a.house_number || "";
-      const calle = [via, num].filter(Boolean).join(" ").trim() || x.name || "";
-      const barrio = a.suburb || a.neighbourhood || a.city_district || "";
-      const municipio = a.city || a.town || a.village || a.municipality || "";
-      const label = [calle, barrio, municipio].filter(Boolean).slice(0, 3).join(", ").trim();
-      if (!label || seen.has(label.toLowerCase())) continue;
-      seen.add(label.toLowerCase());
-      out.push({ lat: Number(x.lat), lng: Number(x.lon), label });
-      if (out.length === 8) break;
-    }
-    return out;
-  } catch (_) {
-    return [];
+async function buscarCartociudad(q) {
+  const r = await fetch(
+    `${CARTOCIUDAD}/candidatesJsonp?q=${encodeURIComponent(q)}&limit=20`,
+    { headers: { "User-Agent": "CanaryCab/1.0 gorquesadave@gmail.com" } }
+  );
+  if (!r.ok) return [];
+  const data = parseJsonp(await r.text());
+  const out = [];
+  for (const x of data) {
+    if (!CANARY_PROV.has(x.provinceCode)) continue; // solo Canarias
+    const lat = Number(x.lat);
+    const lng = Number(x.lng);
+    if (!lat || !lng || Math.abs(lat) < 0.001) continue; // descarta coords inválidas
+    const label = title(x.address || "");
+    if (!label) continue;
+    out.push({ lat, lng, label, exacto: CARTO_TIPO_EXACTO.has(x.type) });
   }
+  return out;
+}
+
+async function buscarNominatim(q) {
+  const r = await fetch(
+    `${NOMINATIM}/search?format=jsonv2&q=${encodeURIComponent(q)}` +
+    `&limit=10&viewbox=${VIEWBOX}&bounded=1&accept-language=es&addressdetails=1&countrycodes=es`,
+    { headers: { "User-Agent": "CanaryCab/1.0 gorquesadave@gmail.com" } }
+  );
+  if (!r.ok) return [];
+  const d = await r.json();
+  const out = [];
+  for (const x of d || []) {
+    const a = x.address || {};
+    const num = a.house_number || "";
+    // x.name es el nombre del sitio que de verdad casó la búsqueda (el
+    // hospital, el aeropuerto...). a.road SIEMPRE existe para un POI (la
+    // calle donde está), pero usarlo primero pisa el nombre del sitio: para
+    // el aeropuerto, a.road = "Autopista del Sur" ganaría a "Aeropuerto de
+    // Gran Canaria" y el resultado perdería el nombre buscado. x.name manda.
+    const calle = x.name
+      ? [x.name, num].filter(Boolean).join(" ").trim()
+      : [a.road || a.pedestrian || a.square || "", num].filter(Boolean).join(" ").trim();
+    const barrio = a.suburb || a.neighbourhood || a.city_district || "";
+    const municipio = a.city || a.town || a.village || a.municipality || "";
+    const label = [calle, barrio, municipio].filter(Boolean).slice(0, 3).join(", ").trim();
+    if (!label) continue;
+    out.push({ lat: Number(x.lat), lng: Number(x.lon), label });
+  }
+  return out;
+}
+
+/**
+ * Autocomplete: query → [{lat, lng, label}].
+ * Orden de confianza: 1) direcciones exactas de Cartociudad (portal/calle con
+ * número real), 2) POIs de Nominatim (hospitales, aeropuertos, estaciones —
+ * indexados como la instalación real, no un área genérica), 3) el resto de
+ * Cartociudad (toponimos/lugares aproximados) solo si no hay nada mejor.
+ */
+export async function buscarDirecciones(q) {
+  const [carto, osm] = await Promise.all([
+    buscarCartociudad(q).catch(() => []),
+    buscarNominatim(q).catch(() => []),
+  ]);
+
+  const cartoExacto = carto.filter((x) => x.exacto);
+  const cartoVago = carto.filter((x) => !x.exacto);
+
+  const seen = new Set();
+  const out = [];
+  for (const x of [...cartoExacto, ...osm, ...cartoVago]) {
+    const k = x.label.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push({ lat: x.lat, lng: x.lng, label: x.label });
+    if (out.length === 8) break;
+  }
+  return out;
 }
 
 /** Reverse geocode: coords → dirección humana (nunca lanza) */
