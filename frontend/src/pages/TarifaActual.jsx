@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout.jsx";
 import Spinner from "../components/Spinner.jsx";
-import { IconPin, IconCompass, IconPlane } from "../components/icons.jsx";
+import { IconPin, IconPlane } from "../components/icons.jsx";
 import { api } from "../api/client.js";
 import { useI18n } from "../i18n/index.jsx";
 
@@ -84,7 +84,7 @@ export default function TarifaActual() {
                       {tr("fare.flagDrop")} {eur(t.bajadaBandera)}
                     </span>
                     <span className="pill bg-white/80 text-volcanic">
-                      {tr("fare.includes")} {t.metrosIncluidos} m
+                      {tr("fare.includes")} {t.metrosIncluidosUrbano} m
                     </span>
                     {t.esFestivo && <span className="pill bg-taxi text-volcanic">{tr("fare.holiday")}</span>}
                   </div>
@@ -96,28 +96,38 @@ export default function TarifaActual() {
                 <p className="mb-2 px-1 text-xs font-bold uppercase tracking-wider text-volcanic/45">
                   {tr("fare.pricePerKm")}
                 </p>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <ZonaCard icon={IconPin} titulo={tr("fare.urban")} sub={tr("fare.urbanSub")} precio={t.kmUrbano} />
-                  <ZonaCard
-                    icon={IconCompass}
-                    titulo={tr("fare.tarifa3")}
-                    sub={tr("fare.tarifa3Sub")}
-                    precio={t.kmTarifa3}
-                  />
                   <ZonaCard
                     icon={IconPlane}
                     titulo={tr("fare.interurban")}
                     sub={tr("fare.interurbanSub")}
-                    precio={t.kmInterurbano}
+                    precio={t.kmT3}
                     destacado
                   />
+                </div>
+              </div>
+
+              {/* interurbano: mínimo + suplementos, estructura distinta a la urbana */}
+              <div className="surface p-4 text-sm leading-relaxed text-volcanic/65">
+                <p className="font-semibold text-volcanic">{tr("fare.t3Title")}</p>
+                <p className="mt-1">
+                  {tr("fare.t3Body", { minimo: eur(t.minimoPercepcionT3), m: t.metrosIncluidosT3 })}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <span className="pill bg-atlantic/10 text-atlantic-dark">
+                    {tr("fare.supRadiotaxi")} {eur(t.suplementoRadiotaxi)}
+                  </span>
+                  <span className="pill bg-atlantic/10 text-atlantic-dark">
+                    {tr("fare.supAirport")} {eur(t.suplementoAeropuertoPuerto)}
+                  </span>
                 </div>
               </div>
 
               {/* nota */}
               <div className="surface p-4 text-sm leading-relaxed text-volcanic/65">
                 <p className="font-semibold text-volcanic">{tr("fare.howCalc")}</p>
-                <p className="mt-1">{tr("fare.howCalcBody", { m: t.metrosIncluidos })}</p>
+                <p className="mt-1">{tr("fare.howCalcBody", { m: t.metrosIncluidosUrbano })}</p>
                 <p className="mt-2 text-xs text-volcanic/45">
                   {tr("fare.official")}
                 </p>
