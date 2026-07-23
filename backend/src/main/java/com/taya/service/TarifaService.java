@@ -7,10 +7,15 @@ import java.math.*;
 import java.time.*;
 
 /**
- * Tarifas oficiales del taxi urbano de Las Palmas de Gran Canaria según la
- * resolución publicada en el BOC de septiembre de 2025 (con correcciones
- * posteriores). La bajada de bandera incluye los primeros 500 m; el taxímetro
- * salta de 5 en 5 céntimos.
+ * Tarifas oficiales del taxi urbano de Las Palmas de Gran Canaria según el
+ * BOC núm. 174 (3 de septiembre de 2025), Resolución de 14 de agosto de 2025
+ * de la Viceconsejería de Industria, Comercio y Consumo — fuente primaria:
+ * https://www.gobiernodecanarias.org/boc/2025/174/3151.html
+ * La bajada de bandera incluye los primeros 500 m; el taxímetro salta de 5
+ * en 5 céntimos. Suplementos (punto 4 de la resolución): bultos 0,35€
+ * (>50/60kg, no aplicado — caso raro), radiotaxi 0,60€, entrada/salida de
+ * muelle 0,70€. Mínimo de percepción: 0,00€ (no existe tarifa mínima aparte
+ * del taxímetro).
  *
  * Tarifa 3 (barrios periféricos del municipio) y Tarifa Interurbano no están
  * publicadas en el mismo BOC; se estiman aplicando los recargos históricos
@@ -60,6 +65,14 @@ public class TarifaService {
         return false;
     }
 
+    // Muelle Santa Catalina (Puerto de Las Palmas) — mismas coords que DataSeeder.
+    private static final double MUELLE_LAT = 28.1450, MUELLE_LNG = -15.4280;
+    private static final double MUELLE_RADIO_KM = 0.4;
+
+    private static boolean tocaMuelle(double lat, double lng) {
+        return GeoUtil.haversineKm(lat, lng, MUELLE_LAT, MUELLE_LNG) <= MUELLE_RADIO_KM;
+    }
+
     private enum Zona { URBANA, PERIFERIA, INTERURBANO }
 
     private static Zona zonaDe(double oLat, double oLng, double dLat, double dLng) {
@@ -84,17 +97,25 @@ public class TarifaService {
     ) {}
 
     /**
-     * Franja aplicable según día y hora (horario canario).
+     * Franja aplicable según día y hora (horario canario). Tabla oficial BOC
+     * núm. 174 (14-ago-2025), página "1) Bajada de bandera" / "2) Kilómetro
+     * recorrido" — verificada contra el PDF original, no un resumen de prensa:
      *
-     * Tabla BOC sept-2025:
-     *   Diurno laborable        → 3,05 / 0,85 km / espera 17 €/h
-     *   Diurno sábado           → 3,25 / 0,90 km / espera 18 €/h
-     *   Diurno dom/festivo      → 4,00 / 1,00 km / espera 20 €/h
-     *   Diurno 24/12, 31/12, 5/1 → 4,00 / 0,90 km / espera 20 €/h
-     *   Diurno 25/12, 1/1, 6/1  → 4,75 / 1,00 km / espera 20 €/h
-     *   Nocturno dom-jue        → 3,80 / 0,90 km / espera 20 €/h
-     *   Nocturno vie/sáb/víspera→ 4,30 / 1,00 km / espera 20 €/h
-     *   Nocturno 24/12 y 31/12  → 6,95 / 1,00 km / espera 20 €/h
+     *   Diurno laborable         → 3,05 / 0,85 km / espera 17 €/h
+     *   Diurno sábado            → 3,25 / 0,90 km / espera 18 €/h
+     *   Diurno dom/festivo       → 4,00 / 1,00 km / espera 20 €/h  (incluye 25/12, 1/1, 6/1: son festivos)
+     *   Diurno vísperas 24/12,31/12,5/1 → 4,00 / 0,90 km / espera 20 €/h
+     *   Nocturno lun-jue ordinario→ 3,80 / 0,90 km / espera 20 €/h
+     *   Nocturno vie/sáb/víspera → 4,30 / 1,00 km / espera 20 €/h
+     *   Nocturno dom/festivo     → 4,75 / 1,00 km / espera 20 €/h  ★ antes NO existía esta franja:
+     *                              toda noche de domingo o festivo se cobraba como lun-jue (3,80),
+     *                              cobrando de menos al taxista 0,95€ de bandera + 0,10€/km.
+     *   Nocturno 24/12 y 31/12   → 6,95 / 1,00 km / espera 20 €/h
+     *
+     *   ★ El código anterior tenía además un bug: cobraba 4,75€ como tarifa
+     *   DIURNA de 25/12, 1/1 y 6/1 (el BOC solo publica ese 4,75€ para la
+     *   franja NOCTURNA de esas fechas). De día, esas fechas son festivos
+     *   normales → 4,00€, no 4,75€. Eso era un SOBRECOBRO real al cliente.
      */
     private Franja franja(ZonedDateTime t) {
         int         h        = t.getHour();
@@ -102,9 +123,6 @@ public class TarifaService {
         DayOfWeek   dow      = t.getDayOfWeek();
         MonthDay    md       = MonthDay.of(t.getMonthValue(), t.getDayOfMonth());
 
-        boolean navidad = md.equals(MonthDay.of(12, 25))
-                       || md.equals(MonthDay.of(1,  1))
-                       || md.equals(MonthDay.of(1,  6));   // 25/12, 1/1, 6/1
         boolean vispera = md.equals(MonthDay.of(12, 24))
                        || md.equals(MonthDay.of(12, 31))
                        || md.equals(MonthDay.of(1,  5));   // 24/12, 31/12, 5/1
@@ -122,19 +140,19 @@ public class TarifaService {
         if (nocturna) {
             if (nocheNavidad)
                 return new Franja(d("6.95"), d("1.00"), d("1.35"), d("1.60"), d("20.00"));
+            if (esDomFestivo) // incluye 25/12, 1/1, 6/1 noche (son festivos)
+                return new Franja(d("4.75"), d("1.00"), d("1.35"), d("1.60"), d("20.00"));
             // viernes y sábados noche, y vísperas de festivo
             if (esViernes || esSabado || esVispera)
                 return new Franja(d("4.30"), d("1.00"), d("1.35"), d("1.60"), d("20.00"));
-            // dom-jue noche ordinaria
+            // lunes-jueves noche ordinaria
             return new Franja(d("3.80"), d("0.90"), d("1.22"), d("1.44"), d("20.00"));
         }
 
         // Diurno (6-22h)
-        if (navidad)
-            return new Franja(d("4.75"), d("1.00"), d("1.35"), d("1.60"), d("20.00"));
         if (vispera)  // 24/12, 31/12, 5/1 diurno
             return new Franja(d("4.00"), d("0.90"), d("1.22"), d("1.44"), d("20.00"));
-        if (esDomFestivo)
+        if (esDomFestivo) // incluye 25/12, 1/1, 6/1 día (son festivos, no 4,75 — eso es solo de noche)
             return new Franja(d("4.00"), d("1.00"), d("1.35"), d("1.60"), d("20.00"));
         if (esSabado)
             return new Franja(d("3.25"), d("0.90"), d("1.22"), d("1.44"), d("18.00"));
@@ -144,6 +162,30 @@ public class TarifaService {
 
     private static BigDecimal d(String s) { return new BigDecimal(s); }
 
+    // Suplementos oficiales (BOC, punto 4). Solo se publican para zona urbana
+    // (el propio BOC lo restringe así: "las tarifas, incluidos los
+    // suplementos, son de aplicación para... la zona urbana"); Tarifa 3 e
+    // Interurbano son estimaciones no oficiales, no se les añaden suplementos
+    // que no están publicados para ellas.
+    private static final BigDecimal RADIOTAXI = d("0.60");
+    private static final BigDecimal MUELLE    = d("0.70");
+
+    private record Suplemento(BigDecimal total, String detalle) {}
+
+    /** Todo pedido por esta app es un servicio de central/radiotaxo (art. 4 BOC):
+     *  el cliente no para el taxi en la calle, lo pide por app. Ese 0,60€ es
+     *  ingreso real del taxista que antes no se estaba cobrando NUNCA. */
+    private Suplemento suplementos(double oLat, double oLng, double dLat, double dLng, Zona zona) {
+        if (zona != Zona.URBANA) return new Suplemento(BigDecimal.ZERO, null);
+        BigDecimal total = RADIOTAXI;
+        StringBuilder detalle = new StringBuilder("Radiotaxi 0,60€");
+        if (tocaMuelle(oLat, oLng) || tocaMuelle(dLat, dLng)) {
+            total = total.add(MUELLE);
+            detalle.append(" + Muelle 0,70€");
+        }
+        return new Suplemento(total, detalle.toString());
+    }
+
     private BigDecimal aplicar(Franja f, double km, Zona zona) {
         BigDecimal precioKm = switch (zona) {
             case URBANA      -> f.kmUrb();
@@ -151,7 +193,7 @@ public class TarifaService {
             case INTERURBANO -> f.kmInter();
         };
         BigDecimal cobrable = BigDecimal.valueOf(km).subtract(KM_INCLUIDOS).max(BigDecimal.ZERO);
-        return f.bandera().add(precioKm.multiply(cobrable)).setScale(2, RoundingMode.HALF_UP);
+        return f.bandera().add(precioKm.multiply(cobrable));
     }
 
     /** Etiqueta legible de la zona tarifaria aplicada al viaje. */
@@ -163,8 +205,19 @@ public class TarifaService {
         };
     }
 
+    /**
+     * Precio total (taxímetro + suplementos) para una ruta, con la tarifa
+     * vigente EN EL MOMENTO DE LA LLAMADA. Única fuente de verdad del precio:
+     * la usan por igual estimar(), solicitar() y finalizar(), así el precio
+     * que se muestra al pedir y el que se cobra al terminar NUNCA divergen
+     * por este motivo (si divergen, es porque cruzó una franja horaria real
+     * durante el viaje — ver nota en ViajeService.finalizar).
+     */
     public BigDecimal precioPorRuta(double oLat, double oLng, double dLat, double dLng, double km) {
-        return aplicar(franja(ZonedDateTime.now(CANARIAS)), km, zonaDe(oLat, oLng, dLat, dLng));
+        Zona zona = zonaDe(oLat, oLng, dLat, dLng);
+        BigDecimal base = aplicar(franja(ZonedDateTime.now(CANARIAS)), km, zona);
+        BigDecimal sup = suplementos(oLat, oLng, dLat, dLng, zona).total();
+        return base.add(sup).setScale(2, RoundingMode.HALF_UP);
     }
 
     public EstimacionResponse estimar(double oLat, double oLng, double dLat, double dLng) {
@@ -181,12 +234,14 @@ public class TarifaService {
         if (paradas != null) puntos.addAll(paradas);
         puntos.add(new double[]{dLat, dLng});
         var ruta = osrm.rutaVia(puntos);
+        Zona zona = zonaDe(oLat, oLng, dLat, dLng);
         return new EstimacionResponse(
             BigDecimal.valueOf(ruta.km()),
             BigDecimal.valueOf(Math.ceil(ruta.duracionMin())),
             precioPorRuta(oLat, oLng, dLat, dLng, ruta.km()),
             ruta.puntos(),
-            zonaLabel(oLat, oLng, dLat, dLng));
+            zonaLabel(oLat, oLng, dLat, dLng),
+            suplementos(oLat, oLng, dLat, dLng, zona).detalle());
     }
 
     /** Información de la tarifa vigente ahora mismo (para mostrar a usuarios). */

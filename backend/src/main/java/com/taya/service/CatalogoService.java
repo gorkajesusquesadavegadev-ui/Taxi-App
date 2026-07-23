@@ -13,8 +13,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * Catálogo de ofertas (taxi hasta 4 plazas; precio por vehículo, no por persona).
  * - Transfers: salen de Las Palmas (única excepción: Aeropuerto → Las Palmas).
  *   Su precio se calcula con la tarifa oficial vigente (día/noche/festivo) sobre
- *   la ruta real, con caché de 10 min. El precio del catálogo es solo fallback
- *   si OSRM/tarifa no responde.
+ *   la ruta real. Solo se cachea la DISTANCIA por carretera (nunca cambia para
+ *   un mismo origen→destino fijo, evita golpear el servidor OSRM en cada
+ *   consulta del catálogo); el PRECIO se recalcula siempre en vivo — cachear
+ *   el precio hacía que, justo al cruzar las 22h o un festivo, el catálogo
+ *   siguiera enseñando la tarifa vieja hasta 10 min: dos personas mirando el
+ *   mismo transfer con minutos de diferencia veían precios distintos sin
+ *   que hubiera pasado nada más que el reloj.
  * - Excursiones: precio aproximado por duración.
  * paradas: puntos intermedios [lat,lng] para que la ruta del mapa siga el
  * recorrido real (no la línea origen→destino).
@@ -28,29 +33,38 @@ public class CatalogoService {
                          List<double[]> paradas) {}
 
     private static final List<double[]> SIN_PARADAS = List.of();
-    private static final Duration CACHE_PRECIO = Duration.ofMinutes(10);
+    private static final Duration CACHE_KM = Duration.ofHours(6);
 
     private final TarifaService tarifa;
-    public CatalogoService(TarifaService tarifa) { this.tarifa = tarifa; }
+    private final OsrmClient osrm;
+    public CatalogoService(TarifaService tarifa, OsrmClient osrm) { this.tarifa = tarifa; this.osrm = osrm; }
 
-    private record PrecioCacheado(BigDecimal precio, Instant calculadoEn) {}
-    private final Map<String, PrecioCacheado> precios = new ConcurrentHashMap<>();
+    private record KmCacheado(double km, Instant calculadoEn) {}
+    private final Map<String, KmCacheado> distancias = new ConcurrentHashMap<>();
 
     /** Transfers a precio de taxímetro vigente (día/noche): mismo cálculo que el mapa. */
     private Oferta conPrecioVigente(Oferta o) {
         if (o.tipo() != TipoViaje.TRANSFER) return o;
-        PrecioCacheado c = precios.get(o.id());
-        if (c == null || c.calculadoEn().isBefore(Instant.now().minus(CACHE_PRECIO))) {
-            BigDecimal p;
+        KmCacheado c = distancias.get(o.id());
+        if (c == null || c.calculadoEn().isBefore(Instant.now().minus(CACHE_KM))) {
+            double km;
             try {
-                p = tarifa.estimar(o.origenLat(), o.origenLng(), o.destinoLat(), o.destinoLng()).precioEstimado();
+                km = osrm.rutaEntre(o.origenLat(), o.origenLng(), o.destinoLat(), o.destinoLng()).km();
             } catch (Exception e) {
-                p = null;
+                km = -1;
             }
-            c = new PrecioCacheado(p != null ? p : o.precio(), Instant.now());
-            precios.put(o.id(), c);
+            c = new KmCacheado(km, Instant.now());
+            distancias.put(o.id(), c);
         }
-        return new Oferta(o.id(), o.tipo(), o.nombre(), o.descripcion(), o.duracion(), c.precio(),
+        BigDecimal precio;
+        try {
+            precio = c.km() >= 0
+                ? tarifa.precioPorRuta(o.origenLat(), o.origenLng(), o.destinoLat(), o.destinoLng(), c.km())
+                : o.precio();
+        } catch (Exception e) {
+            precio = o.precio();
+        }
+        return new Oferta(o.id(), o.tipo(), o.nombre(), o.descripcion(), o.duracion(), precio,
             o.origenLat(), o.origenLng(), o.destinoLat(), o.destinoLng(), o.paradas());
     }
 

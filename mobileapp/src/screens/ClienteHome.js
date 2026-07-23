@@ -608,6 +608,11 @@ export default function ClienteHome() {
                       <Text className="font-bodybold text-[12px] text-atlantic-dark">{zonaTraducida(t, estimacion.zona)}</Text>
                     </View>
                   )}
+                  {estimacion.suplementos && (
+                    <Text className="px-1 font-bodymed text-[11px] text-volcanic/45">
+                      {t("ride.suplementosIncl", { detalle: estimacion.suplementos })}
+                    </Text>
+                  )}
                 </View>
               ) : (
                 <View className="flex-row items-center justify-between">

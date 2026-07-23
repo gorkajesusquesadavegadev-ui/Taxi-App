@@ -197,22 +197,20 @@ public class ViajeService {
     @Transactional
     public ViajeResponse finalizar(Long viajeId, Long taxistaId) {
         Viaje v = cargarDelTaxista(viajeId, taxistaId, EstadoViaje.EN_CURSO);
-        if (v.getTipo() != null && v.getTipo() != TipoViaje.NORMAL) {
-            // transfers/excursiones: precio cerrado pactado al solicitar
-            v.setDistanciaRealKm(v.getDistanciaEstimadaKm());
-            v.setPrecioFinal(v.getPrecioEstimado());
-        } else {
-            // Sin GPS real, la distancia OSRM por calles del viaje es el taxímetro
-            // más objetivo: el servidor calcula el precio, no el cliente.
-            double kmRuta = v.getDistanciaEstimadaKm() != null
-                ? v.getDistanciaEstimadaKm().doubleValue()
-                : tarifa.estimar(v.getOrigenLat(), v.getOrigenLng(),
-                    v.getDestinoLat(), v.getDestinoLng()).distanciaKm().doubleValue();
-            v.setDistanciaRealKm(BigDecimal.valueOf(kmRuta));
-            // precio por tarifa oficial según la hora de finalización y la zona
-            v.setPrecioFinal(tarifa.precioPorRuta(v.getOrigenLat(), v.getOrigenLng(),
-                v.getDestinoLat(), v.getDestinoLng(), kmRuta));
-        }
+        // Precio cerrado pactado al solicitar, para TODOS los tipos de viaje.
+        // Antes, un viaje NORMAL recalculaba el precio aquí con tarifa.precioPorRuta()
+        // usando la hora de ESTE momento (finalizar), no la hora en que se pidió.
+        // Un viaje pedido a las 21:55 (tarifa diurna) que el taxista termina a
+        // las 22:10 pasaba a cobrarse TODO el trayecto a tarifa nocturna — un
+        // precio distinto al que se le mostró al cliente al pedirlo. Como esta
+        // app no tiene un taxímetro con GPS continuo (la distancia es una
+        // estimación OSRM tomada una sola vez), recalcular con la hora de
+        // cierre no mide nada más real: solo cambia qué franja horaria le
+        // toca en la lotería de cuándo exactamente termina el trayecto. Se
+        // bloquea el precio mostrado al pedir, igual que ya hacían
+        // transfers/excursiones — mismo criterio para todo, sin sorpresas.
+        v.setDistanciaRealKm(v.getDistanciaEstimadaKm());
+        v.setPrecioFinal(v.getPrecioEstimado());
         v.setEstado(EstadoViaje.COMPLETADO); v.setCompletadoEn(Instant.now());
         final double finLat = v.getDestinoLat(), finLng = v.getDestinoLng();
         ubicacion.setLibre(taxistaId, finLat, finLng);

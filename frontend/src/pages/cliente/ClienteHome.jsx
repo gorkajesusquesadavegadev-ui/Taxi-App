@@ -762,6 +762,12 @@ export default function ClienteHome() {
                           </span>
                         </div>
                       )}
+                      {/* suplementos oficiales ya incluidos en el precio (transparencia) */}
+                      {estimacion.suplementos && (
+                        <p className="px-1 text-[11px] font-medium text-volcanic/45">
+                          {t("ride.suplementosIncl", { detalle: estimacion.suplementos })}
+                        </p>
+                      )}
                     </div>
                   ) : (
                     <>

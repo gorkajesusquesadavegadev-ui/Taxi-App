@@ -7,6 +7,9 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate", // al desplegar nueva web, la app se actualiza sola
+      // Registro manual en src/pwa.js (comprobación cada 60s + recarga en cuanto
+      // hay versión nueva); evita el registro automático mínimo sin esa lógica.
+      injectRegister: false,
       includeAssets: ["favicon-32.png", "icons/apple-touch-icon.png"],
       manifest: {
         name: "CanaryCab · Tu App de Taxis de Canarias",
