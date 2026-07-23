@@ -8,13 +8,25 @@
 //   2) Red de seguridad: si aun así falla un import() perezoso, recargar una vez.
 import { registerSW } from "virtual:pwa-register";
 
-registerSW({
+// El SW generado (workbox generateSW) solo hace skipWaiting cuando recibe un
+// postMessage {type:"SKIP_WAITING"} — NO se activa solo aunque registerType
+// sea "autoUpdate" (ese ajuste solo afecta al script de registro auto-inyectado,
+// y aquí se usa uno propio con injectRegister:false). Sin esto, una pestaña
+// abierta se queda con el SW viejo hasta cerrarla del todo: ningún arreglo
+// desplegado (precios, geocoding, botón de Google...) le llega aunque el SW
+// nuevo ya esté instalado y "esperando". onNeedRefresh + updateSW(true) es el
+// mecanismo propio de virtual:pwa-register para esto: manda el SKIP_WAITING y
+// recarga en cuanto el SW nuevo toma el control.
+const updateSW = registerSW({
   immediate: true,
   onRegisteredSW(_url, registration) {
     if (!registration) return;
     // Comprobar si hay una versión nueva cada 60 s (una pestaña abierta muchas
     // horas se entera igualmente, sin esperar a la siguiente carga completa).
     setInterval(() => registration.update().catch(() => {}), 60_000);
+  },
+  onNeedRefresh() {
+    updateSW(true);
   },
 });
 
