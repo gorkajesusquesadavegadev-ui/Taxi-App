@@ -28,6 +28,8 @@
     <dependency><groupId>io.jsonwebtoken</groupId><artifactId>jjwt-impl</artifactId><version>0.11.5</version><scope>runtime</scope></dependency>
     <dependency><groupId>io.jsonwebtoken</groupId><artifactId>jjwt-jackson</artifactId><version>0.11.5</version><scope>runtime</scope></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-actuator</artifactId></dependency>
+    <!-- Verificación del id_token de "Continuar con Google" -->
+    <dependency><groupId>com.google.api-client</groupId><artifactId>google-api-client</artifactId><version>2.7.0</version></dependency>
     <!-- Web Push (VAPID) -->
     <dependency><groupId>nl.martijndwars</groupId><artifactId>web-push</artifactId><version>5.1.1</version></dependency>
     <dependency><groupId>org.bouncycastle</groupId><artifactId>bcprov-jdk18on</artifactId><version>1.78.1</version></dependency>

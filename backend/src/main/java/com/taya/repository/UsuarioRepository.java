@@ -7,6 +7,7 @@ import java.util.Optional;
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByEmail(String email);
     boolean existsByEmail(String email);
+    Optional<Usuario> findByGoogleSub(String googleSub);
     long countByRol(Rol rol);
     List<Usuario> findByRolOrderByCreadoEnDesc(Rol rol);
     List<Usuario> findByRolAndVerificadoFalseOrderByCreadoEnDesc(Rol rol);

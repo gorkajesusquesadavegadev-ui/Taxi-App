@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import Button from "../components/Button.jsx";
@@ -560,7 +560,7 @@ function Scene({ t }) {
 
 /* ---------- page ---------- */
 export default function Auth() {
-  const { login, register } = useAuth();
+  const { login, register, loginGoogle } = useAuth();
   const { t } = useI18n();
   const [open, setOpen] = useState(false); // false = portada TAYA, true = formulario
   const [mode, setMode] = useState("login"); // login | register
@@ -587,6 +587,46 @@ export default function Auth() {
     const id = cb(() => setMostrarEscena(true));
     return () => (window.cancelIdleCallback || clearTimeout)(id);
   }, []);
+
+  // Botón "Continuar con Google": el script GSI (index.html) carga async, así
+  // que reintenta unas cuantas veces por si el formulario se abre antes de
+  // que window.google exista. Sin VITE_GOOGLE_CLIENT_ID no se renderiza nada
+  // (evita un botón roto si aún no está configurado).
+  const googleBtnRef = useRef(null);
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  useEffect(() => {
+    if (!open || !clientId) return;
+    let cancelado = false;
+    let intentos = 0;
+    const intentar = () => {
+      if (cancelado) return;
+      if (window.google?.accounts?.id && googleBtnRef.current) {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: async ({ credential }) => {
+            setBusy(true);
+            setError("");
+            try {
+              await loginGoogle(credential);
+            } catch (err) {
+              setError(err.message || t("auth.couldNotComplete"));
+              failShake();
+            } finally {
+              setBusy(false);
+            }
+          },
+        });
+        googleBtnRef.current.innerHTML = "";
+        window.google.accounts.id.renderButton(googleBtnRef.current, {
+          type: "standard", theme: "outline", size: "large", shape: "pill", width: 258,
+        });
+        return;
+      }
+      if (++intentos < 20) setTimeout(intentar, 250);
+    };
+    intentar();
+    return () => { cancelado = true; };
+  }, [open, clientId, loginGoogle, t]);
 
   const errs = validate(form, mode);
   const fieldError = (k) => (touched[k] && errs[k] ? t(errs[k]) : "");
@@ -760,6 +800,17 @@ export default function Auth() {
               </button>
             ))}
           </div>
+
+          {clientId && (mode === "login" || rol === "CLIENTE") && (
+            <div className="mb-3">
+              <div ref={googleBtnRef} className="flex justify-center" />
+              <div className="my-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-volcanic/35">
+                <span className="h-px flex-1 bg-sand-deep" />
+                {t("auth.orDivider")}
+                <span className="h-px flex-1 bg-sand-deep" />
+              </div>
+            </div>
+          )}
 
           {mode === "register" && (
             <div className="mb-3 grid grid-cols-2 gap-2">

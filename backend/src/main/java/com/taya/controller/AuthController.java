@@ -18,6 +18,7 @@ public class AuthController {
     }
     @PostMapping("/register") public AuthResponse register(@Valid @RequestBody RegisterRequest r) { return auth.register(r); }
     @PostMapping("/login") public AuthResponse login(@Valid @RequestBody LoginRequest r) { return auth.login(r); }
+    @PostMapping("/google") public AuthResponse google(@Valid @RequestBody GoogleAuthRequest r) { return auth.loginConGoogle(r.idToken()); }
 
     /** Logout real: revoca el token actual en todo el backend hasta que caduque. */
     @PostMapping("/logout")

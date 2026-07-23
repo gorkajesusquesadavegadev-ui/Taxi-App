@@ -46,6 +46,13 @@ export function AuthProvider({ children }) {
     return r;
   };
 
+  const loginGoogle = async (idToken) => {
+    const r = await api.loginGoogle(idToken);
+    tokenStore.set(r.token);
+    await loadMe();
+    return r;
+  };
+
   const logout = () => {
     // Revoca el token en el servidor (logout real) antes de limpiarlo local.
     api.logout().catch(() => {});
@@ -54,7 +61,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, setUser, loading, login, register, loginGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );
