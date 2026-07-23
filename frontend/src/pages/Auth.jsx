@@ -618,7 +618,8 @@ export default function Auth() {
         });
         googleBtnRef.current.innerHTML = "";
         window.google.accounts.id.renderButton(googleBtnRef.current, {
-          type: "standard", theme: "outline", size: "large", shape: "pill", width: 258,
+          type: "standard", theme: "filled_blue", size: "large", shape: "pill",
+          text: "continue_with", width: 268,
         });
         return;
       }
@@ -802,9 +803,9 @@ export default function Auth() {
           </div>
 
           {clientId && (mode === "login" || rol === "CLIENTE") && (
-            <div className="mb-3">
-              <div ref={googleBtnRef} className="flex justify-center" />
-              <div className="my-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-volcanic/35">
+            <div className="mb-3.5 mt-1">
+              <div ref={googleBtnRef} className="flex justify-center overflow-hidden rounded-full shadow-sm ring-1 ring-volcanic/10" />
+              <div className="my-3.5 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-volcanic/35">
                 <span className="h-px flex-1 bg-sand-deep" />
                 {t("auth.orDivider")}
                 <span className="h-px flex-1 bg-sand-deep" />
