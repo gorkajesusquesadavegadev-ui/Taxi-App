@@ -547,7 +547,15 @@ export default function ClienteHome() {
                         <span className="rounded-full bg-palm px-2.5 py-1 text-xs font-extrabold text-white">{t("ride.hasArrived")}</span>
                       )}
                     </div>
-                    <div className="mt-1.5 flex items-center justify-between gap-3">
+                    {/* Matrícula en grande: es lo primero que se busca al ver llegar el taxi */}
+                    {viaje.taxistaMatricula && (
+                      <div className="mt-1.5 flex items-center justify-center rounded-xl border-[3px] border-volcanic bg-white py-2 shadow-sm">
+                        <span className="font-mono text-3xl font-black tracking-[0.12em] text-volcanic sm:text-4xl">
+                          {viaje.taxistaMatricula}
+                        </span>
+                      </div>
+                    )}
+                    <div className="mt-2 flex items-center justify-between gap-3">
                       <div className="min-w-0">
                         <p className="flex items-center gap-1.5 truncate font-display text-base font-extrabold text-volcanic">
                           {viaje.taxistaNombre || "Taxista"}
@@ -562,11 +570,6 @@ export default function ClienteHome() {
                           )}
                         </p>
                       </div>
-                      {viaje.taxistaMatricula && (
-                        <span className="shrink-0 rounded-lg border-2 border-volcanic bg-white px-2.5 py-1 font-mono text-base font-black tracking-wider text-volcanic">
-                          {viaje.taxistaMatricula}
-                        </span>
-                      )}
                     </div>
                     <div className="mt-2 flex items-center gap-2">
                       {viaje.taxistaLicencia && (

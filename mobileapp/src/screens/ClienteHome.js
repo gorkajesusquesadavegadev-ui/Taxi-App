@@ -397,7 +397,13 @@ export default function ClienteHome() {
                     </View>
                   )}
                 </View>
-                <View className="mt-1.5 flex-row items-center justify-between gap-3">
+                {/* Matrícula en grande: es lo primero que se busca al ver llegar el taxi */}
+                {viaje.taxistaMatricula && (
+                  <View className="mt-1.5 items-center rounded-xl border-[3px] border-volcanic bg-white py-2">
+                    <Text className="font-bodybold text-[30px] tracking-[3px] text-volcanic">{viaje.taxistaMatricula}</Text>
+                  </View>
+                )}
+                <View className="mt-2 flex-row items-center justify-between gap-3">
                   <View className="shrink">
                     <Text className="font-display text-[15px] text-volcanic" numberOfLines={1}>
                       {viaje.taxistaNombre || "Taxista"}{viaje.taxistaVerificado ? " ✓" : ""}
@@ -407,11 +413,6 @@ export default function ClienteHome() {
                       {viaje.taxistaRatingCount > 0 ? `  · ⭐ ${viaje.taxistaRating} (${viaje.taxistaRatingCount})` : ""}
                     </Text>
                   </View>
-                  {viaje.taxistaMatricula && (
-                    <View className="rounded-lg border-2 border-volcanic bg-white px-2.5 py-1">
-                      <Text className="font-bodybold text-[15px] tracking-widest text-volcanic">{viaje.taxistaMatricula}</Text>
-                    </View>
-                  )}
                 </View>
                 <View className="mt-2 flex-row items-center gap-2">
                   {viaje.taxistaLicencia && (
