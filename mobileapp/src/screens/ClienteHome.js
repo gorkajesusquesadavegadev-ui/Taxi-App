@@ -1,6 +1,6 @@
 // Home del cliente — espejo de pages/cliente/ClienteHome.jsx (web, layout móvil).
 import { useEffect, useRef, useState, useCallback } from "react";
-import { View, Text, Pressable, Linking, Share, ActivityIndicator } from "react-native";
+import { View, Text, Pressable, Linking, Share, ActivityIndicator, Animated, Easing } from "react-native";
 import Mapa from "../components/Mapa";
 import { api } from "../api/client";
 import { connectWs } from "../api/ws";
@@ -276,6 +276,22 @@ export default function ClienteHome() {
     : null;
   const libres = taxis.filter((x) => !x.enViaje).length;
 
+  // Parpadeo de matrícula/licencia mientras el taxi está asignado — se tiene
+  // que notar a la primera, no solo estar grande.
+  const parpadeo = useRef(new Animated.Value(1)).current;
+  const taxiAsignado = ["ACEPTADO", "LLEGADO", "EN_CURSO"].includes(estado);
+  useEffect(() => {
+    if (!taxiAsignado) return;
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(parpadeo, { toValue: 0.25, duration: 550, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.timing(parpadeo, { toValue: 1, duration: 550, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [taxiAsignado]);
+
   // Ruta a pintar: viaje activo (carretera real) > estimación > recta origen-destino
   const route =
     viaje && rutaActiva
@@ -397,11 +413,20 @@ export default function ClienteHome() {
                     </View>
                   )}
                 </View>
-                {/* Matrícula GIGANTE: se tiene que leer de un vistazo desde lejos */}
+                {/* Matrícula GIGANTE parpadeando: se tiene que leer de un vistazo desde lejos */}
                 {viaje.taxistaMatricula && (
-                  <View className="mt-1.5 items-center rounded-2xl border-4 border-volcanic bg-white py-3">
-                    <Text className="font-bodybold text-[48px] leading-none tracking-[4px] text-volcanic">{viaje.taxistaMatricula}</Text>
-                  </View>
+                  <Animated.View style={{ opacity: parpadeo }} className="mt-1.5 items-center rounded-2xl border-4 border-volcanic bg-white py-3">
+                    <Text className="font-bodybold text-[58px] leading-none tracking-[4px] text-volcanic">{viaje.taxistaMatricula}</Text>
+                  </Animated.View>
+                )}
+                {/* Nº de licencia, también grande y parpadeando */}
+                {viaje.taxistaLicencia && (
+                  <Animated.View style={{ opacity: parpadeo }} className="mt-1.5 flex-row items-center justify-center gap-1.5 rounded-xl border-2 border-volcanic/70 bg-taxi py-1.5">
+                    <Text className="font-bodybold text-[11px] uppercase tracking-widest text-volcanic/70">
+                      {t("ride.licensePrefix")}
+                    </Text>
+                    <Text className="font-bodybold text-[28px] leading-none tracking-wider text-volcanic">{viaje.taxistaLicencia}</Text>
+                  </Animated.View>
                 )}
                 <View className="mt-2 flex-row items-center justify-between gap-3">
                   <View className="shrink">
@@ -415,13 +440,6 @@ export default function ClienteHome() {
                   </View>
                 </View>
                 <View className="mt-2 flex-row items-center gap-2">
-                  {viaje.taxistaLicencia && (
-                    <View className="rounded-md bg-volcanic/10 px-2 py-1">
-                      <Text className="font-bodybold text-[12px] text-volcanic/70">
-                        {t("ride.licensePrefix")} {viaje.taxistaLicencia}
-                      </Text>
-                    </View>
-                  )}
                   {viaje.taxistaTelefono && (
                     <Pressable
                       className="ml-auto rounded-xl bg-volcanic px-3 py-1.5 active:scale-95"

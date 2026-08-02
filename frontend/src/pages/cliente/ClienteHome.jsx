@@ -547,11 +547,22 @@ export default function ClienteHome() {
                         <span className="rounded-full bg-palm px-2.5 py-1 text-xs font-extrabold text-white">{t("ride.hasArrived")}</span>
                       )}
                     </div>
-                    {/* Matrícula GIGANTE: se tiene que leer de un vistazo desde lejos */}
+                    {/* Matrícula GIGANTE parpadeando: se tiene que leer de un vistazo desde lejos */}
                     {viaje.taxistaMatricula && (
-                      <div className="mt-1.5 flex items-center justify-center rounded-2xl border-4 border-volcanic bg-white py-3 shadow-md">
-                        <span className="font-mono text-5xl font-black leading-none tracking-[0.1em] text-volcanic sm:text-6xl">
+                      <div className="animate-pulse mt-1.5 flex items-center justify-center rounded-2xl border-4 border-volcanic bg-white py-3 shadow-md">
+                        <span className="font-mono text-6xl font-black leading-none tracking-[0.08em] text-volcanic sm:text-7xl">
                           {viaje.taxistaMatricula}
+                        </span>
+                      </div>
+                    )}
+                    {/* Nº de licencia, también grande y parpadeando */}
+                    {viaje.taxistaLicencia && (
+                      <div className="animate-pulse mt-1.5 flex items-center justify-center gap-1.5 rounded-xl border-2 border-volcanic/70 bg-taxi py-1.5">
+                        <span className="text-[11px] font-extrabold uppercase tracking-widest text-volcanic/70">
+                          {t("ride.licensePrefix")}
+                        </span>
+                        <span className="font-mono text-2xl font-black leading-none tracking-wider text-volcanic sm:text-3xl">
+                          {viaje.taxistaLicencia}
                         </span>
                       </div>
                     )}
@@ -572,11 +583,6 @@ export default function ClienteHome() {
                       </div>
                     </div>
                     <div className="mt-2 flex items-center gap-2">
-                      {viaje.taxistaLicencia && (
-                        <span className="rounded-md bg-volcanic/10 px-2 py-1 text-xs font-bold text-volcanic/70">
-                          {t("ride.licensePrefix")} {viaje.taxistaLicencia}
-                        </span>
-                      )}
                       {viaje.taxistaTelefono && (
                         <a
                           href={`tel:${viaje.taxistaTelefono}`}
