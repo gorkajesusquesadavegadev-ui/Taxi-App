@@ -397,10 +397,10 @@ export default function ClienteHome() {
                     </View>
                   )}
                 </View>
-                {/* Matrícula en grande: es lo primero que se busca al ver llegar el taxi */}
+                {/* Matrícula GIGANTE: se tiene que leer de un vistazo desde lejos */}
                 {viaje.taxistaMatricula && (
-                  <View className="mt-1.5 items-center rounded-xl border-[3px] border-volcanic bg-white py-2">
-                    <Text className="font-bodybold text-[30px] tracking-[3px] text-volcanic">{viaje.taxistaMatricula}</Text>
+                  <View className="mt-1.5 items-center rounded-2xl border-4 border-volcanic bg-white py-3">
+                    <Text className="font-bodybold text-[48px] leading-none tracking-[4px] text-volcanic">{viaje.taxistaMatricula}</Text>
                   </View>
                 )}
                 <View className="mt-2 flex-row items-center justify-between gap-3">

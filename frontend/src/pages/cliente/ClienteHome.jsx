@@ -547,10 +547,10 @@ export default function ClienteHome() {
                         <span className="rounded-full bg-palm px-2.5 py-1 text-xs font-extrabold text-white">{t("ride.hasArrived")}</span>
                       )}
                     </div>
-                    {/* Matrícula en grande: es lo primero que se busca al ver llegar el taxi */}
+                    {/* Matrícula GIGANTE: se tiene que leer de un vistazo desde lejos */}
                     {viaje.taxistaMatricula && (
-                      <div className="mt-1.5 flex items-center justify-center rounded-xl border-[3px] border-volcanic bg-white py-2 shadow-sm">
-                        <span className="font-mono text-3xl font-black tracking-[0.12em] text-volcanic sm:text-4xl">
+                      <div className="mt-1.5 flex items-center justify-center rounded-2xl border-4 border-volcanic bg-white py-3 shadow-md">
+                        <span className="font-mono text-5xl font-black leading-none tracking-[0.1em] text-volcanic sm:text-6xl">
                           {viaje.taxistaMatricula}
                         </span>
                       </div>
