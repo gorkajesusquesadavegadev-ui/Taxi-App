@@ -2,6 +2,18 @@
 // Cubre TODOS los portales de España (calles, números, coordenadas exactas)
 const CARTOCIUDAD = "https://www.cartociudad.es/geocoder/api/geocoder";
 
+// Photon (Komoot) — buscador sobre OpenStreetMap pensado para autocompletado:
+// tolera texto a medias ("mesa y lop"), sin tildes ("nestor") y devuelve la
+// CALLE con sus coordenadas en una sola petición. Es la fuente principal de
+// calles: Cartociudad devuelve las calles SIN coordenadas (hay que resolverlas
+// aparte) y además las guarda en formato catálogo invertido ("PAZ DE LA"),
+// justo lo contrario de como las teclea la gente ("La Paz").
+// Gratis y sin clave, pero su política dice "extensive usage will be throttled"
+// y no garantiza disponibilidad — por eso NO se depende solo de ella: si falla,
+// abajo hay respaldo con el callejero oficial de Cartociudad.
+const PHOTON = "https://photon.komoot.io/api";
+const BBOX_CANARIAS = "-18.3,27.5,-13.3,29.5"; // minLon,minLat,maxLon,maxLat
+
 // Nominatim (OSM) — fallback para nombres de lugares, aeropuertos, POIs
 const NOMINATIM = "https://nominatim.openstreetmap.org";
 const VIEWBOX = "-18.2,29.4,-13.3,27.5"; // archipiélago canario completo
@@ -68,14 +80,85 @@ async function buscarCartociudad(q) {
   const out = [];
   for (const x of data) {
     if (!CANARY_PROV.has(x.provinceCode)) continue; // solo Canarias
-    const lat = Number(x.lat);
-    const lng = Number(x.lng);
-    if (!lat || !lng || Math.abs(lat) < 0.001) continue; // descarta coords inválidas
     const label = title(x.address || "");
     if (!label) continue;
-    out.push({ lat, lng, label, exacto: CARTO_TIPO_EXACTO.has(x.type) });
+    const lat = Number(x.lat);
+    const lng = Number(x.lng);
+    // OJO: /candidates devuelve las CALLES (type=callejero) sin coordenadas —
+    // solo los portales concretos las traen. Antes se descartaba todo lo que
+    // no tuviera coords, así que las calles desaparecían del buscador y solo
+    // sobrevivían tiendas/colegios/estancos (que sí las traen): por eso "no
+    // detectaba calles". Ahora se conservan y se resuelven con /find solo si
+    // el usuario elige una (ver resolverPunto), sin gastar una petición por
+    // cada tecla pulsada.
+    const sinCoords = !lat || !lng || Math.abs(lat) < 0.001;
+    out.push({
+      lat: sinCoords ? null : lat,
+      lng: sinCoords ? null : lng,
+      label,
+      exacto: CARTO_TIPO_EXACTO.has(x.type),
+      porResolver: sinCoords,
+    });
   }
   return out;
+}
+
+// Photon: una sola petición devuelve calle + coordenadas, tolerando texto a
+// medias y sin tildes. Acotado a Canarias por bbox — sin él devuelve calles de
+// la península e Italia ("Santa Brigida, Roma" al buscar Santa Brígida).
+async function buscarPhoton(q) {
+  const r = await fetch(
+    `${PHOTON}/?q=${encodeURIComponent(q)}&limit=10&bbox=${BBOX_CANARIAS}`,
+    { headers: { "User-Agent": "CanaryCab/1.0 gorquesadave@gmail.com" } }
+  );
+  if (!r.ok) return [];
+  const d = await r.json();
+  const out = [];
+  for (const f of d.features || []) {
+    const p = f.properties || {};
+    const [lng, lat] = f.geometry?.coordinates || [];
+    if (!lat || !lng) continue;
+    if (p.countrycode && p.countrycode !== "ES") continue;
+    // p.name es lo que casó la búsqueda (la calle o el sitio). Los portales no
+    // traen name, solo street + housenumber: ahí se compone "Calle X 5" en vez
+    // de dejar el número suelto delante. p.street solo se añade aparte cuando
+    // el sitio está EN otra calle, para no repetir "Calle X, Calle X".
+    const principal = p.name
+      ? [p.name, p.housenumber].filter(Boolean).join(" ").trim()
+      : [p.street, p.housenumber].filter(Boolean).join(" ").trim();
+    const via = p.name && p.street && p.street !== p.name ? p.street : "";
+    const label = [principal, via, p.district, p.city]
+      .filter(Boolean)
+      .filter((v, i, a) => a.indexOf(v) === i) // sin repetidos (district==city, etc.)
+      .slice(0, 3)
+      .join(", ");
+    if (!label) continue;
+    out.push({ lat, lng, label });
+  }
+  return out;
+}
+
+/**
+ * Rellena las coordenadas de un resultado que venía sin ellas (calle del
+ * callejero de Cartociudad). Devuelve el punto listo para usar, o null si no
+ * se pudo resolver. Los resultados que ya traen coords se devuelven tal cual.
+ */
+export async function resolverPunto(p) {
+  if (!p || !p.porResolver) return p;
+  try {
+    const r = await fetch(
+      `${CARTOCIUDAD}/findJsonp?q=${encodeURIComponent(p.label)}`,
+      { headers: { "User-Agent": "CanaryCab/1.0 gorquesadave@gmail.com" } }
+    );
+    if (!r.ok) return null;
+    const d = parseJsonp(await r.text());
+    const lat = Number(d?.lat);
+    const lng = Number(d?.lng);
+    if (!lat || !lng || Math.abs(lat) < 0.001) return null;
+    return { lat, lng, label: p.label };
+  } catch (_) {
+    return null;
+  }
 }
 
 async function buscarNominatim(q) {
@@ -107,29 +190,47 @@ async function buscarNominatim(q) {
   return out;
 }
 
+// Para quitar duplicados entre buscadores: "Avenida José Mesa y López" y
+// "AVENIDA JOSE MESA Y LOPEZ" son la misma calle.
+function claveDedupe(label) {
+  return label
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "") // sin tildes
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
 /**
- * Autocomplete: query → [{lat, lng, label}].
- * Orden de confianza: 1) direcciones exactas de Cartociudad (portal/calle con
- * número real), 2) POIs de Nominatim (hospitales, aeropuertos, estaciones —
- * indexados como la instalación real, no un área genérica), 3) el resto de
- * Cartociudad (toponimos/lugares aproximados) solo si no hay nada mejor.
+ * Autocomplete: query → [{lat, lng, label, porResolver?}].
+ * Consulta los tres buscadores a la vez (si uno falla, los otros responden) y
+ * ordena por confianza:
+ *   1. Portal exacto de Cartociudad — dirección oficial con número, con coords.
+ *   2. Photon — calles y sitios de OSM: es el único que encuentra la calle
+ *      escribiendo a medias o sin tildes, y el que cubre los pueblos.
+ *   3. POIs de Nominatim — red de seguridad si Photon está saturado/caído.
+ *   4. Callejero oficial de Cartociudad sin coords — cubre lo que a Photon le
+ *      falte; las coordenadas se piden solo al elegirlo (resolverPunto).
+ *   5. Topónimos vagos de Cartociudad (parques, áreas) — último recurso.
  */
 export async function buscarDirecciones(q) {
-  const [carto, osm] = await Promise.all([
+  const [carto, photon, osm] = await Promise.all([
     buscarCartociudad(q).catch(() => []),
+    buscarPhoton(q).catch(() => []),
     buscarNominatim(q).catch(() => []),
   ]);
 
-  const cartoExacto = carto.filter((x) => x.exacto);
-  const cartoVago = carto.filter((x) => !x.exacto);
+  const portales = carto.filter((x) => x.exacto && !x.porResolver);
+  const callejero = carto.filter((x) => x.exacto && x.porResolver);
+  const vagos = carto.filter((x) => !x.exacto);
 
   const seen = new Set();
   const out = [];
-  for (const x of [...cartoExacto, ...osm, ...cartoVago]) {
-    const k = x.label.toLowerCase();
-    if (seen.has(k)) continue;
+  for (const x of [...portales, ...photon, ...osm, ...callejero, ...vagos]) {
+    const k = claveDedupe(x.label);
+    if (!k || seen.has(k)) continue;
     seen.add(k);
-    out.push({ lat: x.lat, lng: x.lng, label: x.label });
+    out.push({ lat: x.lat, lng: x.lng, label: x.label, porResolver: !!x.porResolver });
     if (out.length === 8) break;
   }
   return out;

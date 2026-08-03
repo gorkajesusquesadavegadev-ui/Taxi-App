@@ -1,12 +1,26 @@
 // Buscador de direcciones con punto de color — espejo de components/AddressSearch.jsx.
 import { useEffect, useState } from "react";
 import { View, Text, TextInput, Pressable } from "react-native";
-import { buscarDirecciones } from "../api/geo";
+import { buscarDirecciones, resolverPunto } from "../api/geo";
 
 export default function AddressSearch({ placeholder, value, onSelect, dotClass = "bg-taxi" }) {
   const [query, setQuery] = useState("");
   const [sugerencias, setSugerencias] = useState([]);
   const [focus, setFocus] = useState(false);
+  const [resolviendo, setResolviendo] = useState(false);
+
+  // Las calles del callejero oficial llegan sin coordenadas: se piden aquí, al
+  // elegir una, y no en cada tecla pulsada.
+  async function elegir(item) {
+    setSugerencias([]);
+    if (!item.porResolver) { onSelect(item); setQuery(""); return; }
+    setResolviendo(true);
+    const punto = await resolverPunto(item).catch(() => null);
+    setResolviendo(false);
+    if (!punto) return; // no se pudo situar: no se fija punto
+    onSelect(punto);
+    setQuery("");
+  }
 
   useEffect(() => {
     if (value || query.trim().length < 3) { setSugerencias([]); return; }
@@ -45,7 +59,8 @@ export default function AddressSearch({ placeholder, value, onSelect, dotClass =
             <Pressable
               key={item.label + i}
               className={`px-3.5 py-2.5 active:bg-sand ${i > 0 ? "border-t border-sand" : ""}`}
-              onPress={() => { onSelect(item); setQuery(""); setSugerencias([]); }}
+              onPress={() => elegir(item)}
+              disabled={resolviendo}
             >
               <Text className="font-body text-[14px] text-volcanic" numberOfLines={1}>📍 {item.label}</Text>
             </Pressable>

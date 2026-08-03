@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { buscarDirecciones } from "../api/geo.js";
+import { buscarDirecciones, resolverPunto } from "../api/geo.js";
 import Spinner from "./Spinner.jsx";
 import { useI18n } from "../i18n/index.jsx";
 
@@ -67,12 +67,23 @@ export default function AddressSearch({ placeholder, value, onSelect, dotClass =
     return () => clearTimeout(id);
   }, [q, editing]);
 
-  function choose(r) {
-    onSelect(r);
+  async function choose(r) {
     setQ(r.label);
     setEditing(false);
     setResults([]);
     setActiveIdx(-1);
+    // Las calles del callejero oficial llegan sin coordenadas (Cartociudad solo
+    // las da en una segunda llamada). Se resuelven aquí, al elegir una — no en
+    // cada tecla — para no gastar una petición por pulsación.
+    if (r.porResolver) {
+      setSearching(true);
+      const punto = await resolverPunto(r).catch(() => null);
+      setSearching(false);
+      if (!punto) return; // no se pudo situar: se deja el texto, sin fijar punto
+      onSelect(punto);
+      return;
+    }
+    onSelect(r);
   }
 
   function clear() {
