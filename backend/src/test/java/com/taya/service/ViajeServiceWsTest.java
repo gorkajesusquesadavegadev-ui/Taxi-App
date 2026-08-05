@@ -1,6 +1,7 @@
 package com.taya.service;
 import com.taya.model.*;
 import com.taya.repository.UsuarioRepository;
+import com.taya.repository.ValoracionRepository;
 import com.taya.repository.ViajeRepository;
 import com.taya.websocket.TripWsService;
 import org.junit.jupiter.api.*;
@@ -10,15 +11,16 @@ import static org.mockito.Mockito.*;
 class ViajeServiceWsTest {
     ViajeRepository viajes; TarifaService tarifa; UbicacionService ubic;
     MatchingService matching; TripWsService ws; CatalogoService catalogo;
-    OsrmClient osrm; GeocodingService geo; UsuarioRepository usuarios; ViajeService service;
+    OsrmClient osrm; GeocodingService geo; UsuarioRepository usuarios;
+    ValoracionRepository valoraciones; ViajeService service;
 
     @BeforeEach void setup() {
         viajes = mock(ViajeRepository.class); tarifa = mock(TarifaService.class);
         ubic = mock(UbicacionService.class); matching = mock(MatchingService.class);
         ws = mock(TripWsService.class); catalogo = mock(CatalogoService.class);
         osrm = mock(OsrmClient.class); geo = mock(GeocodingService.class);
-        usuarios = mock(UsuarioRepository.class);
-        service = new ViajeService(viajes, tarifa, ubic, matching, ws, catalogo, osrm, geo, usuarios);
+        usuarios = mock(UsuarioRepository.class); valoraciones = mock(ValoracionRepository.class);
+        service = new ViajeService(viajes, tarifa, ubic, matching, ws, catalogo, osrm, geo, usuarios, valoraciones);
     }
 
     @Test void aceptar_emiteAcceptedAlCliente_yMarcaOcupado() {
