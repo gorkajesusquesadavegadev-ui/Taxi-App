@@ -158,7 +158,7 @@ export const DICT = {
     "badge.COMPLETADO": "Completado", "badge.CANCELADO": "Cancelado",
     "badge.LIBRE": "Libre", "badge.OCUPADO": "Ocupado", "badge.DESCONECTADO": "Desconectado",
     // valorar
-    "rate.howWas": "¿Qué tal {label}?", "rate.thanks": "¡Gracias por tu valoración! ⭐",
+    "rate.howWas": "¿Qué tal {label}?", "rate.thanks": "¡Gracias por tu valoración! ⭐", "rate.googleCta": "Dejar reseña en Google", "rate.googleNote": "Nos ayuda a que más gente encuentre CanaryCab",
     "rate.commentPh": "Comentario (opcional)", "rate.send": "Enviar valoración",
     "rate.theTrip": "el viaje", "rate.theClient": "el cliente",
     // taxista (conducir)
@@ -334,7 +334,7 @@ export const DICT = {
     "badge.LLEGADO": "Taxi has arrived", "badge.EN_CURSO": "On trip",
     "badge.COMPLETADO": "Completed", "badge.CANCELADO": "Cancelled",
     "badge.LIBRE": "Available", "badge.OCUPADO": "Busy", "badge.DESCONECTADO": "Offline",
-    "rate.howWas": "How was {label}?", "rate.thanks": "Thanks for your rating! ⭐",
+    "rate.howWas": "How was {label}?", "rate.thanks": "Thanks for your rating! ⭐", "rate.googleCta": "Leave a Google review", "rate.googleNote": "It helps more people find CanaryCab",
     "rate.commentPh": "Comment (optional)", "rate.send": "Submit rating",
     "rate.theTrip": "the trip", "rate.theClient": "the passenger",
     "drv.online": "Online", "drv.offline": "Offline",
@@ -508,7 +508,7 @@ export const DICT = {
     "badge.LLEGADO": "Taxi ist da", "badge.EN_CURSO": "Unterwegs",
     "badge.COMPLETADO": "Abgeschlossen", "badge.CANCELADO": "Storniert",
     "badge.LIBRE": "Frei", "badge.OCUPADO": "Besetzt", "badge.DESCONECTADO": "Offline",
-    "rate.howWas": "Wie war {label}?", "rate.thanks": "Danke für deine Bewertung! ⭐",
+    "rate.howWas": "Wie war {label}?", "rate.thanks": "Danke für deine Bewertung! ⭐", "rate.googleCta": "Google-Bewertung schreiben", "rate.googleNote": "So finden mehr Menschen CanaryCab",
     "rate.commentPh": "Kommentar (optional)", "rate.send": "Bewertung senden",
     "rate.theTrip": "die Fahrt", "rate.theClient": "der Fahrgast",
     "drv.online": "Online", "drv.offline": "Offline",

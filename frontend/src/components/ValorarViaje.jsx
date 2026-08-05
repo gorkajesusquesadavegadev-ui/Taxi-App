@@ -6,6 +6,13 @@ import { useI18n } from "../i18n/index.jsx";
  * Tarjeta de valoración tras un viaje completado. Comprueba si el usuario aún
  * puede valorar (backend) y muestra 5★ + comentario. Se oculta si ya valoró.
  */
+// Enlace a la ficha de Google del negocio para dejar reseña. Configurable por
+// entorno: cuando se tenga el enlace corto oficial del panel de Google Business
+// Profile (https://g.page/r/.../review) basta con cambiar la variable.
+const GOOGLE_REVIEW_URL =
+  import.meta.env.VITE_GOOGLE_REVIEW_URL ||
+  "https://www.google.com/search?q=Canarycab&kgmid=/g/11z9504nhj";
+
 export default function ValorarViaje({ viajeId, etiqueta }) {
   const { t } = useI18n();
   const label = etiqueta || t("rate.theTrip");
@@ -24,9 +31,22 @@ export default function ValorarViaje({ viajeId, etiqueta }) {
   }, [viajeId]);
 
   if (!pendiente || enviado) {
+    // Tras valorar se invita a dejar reseña en Google. Se ofrece a TODO el que
+    // valora, sin mirar cuántas estrellas puso: filtrar para pedírselo solo a
+    // los contentos ("review gating") incumple las políticas de Google y puede
+    // costar la ficha del negocio.
     return enviado ? (
-      <div className="rounded-2xl bg-palm/10 px-4 py-3 text-center text-sm font-bold text-palm">
-        {t("rate.thanks")}
+      <div className="rounded-2xl bg-palm/10 px-4 py-3 text-center">
+        <p className="text-sm font-bold text-palm">{t("rate.thanks")}</p>
+        <a
+          href={GOOGLE_REVIEW_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2.5 inline-flex items-center justify-center gap-2 rounded-xl border-2 border-volcanic/15 bg-white px-4 py-2 text-sm font-extrabold text-volcanic transition hover:border-volcanic/35 active:scale-95"
+        >
+          <span aria-hidden="true">★</span> {t("rate.googleCta")}
+        </a>
+        <p className="mt-1.5 text-[11px] font-medium text-volcanic/45">{t("rate.googleNote")}</p>
       </div>
     ) : null;
   }
