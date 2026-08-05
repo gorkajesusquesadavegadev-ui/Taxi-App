@@ -13,7 +13,12 @@ const GOOGLE_REVIEW_URL =
   import.meta.env.VITE_GOOGLE_REVIEW_URL ||
   "https://www.google.com/search?q=Canarycab&kgmid=/g/11z9504nhj";
 
-export default function ValorarViaje({ viajeId, etiqueta }) {
+/**
+ * @param invitarGoogle  Ofrecer reseña en Google al terminar. Solo tiene
+ *   sentido cuando es el CLIENTE valorando su viaje; cuando es el taxista
+ *   puntuando al pasajero no procede, por eso hay que activarlo a propósito.
+ */
+export default function ValorarViaje({ viajeId, etiqueta, invitarGoogle = false }) {
   const { t } = useI18n();
   const label = etiqueta || t("rate.theTrip");
   const [pendiente, setPendiente] = useState(false);
@@ -38,15 +43,19 @@ export default function ValorarViaje({ viajeId, etiqueta }) {
     return enviado ? (
       <div className="rounded-2xl bg-palm/10 px-4 py-3 text-center">
         <p className="text-sm font-bold text-palm">{t("rate.thanks")}</p>
-        <a
-          href={GOOGLE_REVIEW_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-2.5 inline-flex items-center justify-center gap-2 rounded-xl border-2 border-volcanic/15 bg-white px-4 py-2 text-sm font-extrabold text-volcanic transition hover:border-volcanic/35 active:scale-95"
-        >
-          <span aria-hidden="true">★</span> {t("rate.googleCta")}
-        </a>
-        <p className="mt-1.5 text-[11px] font-medium text-volcanic/45">{t("rate.googleNote")}</p>
+        {invitarGoogle && (
+          <>
+            <a
+              href={GOOGLE_REVIEW_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2.5 inline-flex items-center justify-center gap-2 rounded-xl border-2 border-volcanic/15 bg-white px-4 py-2 text-sm font-extrabold text-volcanic transition hover:border-volcanic/35 active:scale-95"
+            >
+              <span aria-hidden="true">★</span> {t("rate.googleCta")}
+            </a>
+            <p className="mt-1.5 text-[11px] font-medium text-volcanic/45">{t("rate.googleNote")}</p>
+          </>
+        )}
       </div>
     ) : null;
   }
