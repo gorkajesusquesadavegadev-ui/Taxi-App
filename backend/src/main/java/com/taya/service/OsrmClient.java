@@ -45,7 +45,10 @@ import java.util.concurrent.atomic.AtomicLong;
 public class OsrmClient {
     private static final Logger log = LoggerFactory.getLogger(OsrmClient.class);
 
-    private static final String BASE = "https://router.project-osrm.org/route/v1/driving/";
+    // Servidor de rutas. Por defecto el público de demostración; en producción
+    // se apunta con OSRM_URL a la instancia propia (servicio "osrm" de Railway,
+    // ver osrm/Dockerfile), que no tiene límites ni depende de terceros.
+    private final String base;
     private static final double FACTOR_CORRECCION_RECTA = 1.35; // recta → aprox. carretera real
     private static final int REINTENTOS = 2;
     // Las carreteras no cambian a diario; con 30 días la caché se mantiene
@@ -63,8 +66,12 @@ public class OsrmClient {
     private final ObjectMapper json = new ObjectMapper();
     private final AtomicLong fallbacks = new AtomicLong();
 
-    public OsrmClient(StringRedisTemplate redis) {
+    public OsrmClient(StringRedisTemplate redis,
+                      @org.springframework.beans.factory.annotation.Value("${osrm.url:https://router.project-osrm.org}") String osrmUrl) {
         this.redis = redis;
+        String raiz = osrmUrl.endsWith("/") ? osrmUrl.substring(0, osrmUrl.length() - 1) : osrmUrl;
+        this.base = raiz + "/route/v1/driving/";
+        log.info("Router de rutas: {}", raiz);
         // Timeout algo más generoso: el servidor público a veces tarda más de
         // 4 s sin estar caído, y cortar pronto solo dispara los fallbacks.
         var f = new org.springframework.http.client.SimpleClientHttpRequestFactory();
@@ -103,7 +110,7 @@ public class OsrmClient {
             if (coords.length() > 0) coords.append(';');
             coords.append(p[1]).append(',').append(p[0]); // OSRM espera lng,lat
         }
-        String url = BASE + coords + "?overview=full&geometries=geojson";
+        String url = base + coords + "?overview=full&geometries=geojson";
 
         for (int intento = 0; intento <= REINTENTOS; intento++) {
             try {
