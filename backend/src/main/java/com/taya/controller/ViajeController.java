@@ -50,6 +50,13 @@ public class ViajeController {
         return viajes.activoCliente(Long.valueOf(uid));
     }
 
+    /** Último viaje terminado y sin valorar (24 h), para poder puntuarlo aunque
+     *  se haya cerrado la app: /activo no devuelve estados terminales. */
+    @GetMapping("/ultimo-valorable")
+    public ViajeResponse ultimoValorable(@AuthenticationPrincipal String uid) {
+        return viajes.ultimoValorableCliente(Long.valueOf(uid));
+    }
+
     @GetMapping("/taxista-activo") @PreAuthorize("hasRole('TAXISTA')")
     public ViajeResponse taxistaActivo(@AuthenticationPrincipal String uid) {
         return viajes.activoTaxista(Long.valueOf(uid));

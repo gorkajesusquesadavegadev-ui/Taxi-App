@@ -58,6 +58,7 @@ export const api = {
   estimar: (d) => req("POST", "/viajes/estimar", d),
   solicitar: (d) => req("POST", "/viajes/solicitar", d),
   activo: () => req("GET", "/viajes/activo"),
+  ultimoValorable: () => req("GET", "/viajes/ultimo-valorable"),
   viaje: (id) => req("GET", `/viajes/${id}`),
   taxistaActivo: () => req("GET", "/viajes/taxista-activo"),
   pendienteCercano: () => req("GET", "/viajes/pendiente-cercano"),

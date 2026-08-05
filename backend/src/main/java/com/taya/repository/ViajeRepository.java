@@ -35,6 +35,13 @@ public interface ViajeRepository extends JpaRepository<Viaje, Long> {
     Optional<Viaje> findFirstByTaxistaIdAndEstadoInOrderBySolicitadoEnDesc(
         Long taxistaId, Collection<EstadoViaje> estados);
 
+    // Último viaje terminado del cliente, para poder valorarlo aunque haya
+    // cerrado la app: /activo solo devuelve estados no terminales, así que sin
+    // esto un viaje completado quedaba fuera de alcance al recargar y ya no se
+    // podía valorar nunca.
+    Optional<Viaje> findFirstByClienteIdAndEstadoAndCompletadoEnAfterOrderByCompletadoEnDesc(
+        Long clienteId, EstadoViaje estado, java.time.Instant desde);
+
     // Retry dispatcher: trips stuck as SOLICITADO beyond cutoff (no driver accepted yet)
     List<Viaje> findByEstadoAndSolicitadoEnBefore(EstadoViaje estado, Instant antes);
 

@@ -150,7 +150,13 @@ export default function ClienteHome() {
     const sync = async () => {
       try {
         const cur = viajeRef.current;
-        const a = cur ? await api.viaje(cur.id) : await api.activo();
+        // Sin viaje en curso, además del activo se busca el último terminado
+        // sin valorar: /activo no devuelve estados terminales, así que al
+        // recargar tras completar un viaje la tarjeta de valoración
+        // desaparecía y ya no se podía puntuar nunca.
+        const a = cur
+          ? await api.viaje(cur.id)
+          : (await api.activo()) || (await api.ultimoValorable().catch(() => null));
         if (!alive || !a) return;
         setViaje((c) =>
           !c || c.id !== a.id || c.estado !== a.estado || c.precioFinal !== a.precioFinal

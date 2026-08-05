@@ -24,12 +24,15 @@ public class ViajeService {
     private final OsrmClient osrm;
     private final GeocodingService geo;
     private final com.taya.repository.UsuarioRepository usuarios;
+    private final com.taya.repository.ValoracionRepository valoraciones;
 
     public ViajeService(ViajeRepository v, TarifaService t, UbicacionService u, MatchingService m,
                         TripWsService ws, CatalogoService c, OsrmClient osrm, GeocodingService geo,
-                        com.taya.repository.UsuarioRepository usuarios) {
+                        com.taya.repository.UsuarioRepository usuarios,
+                        com.taya.repository.ValoracionRepository valoraciones) {
         this.viajes = v; this.tarifa = t; this.ubicacion = u; this.matching = m; this.ws = ws;
         this.catalogo = c; this.osrm = osrm; this.geo = geo; this.usuarios = usuarios;
+        this.valoraciones = valoraciones;
     }
 
     /** ViajeResponse con datos de contacto del taxista y del cliente. */
@@ -339,6 +342,22 @@ public class ViajeService {
     public ViajeResponse activoCliente(Long clienteId) {
         return viajes.findFirstByClienteIdAndEstadoInOrderBySolicitadoEnDesc(clienteId,
             List.of(EstadoViaje.SOLICITADO, EstadoViaje.ACEPTADO, EstadoViaje.LLEGADO, EstadoViaje.EN_CURSO))
+            .map(this::conContacto).orElse(null);
+    }
+
+    /**
+     * Último viaje COMPLETADO del cliente en las últimas 24 h que aún no ha
+     * valorado, o null.
+     *
+     * Existe porque activoCliente() solo devuelve estados no terminales: en
+     * cuanto el viaje terminaba y el cliente recargaba o volvía a abrir la app,
+     * el viaje quedaba fuera de alcance y ya no había forma de valorarlo. La
+     * tarjeta de valoración solo sobrevivía si dejabas la pestaña abierta.
+     */
+    public ViajeResponse ultimoValorableCliente(Long clienteId) {
+        return viajes.findFirstByClienteIdAndEstadoAndCompletadoEnAfterOrderByCompletadoEnDesc(
+                clienteId, EstadoViaje.COMPLETADO, Instant.now().minus(24, java.time.temporal.ChronoUnit.HOURS))
+            .filter(v -> !valoraciones.existsByViajeIdAndAutorId(v.getId(), clienteId))
             .map(this::conContacto).orElse(null);
     }
 
