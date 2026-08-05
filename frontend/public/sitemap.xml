@@ -35,6 +35,141 @@
       <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxitarife-gran-canaria"/>
   </url>
   <url>
+    <loc>https://canarycab.com/taxi-aeropuerto-las-palmas</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+      <xhtml:link rel="alternate" hreflang="es" href="https://canarycab.com/taxi-aeropuerto-las-palmas"/>
+      <xhtml:link rel="alternate" hreflang="en" href="https://canarycab.com/taxi-airport-las-palmas"/>
+      <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxi-flughafen-las-palmas"/>
+  </url>
+  <url>
+    <loc>https://canarycab.com/taxi-airport-las-palmas</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+      <xhtml:link rel="alternate" hreflang="es" href="https://canarycab.com/taxi-aeropuerto-las-palmas"/>
+      <xhtml:link rel="alternate" hreflang="en" href="https://canarycab.com/taxi-airport-las-palmas"/>
+      <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxi-flughafen-las-palmas"/>
+  </url>
+  <url>
+    <loc>https://canarycab.com/taxi-flughafen-las-palmas</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+      <xhtml:link rel="alternate" hreflang="es" href="https://canarycab.com/taxi-aeropuerto-las-palmas"/>
+      <xhtml:link rel="alternate" hreflang="en" href="https://canarycab.com/taxi-airport-las-palmas"/>
+      <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxi-flughafen-las-palmas"/>
+  </url>
+  <url>
+    <loc>https://canarycab.com/taxi-aeropuerto-maspalomas</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+      <xhtml:link rel="alternate" hreflang="es" href="https://canarycab.com/taxi-aeropuerto-maspalomas"/>
+      <xhtml:link rel="alternate" hreflang="en" href="https://canarycab.com/taxi-airport-maspalomas"/>
+      <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxi-flughafen-maspalomas"/>
+  </url>
+  <url>
+    <loc>https://canarycab.com/taxi-airport-maspalomas</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+      <xhtml:link rel="alternate" hreflang="es" href="https://canarycab.com/taxi-aeropuerto-maspalomas"/>
+      <xhtml:link rel="alternate" hreflang="en" href="https://canarycab.com/taxi-airport-maspalomas"/>
+      <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxi-flughafen-maspalomas"/>
+  </url>
+  <url>
+    <loc>https://canarycab.com/taxi-flughafen-maspalomas</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+      <xhtml:link rel="alternate" hreflang="es" href="https://canarycab.com/taxi-aeropuerto-maspalomas"/>
+      <xhtml:link rel="alternate" hreflang="en" href="https://canarycab.com/taxi-airport-maspalomas"/>
+      <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxi-flughafen-maspalomas"/>
+  </url>
+  <url>
+    <loc>https://canarycab.com/taxi-aeropuerto-puerto-rico</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+      <xhtml:link rel="alternate" hreflang="es" href="https://canarycab.com/taxi-aeropuerto-puerto-rico"/>
+      <xhtml:link rel="alternate" hreflang="en" href="https://canarycab.com/taxi-airport-puerto-rico"/>
+      <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxi-flughafen-puerto-rico"/>
+  </url>
+  <url>
+    <loc>https://canarycab.com/taxi-airport-puerto-rico</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+      <xhtml:link rel="alternate" hreflang="es" href="https://canarycab.com/taxi-aeropuerto-puerto-rico"/>
+      <xhtml:link rel="alternate" hreflang="en" href="https://canarycab.com/taxi-airport-puerto-rico"/>
+      <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxi-flughafen-puerto-rico"/>
+  </url>
+  <url>
+    <loc>https://canarycab.com/taxi-flughafen-puerto-rico</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+      <xhtml:link rel="alternate" hreflang="es" href="https://canarycab.com/taxi-aeropuerto-puerto-rico"/>
+      <xhtml:link rel="alternate" hreflang="en" href="https://canarycab.com/taxi-airport-puerto-rico"/>
+      <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxi-flughafen-puerto-rico"/>
+  </url>
+  <url>
+    <loc>https://canarycab.com/taxi-aeropuerto-puerto-mogan</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+      <xhtml:link rel="alternate" hreflang="es" href="https://canarycab.com/taxi-aeropuerto-puerto-mogan"/>
+      <xhtml:link rel="alternate" hreflang="en" href="https://canarycab.com/taxi-airport-puerto-mogan"/>
+      <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxi-flughafen-puerto-mogan"/>
+  </url>
+  <url>
+    <loc>https://canarycab.com/taxi-airport-puerto-mogan</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+      <xhtml:link rel="alternate" hreflang="es" href="https://canarycab.com/taxi-aeropuerto-puerto-mogan"/>
+      <xhtml:link rel="alternate" hreflang="en" href="https://canarycab.com/taxi-airport-puerto-mogan"/>
+      <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxi-flughafen-puerto-mogan"/>
+  </url>
+  <url>
+    <loc>https://canarycab.com/taxi-flughafen-puerto-mogan</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+      <xhtml:link rel="alternate" hreflang="es" href="https://canarycab.com/taxi-aeropuerto-puerto-mogan"/>
+      <xhtml:link rel="alternate" hreflang="en" href="https://canarycab.com/taxi-airport-puerto-mogan"/>
+      <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxi-flughafen-puerto-mogan"/>
+  </url>
+  <url>
+    <loc>https://canarycab.com/taxi-las-palmas-maspalomas</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+      <xhtml:link rel="alternate" hreflang="es" href="https://canarycab.com/taxi-las-palmas-maspalomas"/>
+      <xhtml:link rel="alternate" hreflang="en" href="https://canarycab.com/taxi-las-palmas-maspalomas-en"/>
+      <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxi-las-palmas-maspalomas-de"/>
+  </url>
+  <url>
+    <loc>https://canarycab.com/taxi-las-palmas-maspalomas-en</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+      <xhtml:link rel="alternate" hreflang="es" href="https://canarycab.com/taxi-las-palmas-maspalomas"/>
+      <xhtml:link rel="alternate" hreflang="en" href="https://canarycab.com/taxi-las-palmas-maspalomas-en"/>
+      <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxi-las-palmas-maspalomas-de"/>
+  </url>
+  <url>
+    <loc>https://canarycab.com/taxi-las-palmas-maspalomas-de</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+      <xhtml:link rel="alternate" hreflang="es" href="https://canarycab.com/taxi-las-palmas-maspalomas"/>
+      <xhtml:link rel="alternate" hreflang="en" href="https://canarycab.com/taxi-las-palmas-maspalomas-en"/>
+      <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxi-las-palmas-maspalomas-de"/>
+  </url>
+  <url>
     <loc>https://canarycab.com/privacidad</loc>
     <lastmod>2026-08-05</lastmod>
     <changefreq>yearly</changefreq>

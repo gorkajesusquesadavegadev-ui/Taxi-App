@@ -37,14 +37,39 @@ const T3 = [
   ["t3Noc", "4,25 €", "1,55 €", "18,50 €"],
   ["t3Nav", "6,54 €", "1,55 €", "18,50 €"],
 ];
-// Precios reales calculados por el motor de la app (tarifa diurna laborable)
-const EJEMPLOS = [
-  ["Aeropuerto (LPA) → Las Palmas", "35,10 €"],
-  ["Las Palmas → Aeropuerto (LPA)", "34,38 €"],
-  ["Las Palmas → Maspalomas", "78,83 €"],
-  ["Las Palmas → Puerto Rico", "98,82 €"],
-  ["Las Palmas → Puerto de Mogán", "107,74 €"],
+// ── Trayectos con página propia ─────────────────────────────────────────────
+// km y minutos son los que devuelve el motor de rutas real de la app (OSRM);
+// los precios se calculan aquí con las MISMAS fórmulas que TarifaService para
+// que no puedan divergir de lo que luego cobra la app:
+//   Tarifa 3 día   = 3,85 € (incluye 1.500 m) + 1,35 €/km + suplementos
+//   Tarifa 3 noche = 4,25 € (incluye 1.500 m) + 1,55 €/km + suplementos
+//   suplementos    = radiotaxi 0,60 € + aeropuerto/puerto 2,10 € (si aplica)
+const SUP_RADIOTAXI = 0.6;
+const SUP_AEROPUERTO = 2.1;
+
+function precioT3(km, { noche = false, aeropuerto = true } = {}) {
+  const minimo = noche ? 4.25 : 3.85;
+  const porKm = noche ? 1.55 : 1.35;
+  const sup = SUP_RADIOTAXI + (aeropuerto ? SUP_AEROPUERTO : 0);
+  return minimo + porKm * Math.max(0, km - 1.5) + sup;
+}
+const eur = (n) => n.toFixed(2).replace(".", ",") + " €";
+
+const RUTAS = [
+  { id: "aeropuerto-las-palmas", km: 25.9, min: 26, aeropuerto: true,
+    slugs: { es: "taxi-aeropuerto-las-palmas", en: "taxi-airport-las-palmas", de: "taxi-flughafen-las-palmas" } },
+  { id: "aeropuerto-maspalomas", km: 33.5, min: 27, aeropuerto: true,
+    slugs: { es: "taxi-aeropuerto-maspalomas", en: "taxi-airport-maspalomas", de: "taxi-flughafen-maspalomas" } },
+  { id: "aeropuerto-puerto-rico", km: 48.3, min: 39, aeropuerto: true,
+    slugs: { es: "taxi-aeropuerto-puerto-rico", en: "taxi-airport-puerto-rico", de: "taxi-flughafen-puerto-rico" } },
+  { id: "aeropuerto-mogan", km: 54.9, min: 46, aeropuerto: true,
+    slugs: { es: "taxi-aeropuerto-puerto-mogan", en: "taxi-airport-puerto-mogan", de: "taxi-flughafen-puerto-mogan" } },
+  { id: "las-palmas-maspalomas", km: 56.6, min: 46, aeropuerto: false,
+    slugs: { es: "taxi-las-palmas-maspalomas", en: "taxi-las-palmas-maspalomas-en", de: "taxi-las-palmas-maspalomas-de" } },
 ];
+
+// Precios de referencia para la guía general (tarifa diurna laborable)
+const EJEMPLOS = RUTAS.map((r) => [r.id, eur(precioT3(r.km, { aeropuerto: r.aeropuerto }))]);
 
 const IDIOMAS = {
   es: {
@@ -268,6 +293,219 @@ const IDIOMAS = {
   },
 };
 
+// Texto propio de cada trayecto. Cada página tiene contenido distinto de verdad
+// (destino, qué esperar al llegar, equipaje, franja nocturna): páginas clonadas
+// cambiando solo el nombre son "doorway pages" y Google las penaliza.
+const RUTAS_TEXTO = {
+  es: {
+    etiquetas: { dia: "Tarifa diurna (laborables 6:00–22:00)", noche: "Tarifa nocturna, domingos y festivos",
+      km: "Distancia por carretera", min: "Duración aproximada", que: "Qué debes saber", otras: "Otros trayectos" },
+    "aeropuerto-las-palmas": {
+      nombre: "Aeropuerto → Las Palmas",
+      h1: "Taxi del aeropuerto de Gran Canaria a Las Palmas",
+      title: "Taxi aeropuerto Gran Canaria → Las Palmas · Precio y duración | CanaryCab",
+      desc: "Cuánto cuesta el taxi del aeropuerto de Gran Canaria (LPA) a Las Palmas: precio con tarifa oficial del BOC, duración y qué esperar al llegar.",
+      intro: "El trayecto entre el aeropuerto de Gran Canaria (LPA) y la capital se hace por la autopista GC-1 y es el más habitual de la isla. Se cobra con la tarifa interurbana oficial (Tarifa 3) más el suplemento de aeropuerto.",
+      practico: [
+        "La parada de taxis está a la salida de la terminal de llegadas, a pie, sin necesidad de coger lanzadera.",
+        "El precio es por vehículo, no por persona: hasta 4 pasajeros pagan lo mismo.",
+        "De 22:00 a 6:00 y en domingos y festivos se aplica la franja nocturna, más cara.",
+        "Si llegas con vuelo retrasado, en CanaryCab puedes pedir el taxi al recoger el equipaje y ver cuánto tarda en llegar.",
+      ],
+    },
+    "aeropuerto-maspalomas": {
+      nombre: "Aeropuerto → Maspalomas",
+      h1: "Taxi del aeropuerto de Gran Canaria a Maspalomas y Playa del Inglés",
+      title: "Taxi aeropuerto Gran Canaria → Maspalomas · Precio real | CanaryCab",
+      desc: "Precio del taxi del aeropuerto de Gran Canaria (LPA) a Maspalomas y Playa del Inglés con la tarifa oficial del BOC, duración del trayecto e información práctica.",
+      intro: "Maspalomas y Playa del Inglés son el destino turístico principal del sur de Gran Canaria. Desde el aeropuerto se llega por la GC-1 en menos de media hora, y se cobra con la tarifa interurbana oficial más el suplemento de aeropuerto.",
+      practico: [
+        "El taxi te deja en la puerta del hotel o apartamento, sin paradas intermedias como en los traslados compartidos.",
+        "Precio por vehículo hasta 4 pasajeros: para una familia suele salir mejor que el traslado por persona.",
+        "Si tu vuelo aterriza de noche, se aplica la franja nocturna: cuenta con unos euros más.",
+        "Puedes pedir taxi adaptado para silla de ruedas desde la propia app.",
+      ],
+    },
+    "aeropuerto-puerto-rico": {
+      nombre: "Aeropuerto → Puerto Rico",
+      h1: "Taxi del aeropuerto de Gran Canaria a Puerto Rico",
+      title: "Taxi aeropuerto Gran Canaria → Puerto Rico · Cuánto cuesta | CanaryCab",
+      desc: "Cuánto cuesta un taxi del aeropuerto de Gran Canaria (LPA) a Puerto Rico: precio con tarifa oficial, tiempo de trayecto y consejos prácticos.",
+      intro: "Puerto Rico de Gran Canaria está en el suroeste de la isla, pasado Maspalomas. El trayecto desde el aeropuerto continúa por la GC-1 y ronda los tres cuartos de hora, con tarifa interurbana oficial más suplemento de aeropuerto.",
+      practico: [
+        "Es un trayecto largo: conviene confirmar el precio estimado antes de salir, como muestra CanaryCab al pedirlo.",
+        "La zona es de fuerte pendiente y calles estrechas; indica bien el complejo o apartamento al pedir el taxi.",
+        "Hasta 4 pasajeros con equipaje entran en un taxi estándar.",
+        "En temporada alta y con vuelos nocturnos hay menos taxis libres: pedirlo con antelación ayuda.",
+      ],
+    },
+    "aeropuerto-mogan": {
+      nombre: "Aeropuerto → Puerto de Mogán",
+      h1: "Taxi del aeropuerto de Gran Canaria a Puerto de Mogán",
+      title: "Taxi aeropuerto Gran Canaria → Puerto de Mogán · Precio | CanaryCab",
+      desc: "Precio y duración del taxi del aeropuerto de Gran Canaria (LPA) a Puerto de Mogán, con la tarifa interurbana oficial del BOC.",
+      intro: "Puerto de Mogán, la llamada «pequeña Venecia», está en el extremo suroeste de Gran Canaria. Es el trayecto más largo desde el aeropuerto entre los destinos turísticos habituales, con tarifa interurbana oficial más suplemento de aeropuerto.",
+      practico: [
+        "Casi una hora de viaje: es el traslado más caro de los habituales, y el precio se dispara si lo tomas de noche.",
+        "El precio es por taxi, no por persona: repartido entre 3 o 4 viajeros resulta competitivo.",
+        "Avisa si llevas maletas voluminosas o material deportivo para que envíen un vehículo adecuado.",
+        "En CanaryCab ves la ruta real en el mapa y el precio antes de confirmar.",
+      ],
+    },
+    "las-palmas-maspalomas": {
+      nombre: "Las Palmas → Maspalomas",
+      h1: "Taxi de Las Palmas a Maspalomas",
+      title: "Taxi Las Palmas → Maspalomas · Precio y duración | CanaryCab",
+      desc: "Cuánto cuesta el taxi de Las Palmas de Gran Canaria a Maspalomas: precio con tarifa interurbana oficial, duración y alternativas.",
+      intro: "De la capital al sur turístico hay algo más de 50 km por la autopista GC-1. Al salir del casco urbano se aplica la tarifa interurbana oficial (Tarifa 3); no lleva suplemento de aeropuerto, solo el de radiotaxi.",
+      practico: [
+        "Es un trayecto de casi una hora: el taxi compensa sobre todo repartido entre varias personas o con equipaje.",
+        "La tarifa cambia al cruzar las 22:00 y en domingos y festivos.",
+        "Precio por vehículo hasta 4 pasajeros.",
+        "CanaryCab calcula el importe sobre la ruta real y lo deja cerrado al pedir el viaje.",
+      ],
+    },
+  },
+  en: {
+    etiquetas: { dia: "Daytime fare (weekdays 6:00–22:00)", noche: "Night, Sunday and public holiday fare",
+      km: "Road distance", min: "Approximate duration", que: "What you should know", otras: "Other routes" },
+    "aeropuerto-las-palmas": {
+      nombre: "Airport → Las Palmas",
+      h1: "Taxi from Gran Canaria airport to Las Palmas",
+      title: "Taxi Gran Canaria airport → Las Palmas · Price and duration | CanaryCab",
+      desc: "How much a taxi from Gran Canaria airport (LPA) to Las Palmas costs: price under the official BOC fare, duration and what to expect on arrival.",
+      intro: "The ride between Gran Canaria airport (LPA) and the capital runs along the GC-1 motorway and is the most common on the island. It is charged under the official interurban fare (Tariff 3) plus the airport supplement.",
+      practico: [
+        "The taxi rank is right outside the arrivals terminal, on foot — no shuttle needed.",
+        "The price is per vehicle, not per person: up to 4 passengers pay the same.",
+        "From 22:00 to 6:00 and on Sundays and public holidays the more expensive night band applies.",
+        "If your flight is delayed, with CanaryCab you can book the taxi at baggage reclaim and watch it arrive.",
+      ],
+    },
+    "aeropuerto-maspalomas": {
+      nombre: "Airport → Maspalomas",
+      h1: "Taxi from Gran Canaria airport to Maspalomas and Playa del Inglés",
+      title: "Taxi Gran Canaria airport → Maspalomas · Real price | CanaryCab",
+      desc: "Taxi price from Gran Canaria airport (LPA) to Maspalomas and Playa del Inglés under the official BOC fare, journey time and practical information.",
+      intro: "Maspalomas and Playa del Inglés are the main tourist destination in the south of Gran Canaria. From the airport it takes under half an hour on the GC-1, charged under the official interurban fare plus the airport supplement.",
+      practico: [
+        "The taxi drops you at your hotel or apartment door, with no intermediate stops unlike shared transfers.",
+        "Price is per vehicle for up to 4 passengers: for a family it usually beats per-person transfers.",
+        "If your flight lands at night, the night band applies — expect a few euros more.",
+        "You can request a wheelchair-accessible taxi from the app itself.",
+      ],
+    },
+    "aeropuerto-puerto-rico": {
+      nombre: "Airport → Puerto Rico",
+      h1: "Taxi from Gran Canaria airport to Puerto Rico",
+      title: "Taxi Gran Canaria airport → Puerto Rico · How much it costs | CanaryCab",
+      desc: "How much a taxi from Gran Canaria airport (LPA) to Puerto Rico costs: official fare price, journey time and practical tips.",
+      intro: "Puerto Rico de Gran Canaria sits in the south-west of the island, beyond Maspalomas. The ride from the airport continues along the GC-1 and takes around three quarters of an hour, under the official interurban fare plus the airport supplement.",
+      practico: [
+        "It is a long ride: worth confirming the estimated price before setting off, as CanaryCab shows when you book.",
+        "The area is steep with narrow streets — state your complex or apartment clearly when booking.",
+        "Up to 4 passengers with luggage fit in a standard taxi.",
+        "In high season and on night flights fewer taxis are free: booking ahead helps.",
+      ],
+    },
+    "aeropuerto-mogan": {
+      nombre: "Airport → Puerto de Mogán",
+      h1: "Taxi from Gran Canaria airport to Puerto de Mogán",
+      title: "Taxi Gran Canaria airport → Puerto de Mogán · Price | CanaryCab",
+      desc: "Price and duration of a taxi from Gran Canaria airport (LPA) to Puerto de Mogán under the official interurban BOC fare.",
+      intro: "Puerto de Mogán, known as 'little Venice', lies at the far south-west of Gran Canaria. It is the longest of the usual airport transfers, charged under the official interurban fare plus the airport supplement.",
+      practico: [
+        "Almost an hour on the road: the priciest of the usual transfers, and noticeably more at night.",
+        "The price is per taxi, not per person — split between 3 or 4 travellers it is competitive.",
+        "Mention bulky suitcases or sports equipment so a suitable vehicle is sent.",
+        "With CanaryCab you see the real route on the map and the price before confirming.",
+      ],
+    },
+    "las-palmas-maspalomas": {
+      nombre: "Las Palmas → Maspalomas",
+      h1: "Taxi from Las Palmas to Maspalomas",
+      title: "Taxi Las Palmas → Maspalomas · Price and duration | CanaryCab",
+      desc: "How much a taxi from Las Palmas de Gran Canaria to Maspalomas costs: official interurban fare price, duration and alternatives.",
+      intro: "From the capital to the southern resorts it is just over 50 km along the GC-1 motorway. Once outside the city the official interurban fare (Tariff 3) applies; there is no airport supplement, only the radio-taxi one.",
+      practico: [
+        "Almost an hour's ride: a taxi pays off mainly when shared between several people or with luggage.",
+        "The fare changes after 22:00 and on Sundays and public holidays.",
+        "Price per vehicle for up to 4 passengers.",
+        "CanaryCab calculates the amount on the real route and locks it in when you book.",
+      ],
+    },
+  },
+  de: {
+    etiquetas: { dia: "Tagestarif (werktags 6:00–22:00)", noche: "Nacht-, Sonn- und Feiertagstarif",
+      km: "Straßenentfernung", min: "Ungefähre Dauer", que: "Was Sie wissen sollten", otras: "Weitere Strecken" },
+    "aeropuerto-las-palmas": {
+      nombre: "Flughafen → Las Palmas",
+      h1: "Taxi vom Flughafen Gran Canaria nach Las Palmas",
+      title: "Taxi Flughafen Gran Canaria → Las Palmas · Preis und Dauer | CanaryCab",
+      desc: "Was ein Taxi vom Flughafen Gran Canaria (LPA) nach Las Palmas kostet: Preis nach offiziellem BOC-Tarif, Dauer und was Sie bei der Ankunft erwartet.",
+      intro: "Die Fahrt zwischen dem Flughafen Gran Canaria (LPA) und der Hauptstadt führt über die Autobahn GC-1 und ist die häufigste der Insel. Abgerechnet wird nach dem offiziellen Überlandtarif (Tarif 3) plus Flughafenzuschlag.",
+      practico: [
+        "Der Taxistand liegt direkt vor dem Ankunftsterminal, fußläufig, ohne Shuttle.",
+        "Der Preis gilt pro Fahrzeug, nicht pro Person: bis zu 4 Fahrgäste zahlen dasselbe.",
+        "Von 22:00 bis 6:00 sowie sonn- und feiertags gilt das teurere Nachtfenster.",
+        "Bei Flugverspätung können Sie das Taxi mit CanaryCab an der Gepäckausgabe bestellen und die Anfahrt live verfolgen.",
+      ],
+    },
+    "aeropuerto-maspalomas": {
+      nombre: "Flughafen → Maspalomas",
+      h1: "Taxi vom Flughafen Gran Canaria nach Maspalomas und Playa del Inglés",
+      title: "Taxi Flughafen Gran Canaria → Maspalomas · Echter Preis | CanaryCab",
+      desc: "Taxipreis vom Flughafen Gran Canaria (LPA) nach Maspalomas und Playa del Inglés nach offiziellem BOC-Tarif, Fahrzeit und praktische Hinweise.",
+      intro: "Maspalomas und Playa del Inglés sind das wichtigste Urlaubsziel im Süden Gran Canarias. Vom Flughafen sind es keine halbe Stunde über die GC-1, abgerechnet nach dem offiziellen Überlandtarif plus Flughafenzuschlag.",
+      practico: [
+        "Das Taxi bringt Sie direkt vor Hotel oder Apartment — ohne Zwischenstopps wie bei Sammeltransfers.",
+        "Preis pro Fahrzeug für bis zu 4 Personen: für Familien meist günstiger als Transfers pro Person.",
+        "Landet Ihr Flug nachts, gilt das Nachtfenster — rechnen Sie mit ein paar Euro mehr.",
+        "Ein rollstuhlgerechtes Taxi können Sie direkt in der App anfordern.",
+      ],
+    },
+    "aeropuerto-puerto-rico": {
+      nombre: "Flughafen → Puerto Rico",
+      h1: "Taxi vom Flughafen Gran Canaria nach Puerto Rico",
+      title: "Taxi Flughafen Gran Canaria → Puerto Rico · Was es kostet | CanaryCab",
+      desc: "Was ein Taxi vom Flughafen Gran Canaria (LPA) nach Puerto Rico kostet: Preis nach offiziellem Tarif, Fahrzeit und praktische Tipps.",
+      intro: "Puerto Rico de Gran Canaria liegt im Südwesten der Insel, hinter Maspalomas. Die Fahrt vom Flughafen führt weiter über die GC-1 und dauert etwa eine Dreiviertelstunde, nach offiziellem Überlandtarif plus Flughafenzuschlag.",
+      practico: [
+        "Eine lange Strecke: Den geschätzten Preis vor der Abfahrt bestätigen lassen, wie CanaryCab es bei der Buchung anzeigt.",
+        "Die Gegend ist steil mit engen Straßen — geben Sie die Anlage oder das Apartment genau an.",
+        "Bis zu 4 Fahrgäste mit Gepäck passen in ein Standardtaxi.",
+        "In der Hochsaison und bei Nachtflügen sind weniger Taxis frei: früh bestellen hilft.",
+      ],
+    },
+    "aeropuerto-mogan": {
+      nombre: "Flughafen → Puerto de Mogán",
+      h1: "Taxi vom Flughafen Gran Canaria nach Puerto de Mogán",
+      title: "Taxi Flughafen Gran Canaria → Puerto de Mogán · Preis | CanaryCab",
+      desc: "Preis und Dauer für ein Taxi vom Flughafen Gran Canaria (LPA) nach Puerto de Mogán nach offiziellem Überland-BOC-Tarif.",
+      intro: "Puerto de Mogán, das «kleine Venedig», liegt im äußersten Südwesten Gran Canarias. Es ist der längste der üblichen Flughafentransfers, abgerechnet nach offiziellem Überlandtarif plus Flughafenzuschlag.",
+      practico: [
+        "Fast eine Stunde Fahrt: der teuerste der üblichen Transfers, nachts noch deutlich mehr.",
+        "Der Preis gilt pro Taxi, nicht pro Person — auf 3 bis 4 Reisende verteilt ist er konkurrenzfähig.",
+        "Sperriges Gepäck oder Sportausrüstung vorher angeben, damit ein passendes Fahrzeug kommt.",
+        "Mit CanaryCab sehen Sie die echte Route auf der Karte und den Preis vor der Bestätigung.",
+      ],
+    },
+    "las-palmas-maspalomas": {
+      nombre: "Las Palmas → Maspalomas",
+      h1: "Taxi von Las Palmas nach Maspalomas",
+      title: "Taxi Las Palmas → Maspalomas · Preis und Dauer | CanaryCab",
+      desc: "Was ein Taxi von Las Palmas de Gran Canaria nach Maspalomas kostet: Preis nach offiziellem Überlandtarif, Dauer und Alternativen.",
+      intro: "Von der Hauptstadt in den touristischen Süden sind es gut 50 km über die Autobahn GC-1. Außerhalb der Stadt gilt der offizielle Überlandtarif (Tarif 3); es fällt kein Flughafenzuschlag an, nur der Funktaxi-Zuschlag.",
+      practico: [
+        "Knapp eine Stunde Fahrt: Ein Taxi lohnt sich vor allem zu mehreren oder mit Gepäck.",
+        "Der Tarif wechselt ab 22:00 sowie sonn- und feiertags.",
+        "Preis pro Fahrzeug für bis zu 4 Fahrgäste.",
+        "CanaryCab berechnet den Betrag auf der echten Route und legt ihn bei der Bestellung fest.",
+      ],
+    },
+  },
+};
+
 const esc = (s) =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -439,7 +677,11 @@ ${L.suplementos.map(([n, v]) => `            <tr><th scope="row">${esc(n)}</th><
       <div class="tabla-scroll">
         <table>
           <tbody>
-${EJEMPLOS.map(([n, v]) => `            <tr><th scope="row">${esc(n)}</th><td>${v}</td></tr>`).join("\n")}
+${EJEMPLOS.map(([id, v]) => {
+  const r = RUTAS.find((x) => x.id === id);
+  const txt = RUTAS_TEXTO[codigo][id];
+  return `            <tr><th scope="row"><a href="/${r.slugs[codigo]}">${esc(txt.nombre)}</a></th><td>${v}</td></tr>`;
+}).join("\n")}
           </tbody>
         </table>
       </div>
@@ -466,11 +708,162 @@ ${L.faq.map(([q, a]) => `      <details><summary>${esc(q)}</summary><p>${esc(a)}
 `;
 }
 
+/** Página de un trayecto concreto (aeropuerto → destino). */
+function paginaRuta(codigo, L, ruta) {
+  const T = RUTAS_TEXTO[codigo];
+  const txt = T[ruta.id];
+  const url = `${SITIO}/${ruta.slugs[codigo]}`;
+  const dia = precioT3(ruta.km, { aeropuerto: ruta.aeropuerto });
+  const noche = precioT3(ruta.km, { noche: true, aeropuerto: ruta.aeropuerto });
+  const alternates = Object.keys(IDIOMAS)
+    .map((c) => `    <link rel="alternate" hreflang="${c}" href="${SITIO}/${ruta.slugs[c]}" />`)
+    .join("\n");
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Service",
+        serviceType: txt.h1,
+        name: txt.h1,
+        description: txt.desc,
+        url,
+        provider: { "@type": "Organization", name: "CanaryCab", url: SITIO },
+        areaServed: { "@type": "Place", name: "Gran Canaria" },
+        offers: {
+          "@type": "Offer",
+          priceCurrency: "EUR",
+          price: dia.toFixed(2),
+          description: T.etiquetas.dia,
+          url,
+        },
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "CanaryCab", item: SITIO },
+          { "@type": "ListItem", position: 2, name: L.h1, item: `${SITIO}/${L.slug}` },
+          { "@type": "ListItem", position: 3, name: txt.h1, item: url },
+        ],
+      },
+    ],
+  };
+
+  const otras = RUTAS.filter((r) => r.id !== ruta.id)
+    .map((r) => `<li><a href="/${r.slugs[codigo]}">${esc(T[r.id].nombre)}</a> — ${eur(precioT3(r.km, { aeropuerto: r.aeropuerto }))}</li>`)
+    .join("\n          ");
+
+  return `<!doctype html>
+<html lang="${L.htmlLang}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0B2E4F" />
+    <title>${esc(txt.title)}</title>
+    <meta name="description" content="${esc(txt.desc)}" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
+    <link rel="canonical" href="${url}" />
+${alternates}
+    <link rel="alternate" hreflang="x-default" href="${SITIO}/${ruta.slugs.es}" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="${url}" />
+    <meta property="og:title" content="${esc(txt.title)}" />
+    <meta property="og:description" content="${esc(txt.desc)}" />
+    <meta property="og:image" content="${SITIO}/icons/pwa-512.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
+    <style>
+      :root { --volcanic:#0B2E4F; --taxi:#FFC400; --cream:#F7FBFE; --sand:#EFE7D6; --sand-deep:#DCCFB4; }
+      * { box-sizing:border-box; }
+      body { margin:0; background:var(--cream); color:var(--volcanic);
+        font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+      .wrap { max-width:52rem; margin:0 auto; padding:0 1.25rem 4rem; }
+      header.hero { background:var(--volcanic); color:var(--cream); padding:2.25rem 0 2rem; }
+      header.hero .wrap { padding-bottom:0; }
+      .marca { font-weight:900; font-size:1.3rem; color:var(--taxi); text-decoration:none; }
+      h1 { font-size:clamp(1.7rem,4.6vw,2.4rem); line-height:1.15; margin:.85rem 0 .6rem; letter-spacing:-.5px; }
+      header.hero p { margin:0; color:#F7FBFEc0; }
+      h2 { font-size:clamp(1.2rem,3vw,1.5rem); margin:2.25rem 0 .6rem; letter-spacing:-.3px; }
+      .cifras { display:grid; grid-template-columns:repeat(auto-fit,minmax(11rem,1fr)); gap:.75rem; margin-top:1.5rem; }
+      .cifra { background:#fff; border:1px solid var(--sand-deep); border-radius:16px; padding:1rem 1.15rem; }
+      .cifra .et { font-size:.72rem; text-transform:uppercase; letter-spacing:.07em; color:#0B2E4Fa0; font-weight:700; }
+      .cifra .v { font-size:1.6rem; font-weight:800; margin-top:.15rem; font-variant-numeric:tabular-nums; }
+      .cifra.destacada { background:var(--taxi); border-color:var(--taxi); }
+      ul { padding-left:1.15rem; } li { margin:.4rem 0; }
+      a { color:#0B5FA5; } header.hero a.marca { color:var(--taxi); }
+      .cta { display:inline-block; margin-top:1rem; background:var(--taxi); color:var(--volcanic);
+        font-weight:800; padding:.85rem 1.6rem; border-radius:999px; text-decoration:none; }
+      .cta-box { margin-top:2.25rem; background:#fff; border:1px solid var(--sand-deep); border-radius:18px; padding:1.4rem; }
+      footer { margin-top:2.5rem; padding-top:1.4rem; border-top:1px solid var(--sand-deep); font-size:.85rem; color:#0B2E4F99; }
+      footer a { color:inherit; }
+      .idiomas { margin-top:.7rem; font-size:.85rem; }
+      .idiomas a { color:var(--taxi); text-decoration:none; font-weight:700; margin-right:.9rem; }
+      .aviso { font-size:.87rem; color:#0B2E4Fa0; margin-top:.9rem; }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="wrap">
+        <a class="marca" href="/">CanaryCab</a>
+        <h1>${esc(txt.h1)}</h1>
+        <p>${esc(txt.intro)}</p>
+        <p class="idiomas">${Object.keys(IDIOMAS)
+          .filter((c) => c !== codigo)
+          .map((c) => `<a href="/${ruta.slugs[c]}">${c.toUpperCase()}</a>`)
+          .join("")}</p>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <div class="cifras">
+        <div class="cifra destacada"><div class="et">${esc(T.etiquetas.dia)}</div><div class="v">${eur(dia)}</div></div>
+        <div class="cifra"><div class="et">${esc(T.etiquetas.noche)}</div><div class="v">${eur(noche)}</div></div>
+        <div class="cifra"><div class="et">${esc(T.etiquetas.km)}</div><div class="v">${String(ruta.km).replace(".", ",")} km</div></div>
+        <div class="cifra"><div class="et">${esc(T.etiquetas.min)}</div><div class="v">${ruta.min} min</div></div>
+      </div>
+      <p class="aviso">${esc(L.ejNota)}</p>
+
+      <h2>${esc(T.etiquetas.que)}</h2>
+      <ul>
+        ${txt.practico.map((p) => `<li>${esc(p)}</li>`).join("\n        ")}
+      </ul>
+
+      <h2>${esc(T.etiquetas.otras)}</h2>
+      <ul>
+          ${otras}
+      </ul>
+      <p><a href="/${L.slug}">${esc(L.h1)} →</a></p>
+
+      <div class="cta-box">
+        <h2 style="margin-top:0">${esc(L.cta)}</h2>
+        <p class="aviso" style="margin-top:.2rem">${esc(L.ctaNota)}</p>
+        <a class="cta" href="/">${esc(L.volver)}</a>
+      </div>
+
+      <footer>
+        <p><strong>${esc(L.fuente)}:</strong>
+          <a href="https://www.gobiernodecanarias.org/boc/2025/174/3151.html" rel="nofollow noopener" target="_blank">BOC nº 174 (2025)</a> ·
+          <a href="https://sede.gobiernodecanarias.org/boc/boc-a-2023-059-868.pdf" rel="nofollow noopener" target="_blank">BOC nº 59 (2023)</a>
+        </p>
+        <p>© CanaryCab · <a href="/privacidad">Privacidad</a> · <a href="/cookies">Cookies</a> · <a href="/terminos">Términos</a></p>
+      </footer>
+    </main>
+  </body>
+</html>
+`;
+}
+
 // ── Escribir páginas ────────────────────────────────────────────────────────
 mkdirSync(SALIDA, { recursive: true });
 for (const [codigo, L] of Object.entries(IDIOMAS)) {
   writeFileSync(join(SALIDA, `${L.slug}.html`), paginaHtml(codigo, L), "utf8");
   console.log(`  ✔ ${L.slug}.html`);
+  for (const ruta of RUTAS) {
+    writeFileSync(join(SALIDA, `${ruta.slugs[codigo]}.html`), paginaRuta(codigo, L, ruta), "utf8");
+    console.log(`  ✔ ${ruta.slugs[codigo]}.html`);
+  }
 }
 
 // ── Sitemap (incluye las páginas de contenido y sus alternativas de idioma) ──
@@ -485,6 +878,16 @@ const urls = [
     (o) =>
       `  <url>\n    <loc>${SITIO}/${o.slug}</loc>\n    <lastmod>${hoy}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.9</priority>\n${alternatesXml}\n  </url>`
   ),
+  // páginas de trayecto, con sus alternativas de idioma cruzadas
+  ...RUTAS.flatMap((r) => {
+    const alt = Object.keys(IDIOMAS)
+      .map((c) => `      <xhtml:link rel="alternate" hreflang="${c}" href="${SITIO}/${r.slugs[c]}"/>`)
+      .join("\n");
+    return Object.keys(IDIOMAS).map(
+      (c) =>
+        `  <url>\n    <loc>${SITIO}/${r.slugs[c]}</loc>\n    <lastmod>${hoy}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n${alt}\n  </url>`
+    );
+  }),
   ...["privacidad", "cookies", "terminos"].map(
     (p) =>
       `  <url>\n    <loc>${SITIO}/${p}</loc>\n    <lastmod>${hoy}</lastmod>\n    <changefreq>yearly</changefreq>\n    <priority>0.3</priority>\n  </url>`

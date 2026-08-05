@@ -38,7 +38,7 @@ export default defineConfig({
         // ya tuviera el Service Worker instalado acababa en el login en vez de
         // en la página. (Googlebot no ejecuta el SW, así que el problema solo
         // lo sufren los usuarios reales — justo los que traería el SEO.)
-        navigateFallbackDenylist: [/^\/(tarifas-taxi-gran-canaria|taxi-fares-gran-canaria|taxitarife-gran-canaria)$/],
+        navigateFallbackDenylist: [/^\/(tarifas-taxi-gran-canaria|taxi-aeropuerto-las-palmas|taxi-aeropuerto-maspalomas|taxi-aeropuerto-puerto-mogan|taxi-aeropuerto-puerto-rico|taxi-airport-las-palmas|taxi-airport-maspalomas|taxi-airport-puerto-mogan|taxi-airport-puerto-rico|taxi-fares-gran-canaria|taxi-flughafen-las-palmas|taxi-flughafen-maspalomas|taxi-flughafen-puerto-mogan|taxi-flughafen-puerto-rico|taxi-las-palmas-maspalomas-de|taxi-las-palmas-maspalomas-en|taxi-las-palmas-maspalomas|taxitarife-gran-canaria)$/],
         // handlers Web Push (push + notificationclick) en el SW generado
         importScripts: ["/push-sw.js"],
         runtimeCaching: [
