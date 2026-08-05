@@ -33,6 +33,12 @@ export default defineConfig({
         // assets propios precacheados; mapas/fuentes van a red con caché
         globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
         navigateFallback: "/index.html",
+        // Las guías de tarifas son páginas estáticas fuera del SPA. Sin esto,
+        // navigateFallback las secuestra y sirve el index.html de la app: quien
+        // ya tuviera el Service Worker instalado acababa en el login en vez de
+        // en la página. (Googlebot no ejecuta el SW, así que el problema solo
+        // lo sufren los usuarios reales — justo los que traería el SEO.)
+        navigateFallbackDenylist: [/^\/(tarifas-taxi-gran-canaria|taxi-fares-gran-canaria|taxitarife-gran-canaria)$/],
         // handlers Web Push (push + notificationclick) en el SW generado
         importScripts: ["/push-sw.js"],
         runtimeCaching: [

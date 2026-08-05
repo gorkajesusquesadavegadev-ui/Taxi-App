@@ -1,7 +1,30 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import Spinner from "./components/Spinner.jsx";
+
+// El <link rel="canonical"> del index.html apunta a la home siempre (misma
+// SPA sirve todas las rutas) — Lighthouse lo marca mal en cualquier página
+// que no sea "/". Solo tiene sentido indexar rutas públicas (legales); las
+// protegidas (home, ajustes...) no son contenido de buscador, así que para
+// esas se deja apuntando a la home en vez de a una URL que exige login.
+const RUTAS_PUBLICAS = ["/", "/privacidad", "/cookies", "/terminos"];
+
+function useCanonical() {
+  const location = useLocation();
+  useEffect(() => {
+    const url = RUTAS_PUBLICAS.includes(location.pathname)
+      ? `https://canarycab.com${location.pathname}`
+      : "https://canarycab.com/";
+    let link = document.querySelector('link[rel="canonical"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "canonical";
+      document.head.appendChild(link);
+    }
+    link.href = url;
+  }, [location.pathname]);
+}
 
 const Auth = lazy(() => import("./pages/Auth.jsx"));
 const ClienteHome = lazy(() => import("./pages/cliente/ClienteHome.jsx"));
@@ -42,6 +65,7 @@ function Protected({ children }) {
 export default function App() {
   const { user, loading } = useAuth();
   const location = useLocation();
+  useCanonical();
   if (loading) return <Splash />;
 
   return (

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --port 5173",
     "build": "vite build",
-    "preview": "vite preview --port 5173"
+    "preview": "vite preview --port 5173",
+    "prebuild": "node scripts/generar-seo.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

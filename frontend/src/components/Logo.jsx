@@ -1,4 +1,5 @@
 const LOGO_SRC = "/canarycab-logo.png";
+const LOGO_RATIO = 612 / 135; // ancho/alto real del PNG — reserva el hueco exacto, evita CLS
 
 /* Wordmark — para sidebar y brand chip (horizontal) */
 export function LogoWordmark({ height = 32, className = "" }) {
@@ -7,6 +8,7 @@ export function LogoWordmark({ height = 32, className = "" }) {
       src={LOGO_SRC}
       alt="CanaryCab"
       height={height}
+      width={Math.round(height * LOGO_RATIO)}
       className={className}
       style={{ height, width: "auto", objectFit: "contain" }}
     />

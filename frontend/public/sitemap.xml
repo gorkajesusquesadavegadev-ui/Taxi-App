@@ -1,23 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://canarycab.com/</loc>
+    <lastmod>2026-08-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://canarycab.com/privacidad</loc>
+    <loc>https://canarycab.com/tarifas-taxi-gran-canaria</loc>
+    <lastmod>2026-08-05</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
+    <priority>0.9</priority>
+      <xhtml:link rel="alternate" hreflang="es" href="https://canarycab.com/tarifas-taxi-gran-canaria"/>
+      <xhtml:link rel="alternate" hreflang="en" href="https://canarycab.com/taxi-fares-gran-canaria"/>
+      <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxitarife-gran-canaria"/>
+  </url>
+  <url>
+    <loc>https://canarycab.com/taxi-fares-gran-canaria</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+      <xhtml:link rel="alternate" hreflang="es" href="https://canarycab.com/tarifas-taxi-gran-canaria"/>
+      <xhtml:link rel="alternate" hreflang="en" href="https://canarycab.com/taxi-fares-gran-canaria"/>
+      <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxitarife-gran-canaria"/>
+  </url>
+  <url>
+    <loc>https://canarycab.com/taxitarife-gran-canaria</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+      <xhtml:link rel="alternate" hreflang="es" href="https://canarycab.com/tarifas-taxi-gran-canaria"/>
+      <xhtml:link rel="alternate" hreflang="en" href="https://canarycab.com/taxi-fares-gran-canaria"/>
+      <xhtml:link rel="alternate" hreflang="de" href="https://canarycab.com/taxitarife-gran-canaria"/>
+  </url>
+  <url>
+    <loc>https://canarycab.com/privacidad</loc>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://canarycab.com/cookies</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://canarycab.com/terminos</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
 </urlset>

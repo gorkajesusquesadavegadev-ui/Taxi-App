@@ -588,14 +588,24 @@ export default function Auth() {
     return () => (window.cancelIdleCallback || clearTimeout)(id);
   }, []);
 
-  // Botón "Continuar con Google": el script GSI (index.html) carga async, así
-  // que reintenta unas cuantas veces por si el formulario se abre antes de
-  // que window.google exista. Sin VITE_GOOGLE_CLIENT_ID no se renderiza nada
-  // (evita un botón roto si aún no está configurado).
+  // Botón "Continuar con Google": el script GSI se inyecta solo al abrir el
+  // formulario (no en el <head> desde el arranque) — en portada/landing
+  // nadie lo necesita todavía, y cargarlo ahí solo compite por ancho de
+  // banda con el primer pintado (impacto real medido en Lighthouse: LCP).
+  // Reintenta unas cuantas veces por si tarda en cargar. Sin
+  // VITE_GOOGLE_CLIENT_ID no se renderiza nada (evita un botón roto si aún
+  // no está configurado).
   const googleBtnRef = useRef(null);
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   useEffect(() => {
     if (!open || !clientId) return;
+    if (!document.querySelector('script[src="https://accounts.google.com/gsi/client"]')) {
+      const s = document.createElement("script");
+      s.src = "https://accounts.google.com/gsi/client";
+      s.async = true;
+      s.defer = true;
+      document.head.appendChild(s);
+    }
     let cancelado = false;
     let intentos = 0;
     const intentar = () => {
@@ -734,7 +744,17 @@ export default function Auth() {
           >
             {t("landing.enterOrSignup")}
           </p>
-          <div className="pointer-events-auto mt-6 animate-fade-up flex gap-4 text-[10px] font-semibold text-volcanic/40" style={{ animationDelay: "950ms" }}>
+          {/* Guía pública de tarifas: contenido indexable de verdad. Va con <a>
+              y no con <Link> porque es una página estática fuera del SPA — y
+              este enlace es lo que permite a Google descubrirla al rastrear. */}
+          <a
+            href={t("landing.faresHref")}
+            className="pointer-events-auto mt-5 animate-fade-up text-xs font-bold text-volcanic/60 underline-offset-4 hover:text-volcanic hover:underline"
+            style={{ animationDelay: "900ms" }}
+          >
+            {t("landing.faresLink")}
+          </a>
+          <div className="pointer-events-auto mt-5 animate-fade-up flex gap-4 text-[10px] font-semibold text-volcanic/40" style={{ animationDelay: "950ms" }}>
             <Link to="/privacidad" className="hover:text-volcanic/70 underline-offset-2 hover:underline">{t("legal.privacy")}</Link>
             <Link to="/cookies" className="hover:text-volcanic/70 underline-offset-2 hover:underline">{t("legal.cookies")}</Link>
             <Link to="/terminos" className="hover:text-volcanic/70 underline-offset-2 hover:underline">{t("legal.terms")}</Link>

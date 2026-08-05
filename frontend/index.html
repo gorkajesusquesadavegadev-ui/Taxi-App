@@ -48,23 +48,61 @@
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400..900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" />
     </noscript>
 
-    <!-- Google Identity Services: botón "Continuar con Google" -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-
     <!-- Structured data -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "MobileApplication",
-      "name": "CanaryCab",
-      "description": "App de taxi para las Islas Canarias. Tarifas oficiales, seguimiento en vivo y ruta real.",
-      "url": "https://canarycab.com",
-      "applicationCategory": "TravelApplication",
-      "operatingSystem": "Web, iOS, Android",
-      "inLanguage": "es",
-      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
-      "areaServed": { "@type": "Place", "name": "Islas Canarias, España" },
-      "author": { "@type": "Organization", "name": "CanaryCab", "url": "https://canarycab.com" }
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://canarycab.com/#organizacion",
+          "name": "CanaryCab",
+          "url": "https://canarycab.com",
+          "logo": "https://canarycab.com/icons/pwa-512.png",
+          "email": "contacto@canarycab.com",
+          "areaServed": { "@type": "Place", "name": "Islas Canarias, España" }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://canarycab.com/#web",
+          "url": "https://canarycab.com",
+          "name": "CanaryCab",
+          "inLanguage": ["es", "en", "de"],
+          "publisher": { "@id": "https://canarycab.com/#organizacion" }
+        },
+        {
+          "@type": "TaxiService",
+          "name": "CanaryCab — taxi en las Islas Canarias",
+          "description": "Pide taxi en cualquier isla canaria: ruta real en el mapa, precio con la tarifa oficial del BOC antes de pedir y seguimiento del taxi en vivo.",
+          "url": "https://canarycab.com",
+          "provider": { "@id": "https://canarycab.com/#organizacion" },
+          "areaServed": [
+            { "@type": "Place", "name": "Gran Canaria" },
+            { "@type": "Place", "name": "Tenerife" },
+            { "@type": "Place", "name": "Lanzarote" },
+            { "@type": "Place", "name": "Fuerteventura" },
+            { "@type": "Place", "name": "La Palma" },
+            { "@type": "Place", "name": "La Gomera" },
+            { "@type": "Place", "name": "El Hierro" }
+          ],
+          "availableChannel": {
+            "@type": "ServiceChannel",
+            "serviceUrl": "https://canarycab.com",
+            "availableLanguage": ["es", "en", "de"]
+          }
+        },
+        {
+          "@type": "MobileApplication",
+          "name": "CanaryCab",
+          "description": "App de taxi para las Islas Canarias. Tarifas oficiales, seguimiento en vivo y ruta real.",
+          "url": "https://canarycab.com",
+          "applicationCategory": "TravelApplication",
+          "operatingSystem": "Web, iOS, Android",
+          "inLanguage": "es",
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+          "author": { "@id": "https://canarycab.com/#organizacion" }
+        }
+      ]
     }
     </script>
   </head>
