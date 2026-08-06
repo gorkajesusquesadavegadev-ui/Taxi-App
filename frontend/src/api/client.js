@@ -25,7 +25,9 @@ async function req(method, path, body) {
     let msg = text || `${res.status} ${res.statusText}`;
     try {
       const body = JSON.parse(text);
-      if (body && body.message) msg = body.message; // Spring error payload
+      // 'detail' lo usa ProblemDetail (errores de validación con mensaje
+      // legible); 'message' el resto de errores de Spring.
+      if (body && (body.detail || body.message)) msg = body.detail || body.message;
     } catch (_) {
       /* plain text */
     }

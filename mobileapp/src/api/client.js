@@ -40,7 +40,8 @@ async function req(method, path, body) {
     let msg = text || `${res.status}`;
     try {
       const b = JSON.parse(text);
-      if (b && b.message) msg = b.message;
+      // 'detail' = ProblemDetail (validación con mensaje legible); 'message' = resto.
+      if (b && (b.detail || b.message)) msg = b.detail || b.message;
     } catch (_) {}
     const err = new Error(msg);
     err.status = res.status;
