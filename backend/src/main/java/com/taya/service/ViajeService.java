@@ -430,15 +430,39 @@ public class ViajeService {
             .orElse(null);
     }
 
+    /**
+     * Historial SIN teléfonos (minimización de datos, RGPD art. 5.1.c).
+     *
+     * El teléfono del otro se necesita mientras dura el viaje —para avisar de
+     * dónde estás o de que te dejaste algo—, no para siempre. Antes el
+     * historial devolvía el número de cada taxista con el que habías viajado y
+     * el de cada cliente que habías llevado: una agenda permanente que nadie
+     * pidió y que agrava cualquier filtración. Se conserva el nombre, que sí
+     * da contexto al viaje.
+     */
+    private ViajeResponse sinTelefonos(Viaje v) {
+        var tax = v.getTaxistaId() != null ? usuarios.findById(v.getTaxistaId()).orElse(null) : null;
+        var cli = v.getClienteId() != null ? usuarios.findById(v.getClienteId()).orElse(null) : null;
+        return ViajeResponse.of(v,
+            tax != null ? tax.getNombre() : null, null,
+            cli != null ? cli.getNombre() : null, null,
+            tax != null ? tax.getVehiculoMatricula() : null,
+            tax != null ? tax.getVehiculoModelo() : null,
+            tax != null ? tax.getLicencia() : null,
+            tax != null ? tax.getRatingMedia() : null,
+            tax != null ? tax.getRatingCount() : null,
+            tax != null ? tax.isVerificado() : null);
+    }
+
     public List<ViajeResponse> historialCliente(Long clienteId) {
         var lista = viajes.findByClienteIdOrderBySolicitadoEnDesc(clienteId);
         backfillTextosAsync(lista);
-        return lista.stream().map(this::conContacto).toList();
+        return lista.stream().map(this::sinTelefonos).toList();
     }
     public List<ViajeResponse> historialTaxista(Long taxistaId) {
         var lista = viajes.findByTaxistaIdOrderBySolicitadoEnDesc(taxistaId);
         backfillTextosAsync(lista);
-        return lista.stream().map(this::conContacto).toList();
+        return lista.stream().map(this::sinTelefonos).toList();
     }
 
     private static boolean sinTexto(String s) { return s == null || s.isBlank(); }

@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import {
   View, Text, KeyboardAvoidingView, Platform, ScrollView, Pressable, Animated, Easing,
 } from "react-native";
+import { Linking } from "react-native";
 import { useAuth } from "../context/AuthContext";
 import { useI18n } from "../i18n";
 import LangSwitcher from "../components/LangSwitcher";
@@ -17,6 +18,8 @@ export default function AuthScreen() {
   const [abierto, setAbierto] = useState(false); // false = landing, true = formulario
   const [mode, setMode] = useState("login");
   const [rol, setRol] = useState("CLIENTE");
+  // Consentimiento RGPD: obligatorio y nunca premarcado.
+  const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false);
   const [form, setForm] = useState({
     nombre: "", email: "", password: "", telefono: "",
     licencia: "", vehiculoModelo: "", vehiculoMatricula: "",
@@ -60,6 +63,7 @@ export default function AuthScreen() {
           licencia: rol === "TAXISTA" ? form.licencia : null,
           vehiculoModelo: rol === "TAXISTA" ? form.vehiculoModelo : null,
           vehiculoMatricula: rol === "TAXISTA" ? form.vehiculoMatricula : null,
+          aceptaPrivacidad,
         });
       }
     } catch (err) {
@@ -172,6 +176,33 @@ export default function AuthScreen() {
                 <Input placeholder={t("auth.password")} value={form.password} onChangeText={set("password")}
                   secureTextEntry className="mb-1" />
 
+                {mode === "register" && (
+                  <Pressable
+                    className="mt-3 flex-row items-start gap-2.5 rounded-xl bg-sand/60 p-3"
+                    onPress={() => setAceptaPrivacidad((v) => !v)}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: aceptaPrivacidad }}
+                  >
+                    <View className={`mt-0.5 h-5 w-5 items-center justify-center rounded-md border-2 ${
+                      aceptaPrivacidad ? "border-taxi bg-taxi" : "border-volcanic/30"
+                    }`}>
+                      {aceptaPrivacidad ? <Text className="font-bodybold text-[12px] text-volcanic">✓</Text> : null}
+                    </View>
+                    <Text className="flex-1 font-body text-[11px] leading-snug text-volcanic/70">
+                      {t("auth.consentPre")}{" "}
+                      <Text className="font-bodybold underline"
+                        onPress={() => Linking.openURL("https://canarycab.com/privacidad")}>
+                        {t("legal.privacy")}
+                      </Text>{" "}
+                      {t("auth.consentAnd")}{" "}
+                      <Text className="font-bodybold underline"
+                        onPress={() => Linking.openURL("https://canarycab.com/terminos")}>
+                        {t("legal.terms")}
+                      </Text>.
+                    </Text>
+                  </Pressable>
+                )}
+
                 {error ? (
                   <Text className="mt-2 rounded-xl bg-coral/10 p-2.5 font-bodybold text-[13px] text-coral">{error}</Text>
                 ) : null}
@@ -180,7 +211,8 @@ export default function AuthScreen() {
                   title={mode === "login" ? `→ ${t("auth.login")}` : `🚀 ${t("auth.register")}`}
                   onPress={enviar}
                   busy={busy}
-                  disabled={!form.email || !form.password || (mode === "register" && !form.nombre)}
+                  disabled={!form.email || !form.password
+                    || (mode === "register" && (!form.nombre || !aceptaPrivacidad))}
                   className="mt-4"
                 />
               </Card>

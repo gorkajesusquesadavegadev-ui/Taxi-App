@@ -20,6 +20,10 @@ import java.util.Collections;
 
 @Service
 public class AuthService {
+    /** Versión del texto legal aceptado. Subirla al cambiar la política obliga
+     *  a distinguir quién aceptó qué. */
+    public static final String POLITICA_VERSION = "2026-08";
+
     private final UsuarioRepository usuarios;
     private final PasswordEncoder encoder;
     private final JwtTokenProvider jwt;
@@ -44,6 +48,11 @@ public class AuthService {
         u.setPasswordHash(encoder.encode(r.password())); u.setRol(r.rol());
         u.setLicencia(r.licencia()); u.setVehiculoMatricula(r.vehiculoMatricula());
         u.setVehiculoModelo(r.vehiculoModelo()); u.setTelefono(r.telefono());
+        // Queda constancia de cuándo aceptó y a qué versión del texto: sin esto
+        // el consentimiento no es demostrable y, a efectos del RGPD, es como no
+        // tenerlo (art. 7.1, el responsable debe poder acreditarlo).
+        u.setConsentimientoEn(java.time.Instant.now());
+        u.setConsentimientoVersion(POLITICA_VERSION);
         u = usuarios.save(u);
         return new AuthResponse(jwt.generate(u.getId(), u.getRol().name()), u.getId(), u.getNombre(), u.getRol().name());
     }
@@ -94,6 +103,11 @@ public class AuthService {
                 Usuario nuevo = new Usuario();
                 nuevo.setEmail(email);
                 nuevo.setRol(Rol.CLIENTE);
+                // También aquí se crea una cuenta, así que también hay que
+                // dejar constancia del consentimiento. El aviso de que al
+                // continuar se aceptan los términos va junto al botón de Google.
+                nuevo.setConsentimientoEn(java.time.Instant.now());
+                nuevo.setConsentimientoVersion(POLITICA_VERSION);
                 return nuevo;
             });
         u.setNombre(nombre);

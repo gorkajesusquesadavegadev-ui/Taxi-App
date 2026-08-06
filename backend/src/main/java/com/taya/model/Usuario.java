@@ -39,6 +39,11 @@ public class Usuario {
     @Column(name = "ultima_lng") private Double ultimaLng;
     // Vehículo adaptado para silla de ruedas (taxista). Wrapper nullable.
     @Column(name = "vehiculo_accesible") private Boolean vehiculoAccesible = Boolean.FALSE;
+    // Consentimiento RGPD: no basta con pedirlo en el formulario, hay que poder
+    // DEMOSTRAR cuándo y a qué texto se dio (art. 7.1). Nullable: las cuentas
+    // creadas antes de existir la casilla no lo tienen.
+    @Column(name = "consentimiento_en") private Instant consentimientoEn;
+    @Column(name = "consentimiento_version") private String consentimientoVersion;
 
     public Long getId() { return id; } public void setId(Long id) { this.id = id; }
     public String getNombre() { return nombre; } public void setNombre(String v) { this.nombre = v; }
@@ -61,4 +66,6 @@ public class Usuario {
     public Double getUltimaLat() { return ultimaLat; } public void setUltimaLat(Double v) { this.ultimaLat = v; }
     public Double getUltimaLng() { return ultimaLng; } public void setUltimaLng(Double v) { this.ultimaLng = v; }
     public boolean isVehiculoAccesible() { return Boolean.TRUE.equals(vehiculoAccesible); } public void setVehiculoAccesible(boolean v) { this.vehiculoAccesible = v; }
+    public Instant getConsentimientoEn() { return consentimientoEn; } public void setConsentimientoEn(Instant v) { this.consentimientoEn = v; }
+    public String getConsentimientoVersion() { return consentimientoVersion; } public void setConsentimientoVersion(String v) { this.consentimientoVersion = v; }
 }

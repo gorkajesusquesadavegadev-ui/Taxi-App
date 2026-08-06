@@ -575,6 +575,9 @@ export default function Auth() {
     telefono: "",
   });
   const [touched, setTouched] = useState({});
+  // Consentimiento RGPD: obligatorio para registrarse, nunca premarcado (un
+  // consentimiento por defecto no es consentimiento).
+  const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [shake, setShake] = useState(false);
@@ -671,6 +674,7 @@ export default function Auth() {
           email: form.email,
           password: form.password,
           rol,
+          aceptaPrivacidad,
           telefono: form.telefono || null,
           licencia: rol === "TAXISTA" ? form.licencia : null,
           vehiculoModelo: rol === "TAXISTA" ? form.vehiculoModelo : null,
@@ -825,6 +829,11 @@ export default function Auth() {
           {clientId && (mode === "login" || rol === "CLIENTE") && (
             <div className="mb-3.5 mt-1">
               <div ref={googleBtnRef} className="flex justify-center overflow-hidden rounded-full shadow-sm ring-1 ring-volcanic/10" />
+              {mode === "register" && (
+                <p className="mt-2 text-center text-[10px] leading-snug text-volcanic/45">
+                  {t("auth.googleConsent")}
+                </p>
+              )}
               <div className="my-3.5 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-volcanic/35">
                 <span className="h-px flex-1 bg-sand-deep" />
                 {t("auth.orDivider")}
@@ -957,13 +966,36 @@ export default function Auth() {
             )}
           </div>
 
+          {mode === "register" && (
+            <label className="mt-3.5 flex cursor-pointer items-start gap-2.5 rounded-xl bg-sand/60 p-3">
+              <input
+                type="checkbox"
+                checked={aceptaPrivacidad}
+                onChange={(e) => setAceptaPrivacidad(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-taxi"
+                aria-describedby="consent-text"
+              />
+              <span id="consent-text" className="text-[11px] leading-snug text-volcanic/70">
+                {t("auth.consentPre")}{" "}
+                <Link to="/privacidad" target="_blank" className="font-bold underline underline-offset-2">
+                  {t("legal.privacy")}
+                </Link>{" "}
+                {t("auth.consentAnd")}{" "}
+                <Link to="/terminos" target="_blank" className="font-bold underline underline-offset-2">
+                  {t("legal.terms")}
+                </Link>
+                .
+              </span>
+            </label>
+          )}
+
           {error && (
             <p className="mt-3 animate-fade-up rounded-xl bg-volcanic px-3.5 py-2.5 text-sm font-semibold text-cream">
               ⚠ {error}
             </p>
           )}
 
-          <Button type="submit" full className="mt-4" disabled={busy}>
+          <Button type="submit" full className="mt-4" disabled={busy || (mode === "register" && !aceptaPrivacidad)}>
             {busy ? <Spinner className="border-volcanic/30 border-t-volcanic" /> : <IconBolt />}
             {mode === "login" ? t("auth.login") : t("auth.register")}
           </Button>
