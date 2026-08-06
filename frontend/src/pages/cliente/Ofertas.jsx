@@ -196,7 +196,7 @@ export default function Ofertas({ tipo }) {
                   onSolicitar={() => solicitar(o)}
                   onReservar={() => setReservando(o)}
                   t={t}
-                  precioLabel={t("of.approxPrice")}
+                  precioLabel={esTransfer ? t("of.approxPrice") : t("of.fixedPrice")}
                 />
               ))}
             </div>

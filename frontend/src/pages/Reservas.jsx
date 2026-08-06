@@ -107,7 +107,7 @@ function ReservaCard({ r, rol, onAceptar, onCancelar, busy }) {
 
       <div className="mt-3 flex items-center justify-between border-t border-sand-deep/70 pt-3">
         <span className="text-xs uppercase tracking-wider text-volcanic/45">
-          {r.tipo === "NORMAL" ? t("res.estimated") : t("res.closedPrice")}
+          {r.tipo === "EXCURSION" ? t("res.closedPrice") : t("res.estimated")}
         </span>
         <span className="font-display text-lg font-extrabold">{rangoEur(r.precioMin, r.precioMax, r.precioEstimado)}</span>
       </div>

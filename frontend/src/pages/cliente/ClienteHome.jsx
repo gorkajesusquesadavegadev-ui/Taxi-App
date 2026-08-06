@@ -528,7 +528,7 @@ export default function ClienteHome() {
                 </div>
                 {TIPO_LABEL[viaje.tipo] && (
                   <span className="pill bg-taxi/20 text-volcanic">
-                    {viaje.tipo === "EXCURSION" ? t("res.excursion") : TIPO_LABEL[viaje.tipo]} · {viaje.detalle} · {t("ride.closedPrice")}
+                    {viaje.tipo === "EXCURSION" ? t("res.excursion") : TIPO_LABEL[viaje.tipo]} · {viaje.detalle} · {viaje.tipo === "EXCURSION" ? t("of.fixedPrice") : t("ride.closedPrice")}
                   </span>
                 )}
                 <p className="text-sm text-volcanic/70">
