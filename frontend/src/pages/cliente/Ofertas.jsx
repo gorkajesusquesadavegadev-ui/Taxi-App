@@ -9,7 +9,7 @@ import { IconPlane, IconCompass, IconCalendar } from "../../components/icons.jsx
 import { api } from "../../api/client.js";
 import { useI18n } from "../../i18n/index.jsx";
 
-const fmtEur = (v) => `${Number(v).toFixed(2)} €`;
+import { eur as fmtEur, rangoEur } from "../../utils/precio.js";
 // Traduce nombre/descr/duración de la oferta por su id; si no hay clave, usa el valor del backend.
 const ofTxt = (t, id, campo, fallback) => {
   const k = `of.${id}.${campo}`;
@@ -37,7 +37,7 @@ function OfertaCard({ oferta, busy, onSolicitar, onReservar, icon: Icon, t, prec
       </div>
       <div className="mt-3 border-t border-sand-deep/60 pt-3">
         <p className="font-display text-xl font-extrabold">
-          {fmtEur(oferta.precio)}
+          {rangoEur(oferta.precioMin, oferta.precioMax, oferta.precio)}
           <span className="ml-1 text-xs font-medium text-volcanic/45">{precioLabel}</span>
         </p>
         <div className="mt-2 grid grid-cols-2 gap-2">

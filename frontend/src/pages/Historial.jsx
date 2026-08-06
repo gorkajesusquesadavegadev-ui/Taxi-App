@@ -12,7 +12,7 @@ import { whatsappLink } from "../utils/reservas.js";
 import { descargarFactura } from "../utils/factura.js";
 import { useI18n } from "../i18n/index.jsx";
 
-const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
+import { eur as fmtEur, rangoEur } from "../utils/precio.js";
 const TIPO = {
   TRANSFER: { k: "nav.transfers", icon: IconPlane },
   EXCURSION: { k: "res.excursion", icon: IconCompass },
@@ -86,7 +86,7 @@ function ViajeCard({ v, index, esTaxista }) {
           {v.precioFinal != null ? t("hist.finalPrice") : t("hist.estimated")}
         </span>
         <span className="font-display text-xl font-extrabold">
-          {fmtEur(v.precioFinal ?? v.precioEstimado)}
+          {rangoEur(v.precioMin, v.precioMax, v.precioFinal ?? v.precioEstimado)}
         </span>
       </div>
 

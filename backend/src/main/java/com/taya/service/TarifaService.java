@@ -298,10 +298,12 @@ public class TarifaService {
         puntos.add(new double[]{dLat, dLng});
         var ruta = osrm.rutaVia(puntos);
         Zona zona = zonaDe(oLat, oLng, dLat, dLng);
+        BigDecimal precio = precioPorRuta(oLat, oLng, dLat, dLng, ruta.km());
+        BigDecimal[] rango = com.taya.util.PrecioUtil.horquilla(precio);
         return new EstimacionResponse(
             BigDecimal.valueOf(ruta.km()),
             BigDecimal.valueOf(Math.ceil(ruta.duracionMin())),
-            precioPorRuta(oLat, oLng, dLat, dLng, ruta.km()),
+            precio, rango[0], rango[1],
             ruta.puntos(),
             zonaLabel(oLat, oLng, dLat, dLng),
             suplementosDe(zona, oLat, oLng, dLat, dLng).detalle());

@@ -13,7 +13,7 @@ import { avisar } from "../utils/prefs.js";
 import { fmtFechaReserva, whatsappLink } from "../utils/reservas.js";
 import { useI18n } from "../i18n/index.jsx";
 
-const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
+import { eur as fmtEur, rangoEur } from "../utils/precio.js";
 const TIPO = {
   TRANSFER: { k: "nav.transfers", icon: IconPlane },
   EXCURSION: { k: "res.excursion", icon: IconCompass },
@@ -109,7 +109,7 @@ function ReservaCard({ r, rol, onAceptar, onCancelar, busy }) {
         <span className="text-xs uppercase tracking-wider text-volcanic/45">
           {r.tipo === "NORMAL" ? t("res.estimated") : t("res.closedPrice")}
         </span>
-        <span className="font-display text-lg font-extrabold">{fmtEur(r.precioEstimado)}</span>
+        <span className="font-display text-lg font-extrabold">{rangoEur(r.precioMin, r.precioMax, r.precioEstimado)}</span>
       </div>
 
       {/* contacto cuando ya está asignada */}

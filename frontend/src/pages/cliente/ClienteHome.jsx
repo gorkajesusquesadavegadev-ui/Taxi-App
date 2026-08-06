@@ -21,7 +21,7 @@ import { avisar } from "../../utils/prefs.js";
 
 const TIPO_LABEL = { TRANSFER: "Transfer", EXCURSION: "Excursión" };
 
-const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
+import { eur as fmtEur, rangoEur } from "../../utils/precio.js";
 
 const ISLAS = [
   { id: "GC", latMin: 27.70, latMax: 28.20, lngMin: -15.85, lngMax: -15.30 },
@@ -523,7 +523,7 @@ export default function ClienteHome() {
                 <div className="flex items-center justify-between">
                   <Badge estado={viaje.estado} />
                   <span className="font-display text-lg font-extrabold">
-                    {fmtEur(viaje.precioFinal ?? viaje.precioEstimado)}
+                    {rangoEur(viaje.precioMin, viaje.precioMax, viaje.precioFinal ?? viaje.precioEstimado)}
                   </span>
                 </div>
                 {TIPO_LABEL[viaje.tipo] && (
@@ -765,7 +765,7 @@ export default function ClienteHome() {
                           </span>
                         </span>
                         <span className="font-display text-lg font-extrabold">
-                          {fmtEur(estimacion.precioEstimado)}
+                          {rangoEur(estimacion.precioMin, estimacion.precioMax, estimacion.precioEstimado)}
                         </span>
                       </div>
                       {/* tarifa aplicada */}
@@ -833,7 +833,7 @@ export default function ClienteHome() {
             titulo="Reservar viaje"
             subtitulo={
               estimacion
-                ? `${Number(estimacion.distanciaKm).toFixed(1)} km · ${fmtEur(estimacion.precioEstimado)} estimado`
+                ? `${Number(estimacion.distanciaKm).toFixed(1)} km · ${rangoEur(estimacion.precioMin, estimacion.precioMax, estimacion.precioEstimado)}`
                 : "Elige cuándo te recogemos"
             }
             onConfirm={confirmarReserva}

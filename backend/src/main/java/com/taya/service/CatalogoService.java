@@ -26,11 +26,35 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 public class CatalogoService {
+    /**
+     * precioMin/precioMax: horquilla que se enseña al cliente en los TRANSFER,
+     * que van por taxímetro y por tanto dependen del tráfico y de la ruta real.
+     * En las EXCURSIONES van a null a propósito: ahí el precio es una tarifa
+     * plana por duración (3 h = 150 €), no una carrera medida, así que un rango
+     * sería inventarse una incertidumbre que no existe.
+     */
     public record Oferta(String id, TipoViaje tipo, String nombre, String descripcion,
                          String duracion, BigDecimal precio,
                          double origenLat, double origenLng,
                          double destinoLat, double destinoLng,
-                         List<double[]> paradas) {}
+                         List<double[]> paradas,
+                         BigDecimal precioMin, BigDecimal precioMax) {
+        // Las ofertas se declaran sin horquilla; se calcula al servirlas.
+        public Oferta(String id, TipoViaje tipo, String nombre, String descripcion,
+                      String duracion, BigDecimal precio,
+                      double origenLat, double origenLng, double destinoLat, double destinoLng,
+                      List<double[]> paradas) {
+            this(id, tipo, nombre, descripcion, duracion, precio,
+                origenLat, origenLng, destinoLat, destinoLng, paradas, null, null);
+        }
+        Oferta conPrecio(BigDecimal nuevo) {
+            var r = tipo == TipoViaje.TRANSFER
+                ? com.taya.util.PrecioUtil.horquilla(nuevo)
+                : new BigDecimal[]{null, null};
+            return new Oferta(id, tipo, nombre, descripcion, duracion, nuevo,
+                origenLat, origenLng, destinoLat, destinoLng, paradas, r[0], r[1]);
+        }
+    }
 
     private static final List<double[]> SIN_PARADAS = List.of();
     private static final Duration CACHE_KM = Duration.ofHours(6);
@@ -64,8 +88,7 @@ public class CatalogoService {
         } catch (Exception e) {
             precio = o.precio();
         }
-        return new Oferta(o.id(), o.tipo(), o.nombre(), o.descripcion(), o.duracion(), precio,
-            o.origenLat(), o.origenLng(), o.destinoLat(), o.destinoLng(), o.paradas());
+        return o.conPrecio(precio);
     }
 
     private static final List<Oferta> OFERTAS = List.of(
