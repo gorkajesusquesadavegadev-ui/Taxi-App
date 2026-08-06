@@ -11,14 +11,27 @@
 /** Importe suelto con céntimos: "12,50 €". Para importes ya cerrados o internos. */
 export const eur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
 
+// Mismo margen que PrecioUtil.horquilla en el backend. Se duplica a propósito:
+// es la red de seguridad para cuando la respuesta no trae la horquilla (una
+// versión vieja cacheada, un fallo puntual). Si cambia allí, cambiar aquí.
+const MARGEN_SUPERIOR = 1.15;
+
 /**
  * Horquilla de precio para el cliente: "34 – 40 €".
- * Si por lo que sea no vienen min/max (respuesta antigua en caché, error),
- * cae a la cifra exacta antes que no enseñar nada.
+ *
+ * Si la respuesta no trae min/max, se calcula aquí a partir del importe en vez
+ * de enseñar la cifra exacta: mostrar "8,29 €" transmite una precisión que no
+ * existe —el importe lo decide el taxímetro— y es justo lo que se quería quitar.
+ * Nunca debe verse un precio al céntimo por el camino que sea.
  */
 export function rangoEur(min, max, exacto) {
   if (min != null && max != null) return `${Number(min)} – ${Number(max)} €`;
-  return eur(exacto);
+  if (exacto == null) return "—";
+  const n = Number(exacto);
+  if (!Number.isFinite(n)) return "—";
+  const lo = Math.floor(n);
+  const hi = Math.max(lo + 1, Math.ceil(n * MARGEN_SUPERIOR));
+  return `${lo} – ${hi} €`;
 }
 
 /** ¿Tenemos horquilla de verdad, o estamos cayendo al importe exacto? */

@@ -92,7 +92,10 @@ export default function Ofertas({ tipo }) {
           origenLat: recogida.lat, origenLng: recogida.lng,
           destinoLat: o.destinoLat, destinoLng: o.destinoLng, paradas: [],
         })
-          .then((e) => [o.id, e.precioEstimado])
+          // se guarda también la horquilla: quedarse solo con el importe
+          // dejaba el rango del catálogo (calculado para otra recogida) y
+          // acababa enseñándose un precio exacto por el camino del fallback
+          .then((e) => [o.id, { precio: e.precioEstimado, min: e.precioMin, max: e.precioMax }])
           .catch(() => null)
       )
     ).then((pares) => {
@@ -182,7 +185,12 @@ export default function Ofertas({ tipo }) {
               {items.map((o) => (
                 <OfertaCard
                   key={o.id}
-                  oferta={preciosRecogida[o.id] != null ? { ...o, precio: preciosRecogida[o.id] } : o}
+                  oferta={
+                  preciosRecogida[o.id]
+                    ? { ...o, precio: preciosRecogida[o.id].precio,
+                        precioMin: preciosRecogida[o.id].min, precioMax: preciosRecogida[o.id].max }
+                    : o
+                }
                   icon={esTransfer ? IconPlane : IconCompass}
                   busy={busyId === o.id}
                   onSolicitar={() => solicitar(o)}
