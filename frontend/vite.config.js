@@ -32,6 +32,21 @@ export default defineConfig({
       workbox: {
         // assets propios precacheados; mapas/fuentes van a red con caché
         globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
+        // El Service Worker nuevo se activa SOLO, sin esperar a que se cierren
+        // todas las pestañas ni a que la página le mande nada.
+        //
+        // Por qué: hasta ahora el nuevo quedaba "esperando" y el viejo seguía
+        // sirviendo la app entera desde su caché — incluidas las cabeceras HTTP,
+        // así que un usuario veía la CSP antigua y una versión de hace días
+        // aunque el servidor ya tuviera la nueva. Y no bastaba con arreglar el
+        // código de la página: quien tuviera una versión anterior seguía
+        // ejecutando el código VIEJO, que nunca pedía el relevo. Poniéndolo en
+        // el propio SW, el relevo ya no depende de la página.
+        //
+        // Contrapartida: una pestaña abierta puede quedarse a medias entre dos
+        // versiones; por eso pwa.js recarga al detectar el cambio de control.
+        skipWaiting: true,
+        clientsClaim: true,
         navigateFallback: "/index.html",
         // Las guías de tarifas son páginas estáticas fuera del SPA. Sin esto,
         // navigateFallback las secuestra y sirve el index.html de la app: quien
