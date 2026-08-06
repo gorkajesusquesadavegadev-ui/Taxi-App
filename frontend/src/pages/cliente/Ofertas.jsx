@@ -207,7 +207,7 @@ export default function Ofertas({ tipo }) {
       {reservando && (
         <ReservaModal
           titulo={`${t("of.bookPrefix")} · ${ofTxt(t, reservando.id, "n", reservando.nombre)}`}
-          subtitulo={`${fmtEur(reservando.precio)} ${t("of.approxPrice")} · ${ofTxt(t, reservando.id, "dur", reservando.duracion)}`}
+          subtitulo={`${rangoEur(reservando.precioMin, reservando.precioMax, reservando.precio)} ${t("of.approxPrice")} · ${ofTxt(t, reservando.id, "dur", reservando.duracion)}`}
           onConfirm={confirmarReserva}
           onClose={() => setReservando(null)}
         />

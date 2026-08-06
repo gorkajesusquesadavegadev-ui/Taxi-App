@@ -6,6 +6,7 @@ import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useI18n } from "../i18n";
 import { Btn, Card, Badge } from "../components/UI";
+import { rangoEur } from "../utils/precio";
 
 const TIPO_ICON = { EXCURSION: "🌋", TRANSFER: "✈️", NORMAL: "📍" };
 const ESTADO_KEY = {
@@ -70,7 +71,7 @@ export default function ReservasScreen() {
         {r.destinoTexto ? <Text className="mt-1 font-bodysemi text-[13px] text-volcanic/70" numberOfLines={1}>🏁 {r.destinoTexto}</Text> : null}
         {r.notas ? <Text className="mt-1 font-body text-[12px] text-volcanic/50" numberOfLines={2}>📝 {r.notas}</Text> : null}
         {r.precioEstimado != null && (
-          <Text className="mt-1.5 font-bodybold text-[13px] text-volcanic">~{Number(r.precioEstimado).toFixed(2)} € · {t("res.estimated")}</Text>
+          <Text className="mt-1.5 font-bodybold text-[13px] text-volcanic">{rangoEur(r.precioMin, r.precioMax, r.precioEstimado)} · {t("res.estimated")}</Text>
         )}
         {r.estado === "ACEPTADA" && contactoNombre && (
           <View className="mt-2 flex-row items-center gap-2 rounded-xl bg-sand p-2">

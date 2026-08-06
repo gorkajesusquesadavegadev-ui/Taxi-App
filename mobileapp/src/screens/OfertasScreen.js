@@ -6,6 +6,7 @@ import { ubicacionPrecisa, buscarDirecciones } from "../api/geo";
 import { useI18n } from "../i18n";
 import { Btn, Input, Card } from "../components/UI";
 import ReservaModal from "../components/ReservaModal";
+import { rangoEur } from "../utils/precio";
 
 const ofTxt = (t, id, campo, fallback) => {
   const k = `of.${id}.${campo}`;
@@ -54,7 +55,7 @@ export default function OfertasScreen() {
           origenLat: recogida.lat, origenLng: recogida.lng,
           destinoLat: o.destinoLat, destinoLng: o.destinoLng, paradas: [],
         })
-          .then((e) => [o.id, e.precioEstimado])
+          .then((e) => [o.id, { precio: e.precioEstimado, min: e.precioMin, max: e.precioMax }])
           .catch(() => null)
       )
     ).then((pares) => {
@@ -149,7 +150,9 @@ export default function OfertasScreen() {
             <View className="flex-row items-start justify-between gap-2">
               <Text className="flex-1 font-display text-[15px] text-volcanic">{ofTxt(t, o.id, "n", o.nombre)}</Text>
               <Text className="font-display text-[17px] text-taxi-dark">
-                {Number(preciosRecogida[o.id] ?? o.precio).toFixed(0)} €
+                {preciosRecogida[o.id]
+                  ? rangoEur(preciosRecogida[o.id].min, preciosRecogida[o.id].max, preciosRecogida[o.id].precio)
+                  : rangoEur(o.precioMin, o.precioMax, o.precio)}
               </Text>
             </View>
             <Text className="mt-1 font-body text-[13px] leading-[18px] text-volcanic/70">{ofTxt(t, o.id, "d", o.descripcion)}</Text>

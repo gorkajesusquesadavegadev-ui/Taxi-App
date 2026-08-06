@@ -30,6 +30,11 @@ public class TripWsServiceImpl implements TripWsService {
         payload.put("destinoLat", v.getDestinoLat());
         payload.put("destinoLng", v.getDestinoLng());
         payload.put("precioEstimado", v.getPrecioEstimado());
+        // Horquilla: el taxista debe ver EXACTAMENTE lo mismo que se le enseñó
+        // al cliente, para que no circulen dos cifras distintas del mismo viaje.
+        var rango = com.taya.util.PrecioUtil.horquilla(v.getPrecioEstimado());
+        payload.put("precioMin", rango[0]);
+        payload.put("precioMax", rango[1]);
         payload.put("tipo", v.getTipo() != null ? v.getTipo().name() : "NORMAL");
         payload.put("detalle", v.getDetalle());
         payload.put("zona", tarifa.zonaLabel(v.getOrigenLat(), v.getOrigenLng(), v.getDestinoLat(), v.getDestinoLng()));

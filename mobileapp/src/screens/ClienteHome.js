@@ -14,6 +14,7 @@ import Badge from "../components/Badge";
 import ValorarModal from "../components/ValorarModal";
 import ReservaModal from "../components/ReservaModal";
 import { Btn, Input, SHADOW_CARD } from "../components/UI";
+import { rangoEur } from "../utils/precio";
 
 const fmtEur = (x) => (x == null ? "—" : `${Number(x).toFixed(2)} €`);
 
@@ -387,7 +388,7 @@ export default function ClienteHome() {
             <View className="flex-row items-center justify-between">
               <Badge estado={viaje.estado} />
               <Text className="font-display text-[18px] text-volcanic">
-                {fmtEur(viaje.precioFinal ?? viaje.precioEstimado)}
+                {rangoEur(viaje.precioMin, viaje.precioMax, viaje.precioFinal ?? viaje.precioEstimado)}
               </Text>
             </View>
             <View className="flex-row items-center gap-2">
@@ -619,7 +620,7 @@ export default function ClienteHome() {
                         {"  "}{Number(estimacion.distanciaKm).toFixed(1)} km
                       </Text>
                     </Text>
-                    <Text className="font-display text-[17px] text-volcanic">{fmtEur(estimacion.precioEstimado)}</Text>
+                    <Text className="font-display text-[17px] text-volcanic">{rangoEur(estimacion.precioMin, estimacion.precioMax, estimacion.precioEstimado)}</Text>
                   </View>
                   {estimacion.zona && (
                     <View className="flex-row items-center gap-1.5 rounded-xl bg-atlantic/10 px-3 py-1.5">

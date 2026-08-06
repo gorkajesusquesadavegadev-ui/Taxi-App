@@ -14,6 +14,7 @@ import Sheet from "../components/Sheet";
 import Badge from "../components/Badge";
 import ValorarModal from "../components/ValorarModal";
 import { Btn, Card, SHADOW_CARD } from "../components/UI";
+import { rangoEur } from "../utils/precio";
 
 const fmtEur = (x) => (x == null ? "—" : `${Number(x).toFixed(2)} €`);
 
@@ -337,7 +338,7 @@ export default function TaxistaHome() {
             <View className="flex-row items-center justify-between">
               <Badge estado={viaje.estado} />
               <Text className="font-display text-[18px] text-volcanic">
-                {fmtEur(viaje.precioFinal ?? viaje.precioEstimado)}
+                {rangoEur(viaje.precioMin, viaje.precioMax, viaje.precioFinal ?? viaje.precioEstimado)}
               </Text>
             </View>
             {viaje.detalle ? (
@@ -456,7 +457,7 @@ export default function TaxistaHome() {
               <Text className="mt-1 font-bodysemi text-[14px] text-volcanic/80" numberOfLines={1}>🗺️ {zonaTraducida(t, solicitud.zona)}</Text>
             ) : null}
             {solicitud?.precioEstimado != null && (
-              <Text className="mt-2.5 font-display text-[24px] text-volcanic">~{Number(solicitud.precioEstimado).toFixed(2)} €</Text>
+              <Text className="mt-2.5 font-display text-[24px] text-volcanic">{rangoEur(solicitud.precioMin, solicitud.precioMax, solicitud.precioEstimado)}</Text>
             )}
             <View className="mt-4 flex-row gap-2.5">
               <Btn title={t("drv.reject")} kind="ghost" className="flex-1" onPress={() => setSolicitud(null)} />

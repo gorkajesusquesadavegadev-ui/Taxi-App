@@ -6,6 +6,7 @@ import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useI18n } from "../i18n";
 import { Card, Badge } from "../components/UI";
+import { rangoEur } from "../utils/precio";
 
 const BADGE_EMOJI = {
   COMPLETADO: "✅", CANCELADO: "✖️", EN_CURSO: "🚕",
@@ -111,7 +112,7 @@ export default function HistorialScreen() {
                   : (v.taxistaNombre ? `🚕 ${v.taxistaNombre}` : "")}
               </Text>
               {v.precioFinal != null && (
-                <Text className="font-display text-[15px] text-volcanic">{Number(v.precioFinal).toFixed(2)} €</Text>
+                <Text className="font-display text-[15px] text-volcanic">{rangoEur(v.precioMin, v.precioMax, v.precioFinal)}</Text>
               )}
             </View>
           </Card>

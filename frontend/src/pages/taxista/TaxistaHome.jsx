@@ -15,7 +15,7 @@ import { activarPush } from "../../api/push.js";
 import { tapExito } from "../../utils/haptics.js";
 import { useI18n, zonaTraducida } from "../../i18n/index.jsx";
 
-const fmtEur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
+import { eur as fmtEur, rangoEur } from "../../utils/precio.js";
 const TIPO_LABEL = { TRANSFER: "Transfer", EXCURSION: "Excursión" };
 
 const _ISLAS = [
@@ -329,7 +329,7 @@ export default function TaxistaHome() {
       // el backend tarifica con la distancia OSRM real del viaje
       const v = await api.finalizar(viaje.id);
       setViaje(v);
-      setMsg(t("drv.completedFmt", { eur: fmtEur(v.precioFinal), km: Number(v.distanciaRealKm).toFixed(1) }));
+      setMsg(t("drv.completedFmt", { eur: rangoEur(v.precioMin, v.precioMax, v.precioFinal), km: Number(v.distanciaRealKm).toFixed(1) }));
     } catch (e) {
       setMsg(e.message || t("drv.errFinish"));
     }
@@ -391,7 +391,7 @@ export default function TaxistaHome() {
 
               {/* precio */}
               <p className="mt-2 font-display text-3xl font-extrabold text-volcanic">
-                {fmtEur(incoming.precioEstimado)}
+                {rangoEur(incoming.precioMin, incoming.precioMax, incoming.precioEstimado)}
                 <span className="ml-2 text-sm font-medium text-volcanic/45">
                   {TIPO_LABEL[incoming.tipo] ? t("drv.closedPrice") : t("drv.estimate")}
                 </span>
@@ -453,7 +453,7 @@ export default function TaxistaHome() {
                 <div className="flex items-center justify-between">
                   <Badge estado={viaje.estado} />
                   <span className="font-display text-lg font-extrabold">
-                    {fmtEur(viaje.precioFinal ?? viaje.precioEstimado)}
+                    {rangoEur(viaje.precioMin, viaje.precioMax, viaje.precioFinal ?? viaje.precioEstimado)}
                   </span>
                 </div>
                 {TIPO_LABEL[viaje.tipo] && (
