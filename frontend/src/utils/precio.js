@@ -11,10 +11,11 @@
 /** Importe suelto con céntimos: "12,50 €". Para importes ya cerrados o internos. */
 export const eur = (v) => (v == null ? "—" : `${Number(v).toFixed(2)} €`);
 
-// Mismo margen que PrecioUtil.horquilla en el backend. Se duplica a propósito:
-// es la red de seguridad para cuando la respuesta no trae la horquilla (una
-// versión vieja cacheada, un fallo puntual). Si cambia allí, cambiar aquí.
-const MARGEN_SUPERIOR = 1.15;
+// Mismo margen que PrecioUtil.horquilla en el backend: 5 € fijos sobre el
+// precio truncado. Se duplica a propósito: es la red de seguridad para cuando
+// la respuesta no trae la horquilla (una versión vieja cacheada, un fallo
+// puntual). Si cambia allí, cambiar aquí.
+const MARGEN_FIJO = 5;
 
 /**
  * Horquilla de precio para el cliente: "34 – 40 €".
@@ -30,8 +31,7 @@ export function rangoEur(min, max, exacto) {
   const n = Number(exacto);
   if (!Number.isFinite(n)) return "—";
   const lo = Math.floor(n);
-  const hi = Math.max(lo + 1, Math.ceil(n * MARGEN_SUPERIOR));
-  return `${lo} – ${hi} €`;
+  return `${lo} – ${lo + MARGEN_FIJO} €`;
 }
 
 /** ¿Tenemos horquilla de verdad, o estamos cayendo al importe exacto? */

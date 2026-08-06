@@ -19,26 +19,22 @@ public final class PrecioUtil {
     private PrecioUtil() {}
 
     /**
-     * Margen superior. El cálculo por kilómetro supone circulación fluida y ruta
-     * óptima; en la calle hay atascos y esperas, y el taxímetro sigue corriendo
-     * parado (la hora de espera son 17-20 € según franja). Un 15% cubre esa
-     * variabilidad sin inflar la estimación hasta hacerla inútil.
+     * Ancho de la horquilla: 5 € por encima del precio calculado, igual para
+     * todos los trayectos. Se eligió un importe fijo en vez de un porcentaje
+     * porque es lo que el cliente entiende de un vistazo ("entre 33 y 38") y no
+     * hace que un trayecto largo muestre un abanico enorme.
      */
-    private static final BigDecimal MARGEN_SUPERIOR = new BigDecimal("1.15");
+    private static final BigDecimal MARGEN_FIJO = new BigDecimal("5");
 
     /**
      * @return [min, max] en euros ENTEROS, o [null, null] si no hay precio.
-     *   El suelo es el precio calculado redondeado a la baja (mejor caso: sin
-     *   una sola parada); el techo, un 15% más redondeado al alza. Enteros
-     *   porque una horquilla con céntimos ("33,87 – 39,54 €") finge justo la
-     *   precisión que no se tiene.
+     *   El suelo es el precio calculado TRUNCADO (mejor caso: sin una sola
+     *   parada); el techo, 5 € más. Enteros porque una horquilla con céntimos
+     *   ("33,87 – 38,87 €") fingiría justo la precisión que no se tiene.
      */
     public static BigDecimal[] horquilla(BigDecimal precio) {
         if (precio == null) return new BigDecimal[]{null, null};
         BigDecimal min = precio.setScale(0, RoundingMode.FLOOR);
-        BigDecimal max = precio.multiply(MARGEN_SUPERIOR).setScale(0, RoundingMode.CEILING);
-        // Trayectos muy cortos: evita un rango degenerado del tipo "5 – 5 €".
-        if (max.compareTo(min) <= 0) max = min.add(BigDecimal.ONE);
-        return new BigDecimal[]{min, max};
+        return new BigDecimal[]{min, min.add(MARGEN_FIJO)};
     }
 }
