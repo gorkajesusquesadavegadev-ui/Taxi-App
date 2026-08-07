@@ -132,12 +132,14 @@ public class UsuarioController {
     }
 
     /**
-     * Derecho de supresión (RGPD art. 17). Los viajes NO se borran: la política
-     * de privacidad exige conservar el historial 5 años por motivos fiscales
-     * (art. 17.3.b RGPD permite denegar el borrado por obligación legal), pero
-     * al anonimizar el perfil, todo lo que se muestra de este usuario en esos
-     * viajes (nombre, teléfono) deja de ser identificable. Todo lo demás que sí
-     * es puramente personal se elimina o anonimiza de verdad.
+     * Derecho de supresión (RGPD art. 17). Los viajes NO se borran, pero el
+     * motivo NO es una obligación fiscal —el operador no realiza actividad
+     * económica y no la tiene—: es que un viaje implica a DOS personas, y el
+     * registro forma parte también del historial del conductor, que tiene
+     * interés legítimo en conservarlo (art. 6.1.f). Al anonimizar el perfil,
+     * todo lo que identificaba a este usuario en esos viajes (nombre, teléfono,
+     * correo) desaparece, así que el registro deja de ser un dato personal
+     * suyo. Todo lo demás que sí es puramente personal se borra de verdad.
      */
     @DeleteMapping("/me")
     @Transactional

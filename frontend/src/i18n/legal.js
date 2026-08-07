@@ -104,7 +104,7 @@ export const LEGAL = {
             "**Prestar el servicio** (art. 6.1.b RGPD, ejecución de un contrato): crear y gestionar su cuenta, solicitar y asignar viajes, y permitir el contacto entre cliente y conductor durante el trayecto.",
             "**Consentimiento** (art. 6.1.a RGPD): acceso a la ubicación y envío de notificaciones. Puede retirarlo en cualquier momento desde los permisos de su dispositivo, sin que ello afecte a la licitud del tratamiento anterior.",
             "**Interés legítimo** (art. 6.1.f RGPD): seguridad de la plataforma, prevención del fraude y estadísticas agregadas de demanda.",
-            "**Obligación legal** (art. 6.1.c RGPD): conservación de registros con fines fiscales y contables.",
+            "**Interés legítimo de la otra parte** (art. 6.1.f RGPD): conservar el registro anonimizado de un viaje en el historial del conductor, aunque el cliente haya eliminado su cuenta, y viceversa.",
           ],
         },
         {
@@ -117,7 +117,7 @@ export const LEGAL = {
           t: "5. Conservación de datos",
           p: [
             "Los datos de la cuenta se conservan mientras la cuenta esté activa. Al eliminarla, los datos identificativos se borran de inmediato.",
-            "El historial de viajes se conserva **cinco años de forma anonimizada**, desvinculado de su identidad, por obligación fiscal (art. 17.3.b RGPD).",
+            "Un viaje implica a **dos personas**. Si usted elimina su cuenta, el registro del viaje se conserva **anonimizado** —sin su nombre, teléfono ni correo— porque forma parte del historial de trabajo del conductor, que tiene derecho a conservarlo. Al quedar desvinculado de su identidad deja de ser un dato personal suyo.",
             "La **ubicación GPS en tiempo real no se almacena de forma permanente**: se guarda en memoria durante la sesión activa y caduca automáticamente a los pocos segundos.",
           ],
         },
@@ -150,7 +150,7 @@ export const LEGAL = {
           p: [
             "Puede ejercer los derechos de **acceso, rectificación, supresión, limitación, portabilidad y oposición**, así como **retirar su consentimiento** en cualquier momento.",
             "**Acceso y portabilidad:** en Ajustes → Tus datos → «Descargar mis datos» obtiene al instante una copia completa en formato JSON.",
-            "**Supresión:** en Ajustes → Tus datos → «Eliminar mi cuenta» puede borrarla usted mismo, sin escribirnos ni esperar.",
+            "**Supresión:** en Ajustes → Tus datos → «Eliminar mi cuenta» puede borrarla usted mismo, sin escribirnos ni esperar. Sus datos identificativos se borran en el acto.",
             `Para los demás derechos, escriba a **${EMAIL}**. Responderemos en el plazo máximo de un mes.`,
             "Si considera que no hemos atendido correctamente su solicitud, puede reclamar ante la **Agencia Española de Protección de Datos** (www.aepd.es), C/ Jorge Juan 6, 28001 Madrid.",
           ],
@@ -403,7 +403,7 @@ export const LEGAL = {
             "**Providing the service** (art. 6.1.b GDPR, performance of a contract): creating and managing your account, requesting and assigning trips, and enabling contact between client and driver during the journey.",
             "**Consent** (art. 6.1.a GDPR): access to location and sending notifications. You may withdraw it at any time from your device permissions, without affecting the lawfulness of earlier processing.",
             "**Legitimate interest** (art. 6.1.f GDPR): platform security, fraud prevention and aggregated demand statistics.",
-            "**Legal obligation** (art. 6.1.c GDPR): keeping records for tax and accounting purposes.",
+            "**Legitimate interest of the other party** (art. 6.1.f GDPR): keeping the anonymised record of a trip in the driver's history even if the client has deleted their account, and vice versa.",
           ],
         },
         {
@@ -416,7 +416,7 @@ export const LEGAL = {
           t: "5. Data retention",
           p: [
             "Account data is kept while the account is active. When you delete it, identifying data is erased immediately.",
-            "Trip history is kept for **five years in anonymised form**, unlinked from your identity, due to tax obligations (art. 17.3.b GDPR).",
+            "A trip involves **two people**. If you delete your account, the trip record is kept **anonymised** —without your name, phone or email— because it is part of the driver's own work history, which they are entitled to keep. Once unlinked from your identity it is no longer your personal data.",
             "**Real-time GPS location is not stored permanently**: it is held in memory during the active session and expires automatically within seconds.",
           ],
         },
@@ -699,7 +699,7 @@ export const LEGAL = {
             "**Erbringung des Dienstes** (Art. 6.1.b DSGVO, Vertragserfüllung): Anlegen und Verwalten Ihres Kontos, Anfordern und Zuweisen von Fahrten sowie Kontakt zwischen Kunde und Fahrer während der Fahrt.",
             "**Einwilligung** (Art. 6.1.a DSGVO): Standortzugriff und Benachrichtigungen. Sie können sie jederzeit über die Geräteeinstellungen widerrufen; die Rechtmäßigkeit der vorherigen Verarbeitung bleibt unberührt.",
             "**Berechtigtes Interesse** (Art. 6.1.f DSGVO): Sicherheit der Plattform, Betrugsprävention und aggregierte Nachfragestatistiken.",
-            "**Rechtliche Verpflichtung** (Art. 6.1.c DSGVO): Aufbewahrung von Aufzeichnungen für Steuer- und Buchhaltungszwecke.",
+            "**Berechtigtes Interesse der Gegenseite** (Art. 6.1.f DSGVO): Aufbewahrung des anonymisierten Fahrteintrags im Verlauf des Fahrers, auch wenn der Kunde sein Konto gelöscht hat, und umgekehrt.",
           ],
         },
         {
@@ -712,7 +712,7 @@ export const LEGAL = {
           t: "5. Speicherdauer",
           p: [
             "Kontodaten werden gespeichert, solange das Konto besteht. Bei Löschung werden identifizierende Daten sofort entfernt.",
-            "Der Fahrtverlauf wird **fünf Jahre anonymisiert** und von Ihrer Identität getrennt aufbewahrt (steuerliche Pflicht, Art. 17.3.b DSGVO).",
+            "An einer Fahrt sind **zwei Personen** beteiligt. Löschen Sie Ihr Konto, bleibt der Fahrteintrag **anonymisiert** erhalten —ohne Name, Telefonnummer und E-Mail—, weil er zum Arbeitsverlauf des Fahrers gehört, den dieser aufbewahren darf. Ohne Bezug zu Ihrer Identität ist er kein personenbezogenes Datum von Ihnen mehr.",
             "**Der GPS-Standort in Echtzeit wird nicht dauerhaft gespeichert**: Er verbleibt während der aktiven Sitzung im Arbeitsspeicher und verfällt nach wenigen Sekunden automatisch.",
           ],
         },
