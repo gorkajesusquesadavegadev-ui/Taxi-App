@@ -3,3 +3,13 @@ dist/
 *.local
 .vite/
 .vercel
+
+# Secretos locales. NUNCA subir un .env con credenciales reales.
+# Se permiten explicitamente los dos que no contienen secretos:
+#   .env.example    → plantilla con marcadores
+#   .env.production → solo variables VITE_*, que de todos modos acaban
+#                     compiladas dentro del JS que descarga cualquier visitante
+.env
+.env.*
+!.env.example
+!.env.production
