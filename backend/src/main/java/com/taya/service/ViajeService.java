@@ -125,7 +125,7 @@ public class ViajeService {
         v.setDestinoTexto(of.nombre()); // origenTexto lo resuelve el backfill async
         v.setDistanciaEstimadaKm(BigDecimal.valueOf(ruta.km()));
         // TRANSFER: tarifa vigente sobre la ruta REAL desde la recogida elegida
-        // (no es lo mismo salir de Jamat que de Santa Catalina).
+        // (no es lo mismo salir de Tamaraceite que de Santa Catalina).
         // EXCURSIÓN: precio por duración del catálogo, independiente de la recogida.
         if (of.tipo() == com.taya.model.TipoViaje.TRANSFER) {
             java.math.BigDecimal p;

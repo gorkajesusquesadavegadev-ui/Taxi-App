@@ -25,7 +25,7 @@ function parseJsonp(text) {
   return JSON.parse(text.trim().replace(/^[^(]+\(|\)$/g, ""));
 }
 
-// "CALLE JAMAT 71, TAMARACEITE" → "Calle Jamat 71, Tamaraceite"
+// "CALLE PEREZ GALDOS 12, TRIANA" → "Calle Perez Galdos 12, Triana"
 function title(str) {
   return (str || "").toLowerCase().replace(/(^|[,\s(])([a-záéíóúüñàèìòùâêîôûäëïöüçñ])/gi,
     (_, sep, c) => sep + c.toUpperCase());
@@ -252,7 +252,7 @@ export async function direccionDe(lat, lng) {
       const tipo = (d?.type || "").toLowerCase();
       const esVia = tipo === "portal" || tipo === "callejero" || tipo === "via";
       if (d && d.address && esVia) {
-        // Componer "Calle Jamat 71": tip_via + nombre + número de portal
+        // Componer "Calle Perez Galdos 12": tip_via + nombre + número de portal
         const via = title(`${d.tip_via || ""} ${d.address}`.trim());
         const num = d.portalNumber && !d.noNumber ? ` ${d.portalNumber}` : "";
         const zona = title(d.poblacion || d.muni || "");

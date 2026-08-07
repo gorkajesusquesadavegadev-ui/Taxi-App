@@ -8,3 +8,7 @@
 .env.*
 !.env.example
 !.env.production
+
+# DPA firmados: son contratos con la direccion postal del titular. Se guardan
+# en local como prueba documental, pero NUNCA en el repositorio.
+legal/dpa/*.pdf

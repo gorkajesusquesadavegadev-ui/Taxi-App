@@ -81,7 +81,7 @@ export default function Ofertas({ tipo }) {
   }, [tipo]);
 
   // Transfers: re-preciar desde la recogida elegida (no es lo mismo salir de
-  // Jamat que de Santa Catalina). Excursiones: precio fijo por duración.
+  // Tamaraceite que de Santa Catalina). Excursiones: precio fijo por duración.
   const [preciosRecogida, setPreciosRecogida] = useState({});
   useEffect(() => {
     if (!esTransfer || !recogida || !items?.length) { setPreciosRecogida({}); return; }

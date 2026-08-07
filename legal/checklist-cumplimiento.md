@@ -40,6 +40,7 @@
 ### Documentación interna
 - ✅ **Registro de Actividades de Tratamiento** (art. 30) — `registro-actividades-tratamiento.md`
 - ✅ **Procedimiento ante brechas** (art. 33/34) — `procedimiento-brechas.md`
+- ✅ **DPA de Railway firmado** — `dpa/railway-dpa-firmado.pdf` (no versionado)
 
 ---
 
@@ -60,20 +61,20 @@ Contractual Clauses»*).
 - ⬜ Única tarea: descargar https://vercel.com/legal/dpa en PDF y guardarlo en
   `legal/dpa/` como prueba documental.
 
-#### ⬜ Railway — SÍ hay que firmarlo
+#### ✅ Railway — FIRMADO (7 de agosto de 2026)
 
-Es el único que exige ejecución activa. Su sección 14 dice: *«This DPA will
-become legally binding upon Company's execution in the signature block
-below»*, y se firma mediante un formulario DocuSign enlazado en el propio
-documento.
+Era el único que exigía ejecución activa, y el más importante: Railway aloja el
+servidor, la base de datos y Redis, es decir trata *todos* los datos personales
+del proyecto.
 
-- ⬜ Ir a https://railway.com/legal/dpa, abrir el enlace de DocuSign de la
-  sección 14 y firmarlo. Incluye las SCC de la UE, el anexo del Reino Unido y
-  las cláusulas suizas.
-- ⬜ Guardar el PDF firmado en `legal/dpa/`.
-
-**Este es el importante**: Railway aloja el servidor, la base de datos y Redis
-— es el encargado que trata *todos* los datos personales del proyecto.
+- ✅ Firmado por ambas partes el **2026-08-07** (Docusign Envelope ID
+  4CAF1B04-BBF1-44B7-92A8-753CC8296329). Por Railway: Christian Ohrgaard, Head
+  of Operations.
+- ✅ **Exhibit B completo**: identificados nombre, dirección y contacto del
+  exportador de datos, que es lo que da validez a las Cláusulas Contractuales
+  Tipo que amparan la transferencia a EE. UU.
+- ✅ PDF archivado en `legal/dpa/railway-dpa-firmado.pdf` (fuera de git: el
+  documento contiene la dirección postal del titular).
 
 #### ℹ️ Google — probablemente NO necesita DPA
 
