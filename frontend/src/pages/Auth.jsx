@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import Button from "../components/Button.jsx";
@@ -758,12 +758,32 @@ export default function Auth() {
           >
             {t("landing.faresLink")}
           </a>
-          <div className="pointer-events-auto mt-5 animate-fade-up flex gap-4 text-[10px] font-semibold text-volcanic/40" style={{ animationDelay: "950ms" }}>
-            <Link to="/aviso-legal" className="hover:text-volcanic/70 underline-offset-2 hover:underline">{t("legal.notice")}</Link>
-            <Link to="/privacidad" className="hover:text-volcanic/70 underline-offset-2 hover:underline">{t("legal.privacy")}</Link>
-            <Link to="/cookies" className="hover:text-volcanic/70 underline-offset-2 hover:underline">{t("legal.cookies")}</Link>
-            <Link to="/terminos" className="hover:text-volcanic/70 underline-offset-2 hover:underline">{t("legal.terms")}</Link>
-          </div>
+          {/* Pie legal. Obligatorio (LSSI art. 10) pero no es lo que se viene a
+              hacer aquí: se centra, envuelve en móvil y queda por debajo del
+              CTA en peso visual. Los puntos separadores son decorativos, por eso
+              van fuera del enlace y ocultos al lector de pantalla. */}
+          <nav
+            aria-label={t("legal.footerAria")}
+            className="pointer-events-auto mt-6 flex animate-fade-up flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-[11px] font-semibold text-volcanic/40"
+            style={{ animationDelay: "950ms" }}
+          >
+            {[
+              ["/aviso-legal", "legal.notice"],
+              ["/privacidad", "legal.privacy"],
+              ["/cookies", "legal.cookies"],
+              ["/terminos", "legal.terms"],
+            ].map(([path, key], i) => (
+              <Fragment key={path}>
+                {i > 0 && <span aria-hidden="true" className="text-volcanic/20">·</span>}
+                <Link
+                  to={path}
+                  className="rounded underline-offset-4 transition-colors hover:text-volcanic/75 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-volcanic/40"
+                >
+                  {t(key)}
+                </Link>
+              </Fragment>
+            ))}
+          </nav>
         </main>
       )}
 

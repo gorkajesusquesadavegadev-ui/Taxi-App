@@ -51,7 +51,7 @@ export default function LegalDoc({ doc }) {
 
           <div className="px-6 py-6 sm:px-8">
             <p className="mb-8 rounded-xl border border-taxi/30 bg-taxi/10 px-4 py-3 text-xs font-semibold leading-relaxed text-volcanic/70">
-              ⚖️ {t("legal.notice")}
+              ⚖️ {t("legal.binding")}
             </p>
 
             <div className="space-y-8 text-sm leading-relaxed text-volcanic/80">
