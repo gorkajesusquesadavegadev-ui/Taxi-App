@@ -16,6 +16,7 @@ function Rich({ text }) {
 }
 
 const DOCS = [
+  { id: "aviso", path: "/aviso-legal", labelKey: "legal.notice", icon: "🏛️" },
   { id: "privacy", path: "/privacidad", labelKey: "legal.privacy", icon: "🔒" },
   { id: "terms", path: "/terminos", labelKey: "legal.terms", icon: "📋" },
   { id: "cookies", path: "/cookies", labelKey: "legal.cookies", icon: "🍪" },

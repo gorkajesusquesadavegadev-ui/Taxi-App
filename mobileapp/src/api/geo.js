@@ -10,7 +10,7 @@ const BBOX_CANARIAS = "-18.3,27.5,-13.3,29.5";
 const NOMINATIM = "https://nominatim.openstreetmap.org";
 const VIEWBOX = "-18.2,29.4,-13.3,27.5";
 const CANARY_PROV = new Set(["35", "38"]);
-const UA = { "User-Agent": "CanaryCab/1.0 gorquesadave@gmail.com" };
+const UA = { "User-Agent": "CanaryCab/1.0 gorkajesusquesadavegadev@gmail.com" };
 
 function parseJsonp(text) {
   return JSON.parse(text.trim().replace(/^[^(]+\(|\)$/g, ""));

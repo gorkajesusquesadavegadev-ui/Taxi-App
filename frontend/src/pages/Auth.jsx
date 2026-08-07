@@ -362,7 +362,7 @@ function AdSlot({ bg = "#0B2E4F", color = "#FFC400", label = "", t }) {
   );
 }
 
-function Ad1({ t }) { return <AdSlot t={t} bg="#0B2E4F" color="#FFC400" label="contacto@canarycab.com" />; }
+function Ad1({ t }) { return <AdSlot t={t} bg="#0B2E4F" color="#FFC400" label="gorkajesusquesadavegadev@gmail.com" />; }
 function Ad2({ t }) { return <AdSlot t={t} bg="#1577C2" color="#ffffff" label="canarycab.com" />; }
 function Ad3({ t }) { return <AdSlot t={t} bg="#FFC400" color="#0B2E4F" label="CanaryCab" />; }
 function Ad4({ t }) { return <AdSlot t={t} bg="#F7FBFE" color="#0B2E4F" label="canarycab.com" />; }
@@ -759,6 +759,7 @@ export default function Auth() {
             {t("landing.faresLink")}
           </a>
           <div className="pointer-events-auto mt-5 animate-fade-up flex gap-4 text-[10px] font-semibold text-volcanic/40" style={{ animationDelay: "950ms" }}>
+            <Link to="/aviso-legal" className="hover:text-volcanic/70 underline-offset-2 hover:underline">{t("legal.notice")}</Link>
             <Link to="/privacidad" className="hover:text-volcanic/70 underline-offset-2 hover:underline">{t("legal.privacy")}</Link>
             <Link to="/cookies" className="hover:text-volcanic/70 underline-offset-2 hover:underline">{t("legal.cookies")}</Link>
             <Link to="/terminos" className="hover:text-volcanic/70 underline-offset-2 hover:underline">{t("legal.terms")}</Link>

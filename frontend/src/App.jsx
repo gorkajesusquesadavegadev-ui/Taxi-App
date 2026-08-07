@@ -8,7 +8,7 @@ import Spinner from "./components/Spinner.jsx";
 // que no sea "/". Solo tiene sentido indexar rutas públicas (legales); las
 // protegidas (home, ajustes...) no son contenido de buscador, así que para
 // esas se deja apuntando a la home en vez de a una URL que exige login.
-const RUTAS_PUBLICAS = ["/", "/privacidad", "/cookies", "/terminos"];
+const RUTAS_PUBLICAS = ["/", "/aviso-legal", "/privacidad", "/cookies", "/terminos"];
 
 function useCanonical() {
   const location = useLocation();
@@ -38,6 +38,7 @@ const Reservas = lazy(() => import("./pages/Reservas.jsx"));
 const TarifaActual = lazy(() => import("./pages/TarifaActual.jsx"));
 const AdminPanel = lazy(() => import("./pages/admin/AdminPanel.jsx"));
 const Seguir = lazy(() => import("./pages/Seguir.jsx"));
+const Aviso = lazy(() => import("./pages/legal/Aviso.jsx"));
 const Privacidad = lazy(() => import("./pages/legal/Privacidad.jsx"));
 const Cookies = lazy(() => import("./pages/legal/Cookies.jsx"));
 const Terminos = lazy(() => import("./pages/legal/Terminos.jsx"));
@@ -125,6 +126,7 @@ export default function App() {
           }
         />
         <Route path="/seguir/:token" element={<Seguir />} />
+        <Route path="/aviso-legal" element={<Aviso />} />
         <Route path="/privacidad" element={<Privacidad />} />
         <Route path="/cookies" element={<Cookies />} />
         <Route path="/terminos" element={<Terminos />} />

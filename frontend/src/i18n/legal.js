@@ -1,432 +1,906 @@
 // Contenido legal trilingüe (ES/EN/DE).
-// Cada documento: { title, updated, sections: [{ t, p: [..], list: [..], table }] }
+// Cada documento: { title, sections: [{ t, p: [..], list: [..], table, note }] }
 // En los textos, **negrita** se renderiza como <strong>.
+//
+// Cuatro documentos:
+//   aviso    — Aviso Legal (obligatorio en España por la LSSI-CE art. 10)
+//   privacy  — Política de Privacidad (RGPD art. 13)
+//   terms    — Términos y Condiciones
+//   cookies  — Política de Cookies
+//
+// IMPORTANTE al tocar esto: lo que se afirme aquí tiene que ser CIERTO. Una
+// política que promete algo que el código no hace es peor que no tenerla.
+
+const EMAIL = "gorkajesusquesadavegadev@gmail.com";
+const ACTUALIZADO = "Última actualización: agosto de 2026";
 
 export const LEGAL = {
   es: {
-    updated: "Última actualización: junio 2025",
+    updated: ACTUALIZADO,
     otherDocs: "Otros documentos legales",
+
+    aviso: {
+      title: "Aviso Legal",
+      sections: [
+        {
+          t: "1. Titular del sitio web",
+          p: [
+            "En cumplimiento del artículo 10 de la Ley 34/2002, de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI-CE), se informa de los datos del titular de este sitio web:",
+          ],
+          list: [
+            "**Titular:** Gorka Jesús Quesada Vega",
+            "**Domicilio:** Las Palmas de Gran Canaria, Islas Canarias, España",
+            `**Correo electrónico de contacto:** ${EMAIL}`,
+            "**Sitio web:** https://canarycab.com",
+          ],
+        },
+        {
+          t: "2. Objeto",
+          p: [
+            "CanaryCab es una plataforma digital que pone en contacto a personas que necesitan un taxi con conductores profesionales con licencia que operan en las Islas Canarias.",
+            "**CanaryCab no es una empresa de transporte** y no presta el servicio de taxi: actúa exclusivamente como intermediario tecnológico. El servicio de transporte lo presta el conductor titular de la licencia correspondiente, bajo su propia responsabilidad y sujeto a la normativa canaria del taxi.",
+          ],
+        },
+        {
+          t: "3. Condiciones de uso",
+          p: [
+            "El acceso a este sitio web es gratuito y atribuye la condición de usuario, que acepta las condiciones aquí recogidas. El usuario se compromete a utilizar el sitio conforme a la ley, la buena fe y el orden público.",
+          ],
+        },
+        {
+          t: "4. Propiedad intelectual e industrial",
+          p: [
+            "El código fuente, el diseño, los logotipos y los contenidos de CanaryCab pertenecen a su titular y están protegidos por la legislación de propiedad intelectual. Queda prohibida su reproducción o distribución sin autorización escrita.",
+            "La cartografía procede de **OpenStreetMap** y sus colaboradores, bajo licencia ODbL. Los datos de tarifas provienen del **Boletín Oficial de Canarias**, de acceso público.",
+          ],
+        },
+        {
+          t: "5. Exclusión de responsabilidad",
+          p: [
+            "El titular no se responsabiliza de los daños derivados del uso del sitio, de la falta de disponibilidad puntual del servicio, ni de la prestación del servicio de transporte, que corresponde en exclusiva al conductor.",
+            "Los precios mostrados son **estimaciones** basadas en las tarifas oficiales; el importe exacto lo determina el taxímetro homologado del vehículo.",
+          ],
+        },
+        {
+          t: "6. Legislación aplicable",
+          p: [
+            "Este Aviso Legal se rige por la legislación española. Para cualquier controversia serán competentes los Juzgados y Tribunales de Las Palmas de Gran Canaria, salvo que la normativa de consumidores establezca un fuero distinto.",
+          ],
+        },
+      ],
+    },
+
     privacy: {
       title: "Política de Privacidad",
       sections: [
         {
           t: "1. Responsable del tratamiento",
-          p: ["CanaryCab (en adelante, «la Aplicación») es desarrollada por un operador independiente con domicilio en las Islas Canarias, España. Para cualquier consulta relacionada con la privacidad puede contactar en: **privacidad@canarycab.com**."],
+          list: [
+            "**Responsable:** Gorka Jesús Quesada Vega",
+            "**Domicilio:** Las Palmas de Gran Canaria, Islas Canarias, España",
+            `**Correo de contacto en materia de privacidad:** ${EMAIL}`,
+          ],
+          p: [
+            "No se ha designado Delegado de Protección de Datos por no concurrir ninguno de los supuestos del artículo 37 del RGPD. Puede dirigir cualquier consulta al correo indicado.",
+          ],
         },
         {
           t: "2. Datos que recogemos",
           list: [
-            "**Datos de registro:** nombre, dirección de correo electrónico, contraseña (almacenada en hash bcrypt), número de teléfono (opcional) y, para taxistas, número de licencia y datos del vehículo.",
-            "**Ubicación GPS:** coordenadas en tiempo real mientras la Aplicación está en uso activo y el usuario ha concedido permiso. Los taxistas comparten su ubicación con la plataforma mientras están «En línea». Los clientes comparten su ubicación únicamente para mostrar taxis cercanos y calcular rutas.",
-            "**Historial de viajes:** origen, destino, distancia, duración, precio y estado de cada viaje.",
-            "**Datos técnicos:** dirección IP, tipo de navegador y sistema operativo, registros de acceso (logs).",
+            "**Datos de registro:** nombre, correo electrónico, contraseña (guardada como hash bcrypt, nunca en claro), teléfono (opcional) y, en el caso de los taxistas, número de licencia y datos del vehículo.",
+            "**Registro del consentimiento:** fecha y hora en que aceptó esta política y la versión del texto aceptada. Es una exigencia del artículo 7.1 del RGPD para poder acreditar el consentimiento.",
+            "**Alta con Google:** si se registra con «Continuar con Google», recibimos de Google su correo, su nombre y un identificador de cuenta. **No recibimos su contraseña de Google.**",
+            "**Ubicación GPS:** posición en tiempo real mientras la aplicación está en uso y usted ha dado permiso. El taxista comparte la suya mientras está «En línea»; el cliente, para mostrar taxis cercanos y calcular la ruta.",
+            "**Viajes:** origen, destino, paradas, distancia, duración, precio estimado y estado de cada viaje.",
+            "**Valoraciones:** puntuación y comentario que deje tras un viaje.",
+            "**Notificaciones:** si las activa, la clave de suscripción que permite enviar avisos a su dispositivo.",
+            "**Mensajes del foro de taxistas**, si es taxista y participa en él.",
+            "**Datos técnicos:** dirección IP, navegador, sistema operativo y registros de acceso.",
           ],
         },
         {
           t: "3. Finalidad y base legal",
           list: [
-            "**Prestación del servicio** (art. 6.1.b RGPD): gestión de cuentas, solicitud y asignación de viajes, comunicación entre cliente y taxista.",
-            "**Interés legítimo** (art. 6.1.f RGPD): seguridad de la plataforma, prevención de fraude, estadísticas de demanda anonimizadas.",
-            "**Cumplimiento legal** (art. 6.1.c RGPD): conservación de registros contables y fiscales.",
+            "**Prestar el servicio** (art. 6.1.b RGPD, ejecución de un contrato): crear y gestionar su cuenta, solicitar y asignar viajes, y permitir el contacto entre cliente y conductor durante el trayecto.",
+            "**Consentimiento** (art. 6.1.a RGPD): acceso a la ubicación y envío de notificaciones. Puede retirarlo en cualquier momento desde los permisos de su dispositivo, sin que ello afecte a la licitud del tratamiento anterior.",
+            "**Interés legítimo** (art. 6.1.f RGPD): seguridad de la plataforma, prevención del fraude y estadísticas agregadas de demanda.",
+            "**Obligación legal** (art. 6.1.c RGPD): conservación de registros con fines fiscales y contables.",
           ],
         },
         {
-          t: "4. Conservación de datos",
-          p: ["Los datos de cuenta se conservan mientras la cuenta esté activa. El historial de viajes se conserva durante **5 años** con fines fiscales y de seguridad. La ubicación GPS en tiempo real no se almacena de forma permanente; solo se utiliza para la prestación del servicio durante la sesión activa."],
-        },
-        {
-          t: "5. Cesión a terceros",
-          p: ["No cedemos datos personales a terceros salvo:"],
-          list: [
-            "Proveedores de infraestructura (Railway para el servidor, Vercel para el alojamiento web), bajo acuerdos de encargado del tratamiento conformes al RGPD.",
-            "Cuando sea exigido por obligación legal o resolución judicial.",
-          ],
-        },
-        {
-          t: "6. Derechos del usuario",
+          t: "4. Decisiones automatizadas",
           p: [
-            "De acuerdo con el RGPD y la LOPDGDD, puede ejercer sus derechos de **acceso, rectificación, supresión, limitación, portabilidad y oposición**.",
-            "**Acceso y portabilidad:** desde Ajustes → Tus datos → «Descargar mis datos» puede obtener al instante una copia completa en formato JSON de todo lo que guardamos sobre usted.",
-            "**Supresión:** desde Ajustes → Tus datos → «Eliminar mi cuenta» puede borrar su cuenta de forma inmediata y autónoma, sin necesidad de escribirnos. El historial de viajes se conserva de forma **anónima** 5 años por obligación fiscal (art. 17.3.b RGPD), pero deja de estar vinculado a su identidad.",
-            "Para rectificación, limitación u oposición, o cualquier otra consulta, escriba a **privacidad@canarycab.com**. También puede presentar una reclamación ante la Agencia Española de Protección de Datos (www.aepd.es).",
+            "La asignación de un viaje a un taxista se realiza de forma automática en función de la cercanía, la disponibilidad y si el vehículo es accesible cuando así se solicita. **No se elaboran perfiles ni se toman decisiones automatizadas que produzcan efectos jurídicos** sobre usted en el sentido del artículo 22 del RGPD.",
           ],
         },
         {
-          t: "7. Seguridad",
-          p: ["Implementamos medidas técnicas y organizativas adecuadas: cifrado HTTPS en todas las comunicaciones, autenticación mediante tokens JWT, contraseñas almacenadas con bcrypt, acceso restringido a la base de datos."],
+          t: "5. Conservación de datos",
+          p: [
+            "Los datos de la cuenta se conservan mientras la cuenta esté activa. Al eliminarla, los datos identificativos se borran de inmediato.",
+            "El historial de viajes se conserva **cinco años de forma anonimizada**, desvinculado de su identidad, por obligación fiscal (art. 17.3.b RGPD).",
+            "La **ubicación GPS en tiempo real no se almacena de forma permanente**: se guarda en memoria durante la sesión activa y caduca automáticamente a los pocos segundos.",
+          ],
+        },
+        {
+          t: "6. Destinatarios y transferencias internacionales",
+          p: ["No vendemos ni cedemos sus datos. Para funcionar, la aplicación se apoya en los siguientes proveedores:"],
+          table: {
+            headers: ["Proveedor", "Para qué", "Dónde se tratan"],
+            rows: [
+              ["Railway", "Servidor y base de datos", "EE. UU. — con Cláusulas Contractuales Tipo"],
+              ["Vercel", "Alojamiento de la web y analítica sin cookies", "EE. UU. — con Cláusulas Contractuales Tipo"],
+              ["Google", "Inicio de sesión con Google (solo si lo usa)", "EE. UU. — Marco de Privacidad de Datos UE-EE. UU."],
+              ["CARTO / OpenStreetMap", "Mapas y callejero", "Unión Europea"],
+              ["Komoot (Photon), Cartociudad (IGN)", "Búsqueda de direcciones", "Unión Europea / España"],
+            ],
+          },
+          p2: [],
+          note: "Las transferencias fuera de la Unión Europea se amparan en Cláusulas Contractuales Tipo aprobadas por la Comisión Europea o en el Marco de Privacidad de Datos UE-EE. UU.",
+        },
+        {
+          t: "7. Qué ven de usted los demás usuarios",
+          list: [
+            "Durante un viaje asignado, el cliente ve el **nombre, teléfono, matrícula, modelo y número de licencia** del taxista, para poder identificarlo y contactar con él.",
+            "El taxista ve el **nombre y teléfono** del cliente durante ese mismo viaje.",
+            "**Al terminar el viaje, los teléfonos dejan de mostrarse.** En el historial solo se conserva el nombre: nadie acumula una agenda con los teléfonos de las personas con las que ha viajado.",
+          ],
+        },
+        {
+          t: "8. Sus derechos",
+          p: [
+            "Puede ejercer los derechos de **acceso, rectificación, supresión, limitación, portabilidad y oposición**, así como **retirar su consentimiento** en cualquier momento.",
+            "**Acceso y portabilidad:** en Ajustes → Tus datos → «Descargar mis datos» obtiene al instante una copia completa en formato JSON.",
+            "**Supresión:** en Ajustes → Tus datos → «Eliminar mi cuenta» puede borrarla usted mismo, sin escribirnos ni esperar.",
+            `Para los demás derechos, escriba a **${EMAIL}**. Responderemos en el plazo máximo de un mes.`,
+            "Si considera que no hemos atendido correctamente su solicitud, puede reclamar ante la **Agencia Española de Protección de Datos** (www.aepd.es), C/ Jorge Juan 6, 28001 Madrid.",
+          ],
+        },
+        {
+          t: "9. Seguridad",
+          p: [
+            "Aplicamos medidas técnicas y organizativas adecuadas al riesgo: cifrado HTTPS en todas las comunicaciones, autenticación con tokens firmados, contraseñas protegidas con bcrypt, limitación de intentos de acceso, cabeceras de seguridad en el navegador y acceso restringido a la base de datos.",
+            "Ningún sistema es infalible. Si llegara a producirse una brecha que suponga un riesgo para sus derechos, se lo comunicaríamos y lo notificaríamos a la autoridad de control conforme a los artículos 33 y 34 del RGPD.",
+          ],
+        },
+        {
+          t: "10. Menores de edad",
+          p: [
+            "El servicio está dirigido a mayores de 18 años. No recogemos conscientemente datos de menores. Si detectamos una cuenta de un menor, la eliminaremos.",
+          ],
+        },
+        {
+          t: "11. Cambios en esta política",
+          p: [
+            "Si modificamos esta política de forma sustancial, se lo comunicaremos por correo electrónico y, cuando la ley lo exija, le pediremos de nuevo su consentimiento.",
+          ],
         },
       ],
     },
+
     terms: {
       title: "Términos y Condiciones de Uso",
       sections: [
         {
           t: "1. Objeto y ámbito",
-          p: ["CanaryCab es una plataforma digital de intermediación que conecta a usuarios que necesitan un servicio de taxi con conductores autorizados que operan en las Islas Canarias. CanaryCab no es una empresa de transporte; los conductores son profesionales autónomos con licencia VTC o de taxi regulada por la normativa canaria vigente."],
+          p: [
+            "CanaryCab es una plataforma digital de intermediación que conecta a personas que necesitan un taxi con conductores profesionales con licencia en las Islas Canarias.",
+            "**CanaryCab no es una empresa de transporte.** El servicio lo presta el conductor titular de la licencia, de forma independiente y bajo su responsabilidad, sujeto al Reglamento del Servicio de Taxi de Canarias (Decreto 74/2012) y a la normativa municipal aplicable.",
+          ],
         },
         {
           t: "2. Requisitos de uso",
           list: [
-            "Ser mayor de 18 años o contar con autorización de un tutor legal.",
-            "Proporcionar datos verídicos en el registro.",
-            "Para taxistas: poseer licencia de taxi o VTC en vigor emitida por el organismo competente de la Comunidad Autónoma de Canarias.",
+            "Ser mayor de 18 años.",
+            "Facilitar datos veraces en el registro y mantenerlos actualizados.",
+            "Aceptar expresamente la Política de Privacidad al registrarse.",
+            "Para conductores: disponer de **licencia de taxi en vigor** expedida por el ayuntamiento competente. La cuenta debe ser verificada por la administración de la plataforma antes de poder aceptar viajes.",
           ],
         },
         {
-          t: "3. Tarifas y pagos",
-          p: ["Las tarifas mostradas en la aplicación son **estimaciones** calculadas conforme a las tarifas oficiales del BOC (Boletín Oficial de Canarias) vigentes en el momento del viaje. El precio definitivo lo determina el taxímetro homologado del vehículo. CanaryCab no procesa pagos; el abono se realiza directamente al conductor al finalizar el servicio (efectivo o el medio acordado entre las partes)."],
+          t: "3. Precios y pagos",
+          p: [
+            "Los importes que muestra la aplicación son **estimaciones** calculadas con las tarifas oficiales publicadas en el Boletín Oficial de Canarias vigentes en ese momento, sobre la ruta real entre origen y destino.",
+            "**El importe definitivo lo determina el taxímetro homologado del vehículo**, y puede variar respecto a la estimación por el tráfico, las esperas o el recorrido concreto. Por eso el precio se muestra como una horquilla y no como una cifra cerrada.",
+            "**CanaryCab no procesa pagos ni cobra comisión al usuario.** El abono se hace directamente al conductor al terminar el trayecto, por el medio que acuerden las partes.",
+          ],
         },
         {
           t: "4. Cancelaciones",
-          p: ["El cliente puede cancelar un viaje hasta que el taxista haya notificado su llegada al punto de recogida. Cancelaciones reiteradas o abusivas pueden resultar en la suspensión temporal de la cuenta."],
+          p: [
+            "El cliente puede cancelar sin coste hasta que el taxista notifique su llegada al punto de recogida. Las cancelaciones reiteradas o abusivas pueden dar lugar a la suspensión temporal de la cuenta.",
+          ],
         },
         {
           t: "5. Responsabilidad",
-          p: ["CanaryCab actúa como mera intermediaria tecnológica. La responsabilidad sobre la prestación del servicio de transporte recae exclusivamente en el conductor autorizado. CanaryCab no responde por daños derivados del servicio de transporte, retrasos, accidentes u otros incidentes durante el viaje."],
+          p: [
+            "CanaryCab actúa como mero intermediario tecnológico. La responsabilidad sobre la prestación del transporte —incluidos retrasos, incidencias, daños o accidentes— corresponde exclusivamente al conductor y a su seguro obligatorio.",
+            "La plataforma no garantiza la disponibilidad de un taxi en todo momento ni la ausencia de interrupciones técnicas del servicio.",
+            "Nada de lo dispuesto en estos Términos limita los derechos que la normativa de consumidores reconoce de forma imperativa al usuario.",
+          ],
         },
         {
           t: "6. Conducta prohibida",
           list: [
             "Uso fraudulento de la plataforma o suplantación de identidad.",
-            "Solicitar viajes sin intención de realizarlos.",
-            "Comportamiento ofensivo o amenazante hacia otros usuarios o conductores.",
-            "Ingeniería inversa, scraping o cualquier uso no autorizado de la API.",
+            "Solicitar viajes sin intención real de realizarlos.",
+            "Comportamiento ofensivo, discriminatorio o amenazante hacia otros usuarios o conductores.",
+            "Ingeniería inversa, extracción masiva de datos o cualquier uso no autorizado de la API.",
           ],
         },
         {
-          t: "7. Propiedad intelectual",
-          p: ["El código fuente, diseño, logotipos y contenidos de CanaryCab son propiedad de sus desarrolladores y están protegidos por la legislación española e internacional de propiedad intelectual. Queda prohibida su reproducción sin autorización escrita."],
+          t: "7. Suspensión y baja",
+          p: [
+            "El incumplimiento de estos Términos puede conllevar la suspensión o el cierre de la cuenta. El usuario puede darse de baja en cualquier momento desde Ajustes → Tus datos → «Eliminar mi cuenta».",
+          ],
         },
         {
-          t: "8. Modificaciones",
-          p: ["CanaryCab se reserva el derecho de modificar estos Términos en cualquier momento. Los cambios sustanciales se comunicarán a los usuarios registrados por correo electrónico con al menos 15 días de antelación."],
+          t: "8. Propiedad intelectual",
+          p: [
+            "El código, el diseño, los logotipos y los contenidos de CanaryCab pertenecen a su titular y están protegidos por la legislación de propiedad intelectual. La cartografía procede de OpenStreetMap y sus colaboradores (licencia ODbL).",
+          ],
         },
         {
-          t: "9. Ley aplicable y jurisdicción",
-          p: ["Estos Términos se rigen por la legislación española. Para la resolución de controversias, las partes se someten a los Juzgados y Tribunales de Las Palmas de Gran Canaria, salvo que la normativa de consumidores establezca otro fuero."],
+          t: "9. Modificaciones",
+          p: [
+            "Estos Términos pueden modificarse. Los cambios sustanciales se comunicarán a los usuarios registrados por correo electrónico con al menos 15 días de antelación.",
+          ],
         },
         {
-          t: "10. Contacto",
-          p: ["Para cualquier consulta: **legal@canarycab.com**"],
+          t: "10. Ley aplicable y jurisdicción",
+          p: [
+            "Se aplica la legislación española. Para las controversias serán competentes los Juzgados y Tribunales de Las Palmas de Gran Canaria, salvo que la normativa de consumidores establezca otro fuero a favor del usuario.",
+          ],
+        },
+        {
+          t: "11. Contacto",
+          p: [`Para cualquier consulta: **${EMAIL}**`],
         },
       ],
     },
+
     cookies: {
       title: "Política de Cookies",
       sections: [
         {
           t: "¿Qué son las cookies?",
-          p: ["Las cookies son pequeños archivos de texto que los sitios web almacenan en su dispositivo para recordar preferencias, mantener sesiones activas y recopilar información de uso anónima."],
+          p: [
+            "Las cookies y tecnologías similares (como el almacenamiento local del navegador) son pequeños archivos que un sitio web guarda en su dispositivo para recordar preferencias o mantener la sesión abierta.",
+          ],
         },
         {
-          t: "Cookies que utilizamos",
+          t: "Qué guardamos nosotros",
+          p: [
+            "CanaryCab **no usa cookies propias**: guarda lo imprescindible en el almacenamiento local del navegador, que a diferencia de las cookies no se envía al servidor en cada petición.",
+          ],
           table: {
-            headers: ["Nombre", "Tipo", "Finalidad", "Duración"],
+            headers: ["Nombre", "Tipo", "Para qué", "Duración"],
             rows: [
-              ["taya_token", "Técnica · Sesión", "Mantiene la sesión de usuario autenticado (JWT).", "Sesión del navegador"],
-              ["taya:online", "Técnica · Local", "Recuerda si el taxista estaba en línea al cerrar la app.", "Persistente"],
-              ["taya:prefs", "Preferencias", "Almacena ajustes de sonido y notificaciones.", "Persistente"],
+              ["taya_token", "Técnica · necesaria", "Mantiene su sesión iniciada.", "Hasta cerrar la pestaña"],
+              ["taya:lang", "Preferencia", "Recuerda el idioma elegido.", "Persistente"],
+              ["taya:prefs", "Preferencia", "Ajustes de sonido y notificaciones.", "Persistente"],
+              ["taya:online", "Técnica · necesaria", "Recuerda si el taxista estaba en línea.", "Persistente"],
             ],
           },
-          note: "CanaryCab **no utiliza cookies de seguimiento, publicidad ni analítica de terceros**.",
+          note: "Todas son **necesarias o de preferencia**, así que no requieren consentimiento previo (art. 22.2 LSSI). No usamos cookies publicitarias ni de seguimiento.",
         },
         {
-          t: "Almacenamiento local (sessionStorage / localStorage)",
-          p: ["En lugar de cookies tradicionales, usamos `sessionStorage` para la sesión (se borra al cerrar la pestaña) y `localStorage` para preferencias persistentes. Estos datos nunca se envían automáticamente al servidor con cada petición."],
+          t: "Servicios de terceros",
+          p: [
+            "Algunas funciones se apoyan en terceros que pueden usar sus propias cookies cuando se cargan:",
+          ],
+          list: [
+            "**Google** — solo si usa «Continuar con Google». Al pulsarlo se carga el servicio de Google, que instala cookies propias necesarias para autenticarle. Si no lo usa, no se carga.",
+            "**Vercel Analytics** — mide visitas de forma agregada **sin cookies y sin identificar a nadie**, por eso no necesita banner de consentimiento.",
+            "**Mapas (CARTO / OpenStreetMap)** — sirven las imágenes del mapa; no se usan para seguirle.",
+          ],
         },
         {
-          t: "Gestión y eliminación",
-          p: ["Puede borrar todas las cookies y datos locales en cualquier momento desde la configuración de su navegador o dispositivo móvil. Al borrarlos, se cerrará la sesión y se restablecerán los ajustes."],
+          t: "Almacenamiento del navegador y modo sin conexión",
+          p: [
+            "La aplicación funciona como PWA: un `Service Worker` guarda una copia de la interfaz para que cargue rápido y funcione con mala cobertura. No contiene datos personales.",
+          ],
+        },
+        {
+          t: "Cómo eliminarlo",
+          p: [
+            "Puede borrar cookies y almacenamiento local cuando quiera desde los ajustes de su navegador o dispositivo. Al hacerlo se cerrará la sesión y se restablecerán las preferencias.",
+          ],
         },
         {
           t: "Contacto",
-          p: ["Para cualquier duda sobre el uso de cookies: **privacidad@canarycab.com**"],
+          p: [`Para cualquier duda: **${EMAIL}**`],
         },
       ],
     },
   },
 
   en: {
-    updated: "Last updated: June 2025",
+    updated: "Last updated: August 2026",
     otherDocs: "Other legal documents",
+
+    aviso: {
+      title: "Legal Notice",
+      sections: [
+        {
+          t: "1. Website owner",
+          p: [
+            "In compliance with article 10 of Spanish Law 34/2002 on Information Society Services and Electronic Commerce (LSSI-CE), the details of the owner of this website are:",
+          ],
+          list: [
+            "**Owner:** Gorka Jesús Quesada Vega",
+            "**Address:** Las Palmas de Gran Canaria, Canary Islands, Spain",
+            `**Contact email:** ${EMAIL}`,
+            "**Website:** https://canarycab.com",
+          ],
+        },
+        {
+          t: "2. Purpose",
+          p: [
+            "CanaryCab is a digital platform that connects people who need a taxi with licensed professional drivers operating in the Canary Islands.",
+            "**CanaryCab is not a transport company** and does not provide the taxi service: it acts solely as a technological intermediary. The transport service is provided by the licence-holding driver, under their own responsibility and subject to Canary Islands taxi regulations.",
+          ],
+        },
+        {
+          t: "3. Terms of use",
+          p: [
+            "Access to this website is free and grants the status of user, who accepts the conditions set out here. Users undertake to use the site in accordance with the law, good faith and public order.",
+          ],
+        },
+        {
+          t: "4. Intellectual property",
+          p: [
+            "The source code, design, logos and content of CanaryCab belong to its owner and are protected by intellectual property law. Reproduction or distribution without written permission is prohibited.",
+            "Mapping data comes from **OpenStreetMap** and its contributors under the ODbL licence. Fare data comes from the **Official Gazette of the Canary Islands**, which is publicly available.",
+          ],
+        },
+        {
+          t: "5. Disclaimer",
+          p: [
+            "The owner is not liable for damages arising from use of the site, from occasional unavailability of the service, or from the provision of the transport service, which is the driver's sole responsibility.",
+            "Displayed prices are **estimates**; the exact amount is determined by the vehicle's certified taximeter.",
+          ],
+        },
+        {
+          t: "6. Applicable law",
+          p: [
+            "This Legal Notice is governed by Spanish law. Any dispute shall be submitted to the Courts of Las Palmas de Gran Canaria, unless consumer legislation establishes a different jurisdiction.",
+          ],
+        },
+      ],
+    },
+
     privacy: {
       title: "Privacy Policy",
       sections: [
         {
           t: "1. Data controller",
-          p: ["CanaryCab (hereinafter, “the Application”) is developed by an independent operator domiciled in the Canary Islands, Spain. For any privacy-related enquiry you can contact: **privacidad@canarycab.com**."],
+          list: [
+            "**Controller:** Gorka Jesús Quesada Vega",
+            "**Address:** Las Palmas de Gran Canaria, Canary Islands, Spain",
+            `**Privacy contact email:** ${EMAIL}`,
+          ],
+          p: [
+            "No Data Protection Officer has been appointed, as none of the cases in article 37 GDPR apply. You may address any query to the email above.",
+          ],
         },
         {
           t: "2. Data we collect",
           list: [
-            "**Registration data:** name, email address, password (stored as a bcrypt hash), phone number (optional) and, for drivers, licence number and vehicle details.",
-            "**GPS location:** real-time coordinates while the Application is in active use and the user has granted permission. Drivers share their location with the platform while they are “Online”. Clients share their location only to display nearby taxis and calculate routes.",
-            "**Trip history:** origin, destination, distance, duration, price and status of each trip.",
-            "**Technical data:** IP address, browser type and operating system, access logs.",
+            "**Registration data:** name, email address, password (stored as a bcrypt hash, never in plain text), phone number (optional) and, for drivers, licence number and vehicle details.",
+            "**Consent record:** the date and time you accepted this policy and the version accepted. Article 7.1 GDPR requires us to be able to demonstrate consent.",
+            "**Sign-up with Google:** if you use \"Continue with Google\", Google provides us with your email, name and an account identifier. **We never receive your Google password.**",
+            "**GPS location:** real-time position while the app is in use and you have granted permission. Drivers share theirs while \"Online\"; clients, to show nearby taxis and calculate the route.",
+            "**Trips:** pick-up, destination, stops, distance, duration, estimated price and status of each trip.",
+            "**Ratings:** the score and comment you leave after a trip.",
+            "**Notifications:** if enabled, the subscription key that allows alerts to be sent to your device.",
+            "**Driver forum messages**, if you are a driver and take part in it.",
+            "**Technical data:** IP address, browser, operating system and access logs.",
           ],
         },
         {
           t: "3. Purpose and legal basis",
           list: [
-            "**Provision of the service** (art. 6.1.b GDPR): account management, trip requests and assignment, communication between client and driver.",
-            "**Legitimate interest** (art. 6.1.f GDPR): platform security, fraud prevention, anonymised demand statistics.",
-            "**Legal compliance** (art. 6.1.c GDPR): retention of accounting and tax records.",
+            "**Providing the service** (art. 6.1.b GDPR, performance of a contract): creating and managing your account, requesting and assigning trips, and enabling contact between client and driver during the journey.",
+            "**Consent** (art. 6.1.a GDPR): access to location and sending notifications. You may withdraw it at any time from your device permissions, without affecting the lawfulness of earlier processing.",
+            "**Legitimate interest** (art. 6.1.f GDPR): platform security, fraud prevention and aggregated demand statistics.",
+            "**Legal obligation** (art. 6.1.c GDPR): keeping records for tax and accounting purposes.",
           ],
         },
         {
-          t: "4. Data retention",
-          p: ["Account data is kept while the account remains active. Trip history is retained for **5 years** for tax and security purposes. Real-time GPS location is not stored permanently; it is only used to provide the service during the active session."],
-        },
-        {
-          t: "5. Disclosure to third parties",
-          p: ["We do not share personal data with third parties except:"],
-          list: [
-            "Infrastructure providers (Railway for the server, Vercel for web hosting), under GDPR-compliant data-processor agreements.",
-            "When required by legal obligation or court order.",
-          ],
-        },
-        {
-          t: "6. Your rights",
+          t: "4. Automated decisions",
           p: [
-            "Under the GDPR and Spanish LOPDGDD you may exercise your rights of **access, rectification, erasure, restriction, portability and objection**.",
-            "**Access and portability:** from Settings → Your data → \"Download my data\" you can instantly get a full copy in JSON format of everything we hold about you.",
-            "**Erasure:** from Settings → Your data → \"Delete my account\" you can delete your account immediately and on your own, with no need to contact us. Trip history is kept **anonymised** for 5 years for tax purposes (art. 17.3.b GDPR), but is no longer linked to your identity.",
-            "For rectification, restriction or objection, or any other enquiry, email **privacidad@canarycab.com**. You may also lodge a complaint with the Spanish Data Protection Agency (www.aepd.es).",
+            "Assigning a trip to a driver happens automatically based on proximity, availability and whether the vehicle is accessible when requested. **No profiling or automated decisions producing legal effects** on you are made within the meaning of article 22 GDPR.",
           ],
         },
         {
-          t: "7. Security",
-          p: ["We implement appropriate technical and organisational measures: HTTPS encryption on all communications, JWT token authentication, passwords stored with bcrypt, restricted database access."],
+          t: "5. Data retention",
+          p: [
+            "Account data is kept while the account is active. When you delete it, identifying data is erased immediately.",
+            "Trip history is kept for **five years in anonymised form**, unlinked from your identity, due to tax obligations (art. 17.3.b GDPR).",
+            "**Real-time GPS location is not stored permanently**: it is held in memory during the active session and expires automatically within seconds.",
+          ],
+        },
+        {
+          t: "6. Recipients and international transfers",
+          p: ["We do not sell or share your data. The app relies on the following providers:"],
+          table: {
+            headers: ["Provider", "Purpose", "Where data is processed"],
+            rows: [
+              ["Railway", "Server and database", "USA — Standard Contractual Clauses"],
+              ["Vercel", "Web hosting and cookieless analytics", "USA — Standard Contractual Clauses"],
+              ["Google", "Sign in with Google (only if you use it)", "USA — EU-US Data Privacy Framework"],
+              ["CARTO / OpenStreetMap", "Maps and street data", "European Union"],
+              ["Komoot (Photon), Cartociudad (IGN)", "Address search", "European Union / Spain"],
+            ],
+          },
+          note: "Transfers outside the European Union rely on Standard Contractual Clauses approved by the European Commission or on the EU-US Data Privacy Framework.",
+        },
+        {
+          t: "7. What other users see about you",
+          list: [
+            "During an assigned trip, the client sees the driver's **name, phone, plate, model and licence number**, in order to identify and contact them.",
+            "The driver sees the client's **name and phone** during that same trip.",
+            "**Once the trip ends, phone numbers are no longer shown.** History keeps only the name: nobody builds up an address book of the people they have travelled with.",
+          ],
+        },
+        {
+          t: "8. Your rights",
+          p: [
+            "You may exercise your rights of **access, rectification, erasure, restriction, portability and objection**, and **withdraw your consent** at any time.",
+            "**Access and portability:** Settings → Your data → \"Download my data\" gives you a complete copy in JSON instantly.",
+            "**Erasure:** Settings → Your data → \"Delete my account\" lets you delete it yourself, with no need to write to us.",
+            `For other rights, write to **${EMAIL}**. We will reply within one month at the latest.`,
+            "If you believe your request has not been handled properly, you may complain to the **Spanish Data Protection Agency** (www.aepd.es), C/ Jorge Juan 6, 28001 Madrid.",
+          ],
+        },
+        {
+          t: "9. Security",
+          p: [
+            "We apply technical and organisational measures appropriate to the risk: HTTPS encryption on all communications, signed-token authentication, bcrypt-protected passwords, login rate limiting, browser security headers and restricted database access.",
+            "No system is infallible. Should a breach occur that poses a risk to your rights, we would inform you and notify the supervisory authority under articles 33 and 34 GDPR.",
+          ],
+        },
+        {
+          t: "10. Minors",
+          p: [
+            "The service is intended for people aged 18 and over. We do not knowingly collect data from minors. If we detect a minor's account, we will delete it.",
+          ],
+        },
+        {
+          t: "11. Changes to this policy",
+          p: [
+            "If we substantially change this policy, we will inform you by email and, where the law requires it, ask for your consent again.",
+          ],
         },
       ],
     },
+
     terms: {
       title: "Terms and Conditions of Use",
       sections: [
         {
           t: "1. Purpose and scope",
-          p: ["CanaryCab is a digital intermediation platform connecting users who need a taxi service with authorised drivers operating in the Canary Islands. CanaryCab is not a transport company; drivers are self-employed professionals holding a taxi or VTC licence regulated by current Canary Islands legislation."],
+          p: [
+            "CanaryCab is a digital intermediation platform connecting people who need a taxi with licensed professional drivers in the Canary Islands.",
+            "**CanaryCab is not a transport company.** The service is provided by the licence-holding driver, independently and under their own responsibility, subject to the Canary Islands Taxi Service Regulation (Decree 74/2012) and applicable municipal rules.",
+          ],
         },
         {
           t: "2. Requirements for use",
           list: [
-            "Be over 18 years old or have the authorisation of a legal guardian.",
-            "Provide truthful information when registering.",
-            "For drivers: hold a valid taxi or VTC licence issued by the competent authority of the Autonomous Community of the Canary Islands.",
+            "Being 18 or over.",
+            "Providing truthful registration details and keeping them up to date.",
+            "Expressly accepting the Privacy Policy when registering.",
+            "For drivers: holding a **valid taxi licence** issued by the competent town council. The account must be verified by the platform administration before accepting trips.",
           ],
         },
         {
-          t: "3. Fares and payments",
-          p: ["Fares shown in the application are **estimates** calculated according to the official BOC (Official Gazette of the Canary Islands) rates in force at the time of the trip. The final price is determined by the vehicle's approved taximeter. CanaryCab does not process payments; payment is made directly to the driver at the end of the service (cash or any means agreed between the parties)."],
+          t: "3. Prices and payment",
+          p: [
+            "The amounts shown in the app are **estimates** calculated using the official fares published in the Official Gazette of the Canary Islands in force at the time, over the real route between pick-up and destination.",
+            "**The final amount is determined by the vehicle's certified taximeter** and may differ from the estimate due to traffic, waiting time or the exact route taken. That is why the price is shown as a range rather than a fixed figure.",
+            "**CanaryCab does not process payments and charges the user no commission.** Payment is made directly to the driver at the end of the trip, by whatever means the parties agree.",
+          ],
         },
         {
           t: "4. Cancellations",
-          p: ["The client may cancel a trip until the driver has notified their arrival at the pickup point. Repeated or abusive cancellations may result in temporary account suspension."],
+          p: [
+            "Clients may cancel free of charge until the driver reports arrival at the pick-up point. Repeated or abusive cancellations may lead to temporary account suspension.",
+          ],
         },
         {
           t: "5. Liability",
-          p: ["CanaryCab acts solely as a technological intermediary. Responsibility for the provision of the transport service lies exclusively with the authorised driver. CanaryCab is not liable for damages arising from the transport service, delays, accidents or other incidents during the trip."],
+          p: [
+            "CanaryCab acts merely as a technological intermediary. Responsibility for providing the transport — including delays, incidents, damage or accidents — lies solely with the driver and their compulsory insurance.",
+            "The platform does not guarantee that a taxi will always be available or that the service will be free of technical interruptions.",
+            "Nothing in these Terms limits the rights granted to users on a mandatory basis by consumer legislation.",
+          ],
         },
         {
           t: "6. Prohibited conduct",
           list: [
             "Fraudulent use of the platform or identity impersonation.",
-            "Requesting trips with no intention of taking them.",
-            "Offensive or threatening behaviour towards other users or drivers.",
-            "Reverse engineering, scraping or any unauthorised use of the API.",
+            "Requesting trips with no genuine intention of taking them.",
+            "Offensive, discriminatory or threatening behaviour towards other users or drivers.",
+            "Reverse engineering, mass data extraction or any unauthorised use of the API.",
           ],
         },
         {
-          t: "7. Intellectual property",
-          p: ["The source code, design, logos and contents of CanaryCab are the property of its developers and are protected by Spanish and international intellectual property law. Reproduction without written authorisation is prohibited."],
+          t: "7. Suspension and account closure",
+          p: [
+            "Breaching these Terms may result in suspension or closure of the account. Users may close their account at any time from Settings → Your data → \"Delete my account\".",
+          ],
         },
         {
-          t: "8. Changes",
-          p: ["CanaryCab reserves the right to modify these Terms at any time. Substantial changes will be notified to registered users by email at least 15 days in advance."],
+          t: "8. Intellectual property",
+          p: [
+            "The code, design, logos and content of CanaryCab belong to its owner and are protected by intellectual property law. Mapping data comes from OpenStreetMap and its contributors (ODbL licence).",
+          ],
         },
         {
-          t: "9. Governing law and jurisdiction",
-          p: ["These Terms are governed by Spanish law. For the resolution of disputes, the parties submit to the Courts of Las Palmas de Gran Canaria, unless consumer law establishes another forum."],
+          t: "9. Changes",
+          p: [
+            "These Terms may be amended. Substantial changes will be communicated to registered users by email at least 15 days in advance.",
+          ],
         },
         {
-          t: "10. Contact",
-          p: ["For any enquiry: **legal@canarycab.com**"],
+          t: "10. Governing law and jurisdiction",
+          p: [
+            "Spanish law applies. Disputes shall be submitted to the Courts of Las Palmas de Gran Canaria, unless consumer legislation establishes another jurisdiction in the user's favour.",
+          ],
+        },
+        {
+          t: "11. Contact",
+          p: [`For any query: **${EMAIL}**`],
         },
       ],
     },
+
     cookies: {
       title: "Cookie Policy",
       sections: [
         {
           t: "What are cookies?",
-          p: ["Cookies are small text files that websites store on your device to remember preferences, keep sessions active and collect anonymous usage information."],
+          p: [
+            "Cookies and similar technologies (such as browser local storage) are small files a website saves on your device to remember preferences or keep your session open.",
+          ],
         },
         {
-          t: "Cookies we use",
+          t: "What we store",
+          p: [
+            "CanaryCab **uses no cookies of its own**: it stores only what is essential in browser local storage which, unlike cookies, is not sent to the server with every request.",
+          ],
           table: {
             headers: ["Name", "Type", "Purpose", "Duration"],
             rows: [
-              ["taya_token", "Technical · Session", "Keeps the authenticated user session (JWT).", "Browser session"],
-              ["taya:online", "Technical · Local", "Remembers whether the driver was online when the app was closed.", "Persistent"],
-              ["taya:prefs", "Preferences", "Stores sound and notification settings.", "Persistent"],
+              ["taya_token", "Technical · necessary", "Keeps you signed in.", "Until the tab is closed"],
+              ["taya:lang", "Preference", "Remembers the chosen language.", "Persistent"],
+              ["taya:prefs", "Preference", "Sound and notification settings.", "Persistent"],
+              ["taya:online", "Technical · necessary", "Remembers whether the driver was online.", "Persistent"],
             ],
           },
-          note: "CanaryCab **does not use tracking, advertising or third-party analytics cookies**.",
+          note: "All are **necessary or preference-based**, so they require no prior consent (art. 22.2 LSSI). We use no advertising or tracking cookies.",
         },
         {
-          t: "Local storage (sessionStorage / localStorage)",
-          p: ["Instead of traditional cookies, we use `sessionStorage` for the session (cleared when the tab is closed) and `localStorage` for persistent preferences. This data is never sent automatically to the server with each request."],
+          t: "Third-party services",
+          p: ["Some features rely on third parties that may set their own cookies when loaded:"],
+          list: [
+            "**Google** — only if you use \"Continue with Google\". Pressing it loads Google's service, which sets its own cookies needed to authenticate you. If you do not use it, it is never loaded.",
+            "**Vercel Analytics** — measures visits in aggregate **without cookies and without identifying anyone**, which is why no consent banner is needed.",
+            "**Maps (CARTO / OpenStreetMap)** — serve the map imagery; they are not used to track you.",
+          ],
         },
         {
-          t: "Management and deletion",
-          p: ["You can delete all cookies and local data at any time from your browser or mobile device settings. Deleting them will log you out and reset your settings."],
+          t: "Browser storage and offline mode",
+          p: [
+            "The app runs as a PWA: a `Service Worker` keeps a copy of the interface so it loads fast and works with poor coverage. It contains no personal data.",
+          ],
+        },
+        {
+          t: "How to delete it",
+          p: [
+            "You can clear cookies and local storage at any time from your browser or device settings. Doing so will sign you out and reset preferences.",
+          ],
         },
         {
           t: "Contact",
-          p: ["For any question about the use of cookies: **privacidad@canarycab.com**"],
+          p: [`For any query: **${EMAIL}**`],
         },
       ],
     },
   },
 
   de: {
-    updated: "Zuletzt aktualisiert: Juni 2025",
-    otherDocs: "Weitere Rechtsdokumente",
+    updated: "Zuletzt aktualisiert: August 2026",
+    otherDocs: "Weitere rechtliche Dokumente",
+
+    aviso: {
+      title: "Impressum",
+      sections: [
+        {
+          t: "1. Betreiber der Website",
+          p: [
+            "Gemäß Artikel 10 des spanischen Gesetzes 34/2002 über Dienste der Informationsgesellschaft und elektronischen Geschäftsverkehr (LSSI-CE) werden die Angaben zum Betreiber dieser Website mitgeteilt:",
+          ],
+          list: [
+            "**Betreiber:** Gorka Jesús Quesada Vega",
+            "**Anschrift:** Las Palmas de Gran Canaria, Kanarische Inseln, Spanien",
+            `**Kontakt-E-Mail:** ${EMAIL}`,
+            "**Website:** https://canarycab.com",
+          ],
+        },
+        {
+          t: "2. Gegenstand",
+          p: [
+            "CanaryCab ist eine digitale Plattform, die Personen, die ein Taxi benötigen, mit lizenzierten Berufsfahrern auf den Kanarischen Inseln zusammenbringt.",
+            "**CanaryCab ist kein Transportunternehmen** und erbringt die Taxidienstleistung nicht: Die Plattform vermittelt ausschließlich technisch. Die Beförderung erbringt der Inhaber der jeweiligen Lizenz in eigener Verantwortung nach kanarischem Taxirecht.",
+          ],
+        },
+        {
+          t: "3. Nutzungsbedingungen",
+          p: [
+            "Der Zugang zu dieser Website ist kostenlos und begründet die Nutzereigenschaft; mit der Nutzung werden die hier genannten Bedingungen akzeptiert. Die Nutzung hat im Einklang mit Gesetz, Treu und Glauben sowie der öffentlichen Ordnung zu erfolgen.",
+          ],
+        },
+        {
+          t: "4. Geistiges Eigentum",
+          p: [
+            "Quellcode, Design, Logos und Inhalte von CanaryCab gehören dem Betreiber und sind urheberrechtlich geschützt. Vervielfältigung oder Verbreitung ohne schriftliche Genehmigung ist untersagt.",
+            "Das Kartenmaterial stammt von **OpenStreetMap** und seinen Mitwirkenden unter der ODbL-Lizenz. Die Tarifdaten stammen aus dem **Amtsblatt der Kanarischen Inseln** und sind öffentlich zugänglich.",
+          ],
+        },
+        {
+          t: "5. Haftungsausschluss",
+          p: [
+            "Der Betreiber haftet nicht für Schäden aus der Nutzung der Website, für vorübergehende Nichtverfügbarkeit oder für die Beförderungsleistung, die ausschließlich dem Fahrer obliegt.",
+            "Die angezeigten Preise sind **Schätzungen**; den genauen Betrag bestimmt das geeichte Taxameter des Fahrzeugs.",
+          ],
+        },
+        {
+          t: "6. Anwendbares Recht",
+          p: [
+            "Für dieses Impressum gilt spanisches Recht. Für Streitigkeiten sind die Gerichte von Las Palmas de Gran Canaria zuständig, sofern das Verbraucherrecht keinen anderen Gerichtsstand vorsieht.",
+          ],
+        },
+      ],
+    },
+
     privacy: {
       title: "Datenschutzerklärung",
       sections: [
         {
           t: "1. Verantwortlicher",
-          p: ["CanaryCab (im Folgenden „die Anwendung“) wird von einem unabhängigen Betreiber mit Sitz auf den Kanarischen Inseln, Spanien, entwickelt. Bei Fragen zum Datenschutz erreichen Sie uns unter: **privacidad@canarycab.com**."],
+          list: [
+            "**Verantwortlicher:** Gorka Jesús Quesada Vega",
+            "**Anschrift:** Las Palmas de Gran Canaria, Kanarische Inseln, Spanien",
+            `**Kontakt für Datenschutzfragen:** ${EMAIL}`,
+          ],
+          p: [
+            "Es wurde kein Datenschutzbeauftragter benannt, da keiner der Fälle des Artikels 37 DSGVO vorliegt. Anfragen richten Sie bitte an die genannte E-Mail-Adresse.",
+          ],
         },
         {
-          t: "2. Erhobene Daten",
+          t: "2. Welche Daten wir erheben",
           list: [
-            "**Registrierungsdaten:** Name, E-Mail-Adresse, Passwort (als bcrypt-Hash gespeichert), Telefonnummer (optional) und bei Fahrern Lizenznummer und Fahrzeugdaten.",
-            "**GPS-Standort:** Echtzeit-Koordinaten, während die Anwendung aktiv genutzt wird und der Nutzer die Berechtigung erteilt hat. Fahrer teilen ihren Standort mit der Plattform, solange sie „Online“ sind. Kunden teilen ihren Standort nur, um Taxis in der Nähe anzuzeigen und Routen zu berechnen.",
-            "**Fahrtenhistorie:** Start, Ziel, Entfernung, Dauer, Preis und Status jeder Fahrt.",
-            "**Technische Daten:** IP-Adresse, Browsertyp und Betriebssystem, Zugriffsprotokolle (Logs).",
+            "**Registrierungsdaten:** Name, E-Mail-Adresse, Passwort (als bcrypt-Hash gespeichert, nie im Klartext), Telefonnummer (optional) und bei Fahrern Lizenznummer sowie Fahrzeugdaten.",
+            "**Einwilligungsnachweis:** Datum und Uhrzeit Ihrer Zustimmung zu dieser Erklärung sowie die akzeptierte Fassung. Artikel 7.1 DSGVO verlangt, die Einwilligung nachweisen zu können.",
+            "**Anmeldung mit Google:** Bei Nutzung von „Weiter mit Google\" erhalten wir von Google Ihre E-Mail-Adresse, Ihren Namen und eine Konto-Kennung. **Ihr Google-Passwort erhalten wir nie.**",
+            "**GPS-Standort:** Position in Echtzeit, solange die App genutzt wird und Sie die Berechtigung erteilt haben. Fahrer teilen ihn im Status „Online\"; Kunden, um nahe Taxis anzuzeigen und die Route zu berechnen.",
+            "**Fahrten:** Start, Ziel, Zwischenstopps, Entfernung, Dauer, geschätzter Preis und Status jeder Fahrt.",
+            "**Bewertungen:** Note und Kommentar, die Sie nach einer Fahrt hinterlassen.",
+            "**Benachrichtigungen:** bei Aktivierung der Schlüssel, mit dem Meldungen an Ihr Gerät gesendet werden können.",
+            "**Beiträge im Fahrerforum**, sofern Sie Fahrer sind und daran teilnehmen.",
+            "**Technische Daten:** IP-Adresse, Browser, Betriebssystem und Zugriffsprotokolle.",
           ],
         },
         {
           t: "3. Zweck und Rechtsgrundlage",
           list: [
-            "**Erbringung des Dienstes** (Art. 6 Abs. 1 lit. b DSGVO): Kontoverwaltung, Anforderung und Zuweisung von Fahrten, Kommunikation zwischen Kunde und Fahrer.",
-            "**Berechtigtes Interesse** (Art. 6 Abs. 1 lit. f DSGVO): Sicherheit der Plattform, Betrugsprävention, anonymisierte Nachfragestatistiken.",
-            "**Rechtliche Verpflichtung** (Art. 6 Abs. 1 lit. c DSGVO): Aufbewahrung von Buchhaltungs- und Steuerunterlagen.",
+            "**Erbringung des Dienstes** (Art. 6.1.b DSGVO, Vertragserfüllung): Anlegen und Verwalten Ihres Kontos, Anfordern und Zuweisen von Fahrten sowie Kontakt zwischen Kunde und Fahrer während der Fahrt.",
+            "**Einwilligung** (Art. 6.1.a DSGVO): Standortzugriff und Benachrichtigungen. Sie können sie jederzeit über die Geräteeinstellungen widerrufen; die Rechtmäßigkeit der vorherigen Verarbeitung bleibt unberührt.",
+            "**Berechtigtes Interesse** (Art. 6.1.f DSGVO): Sicherheit der Plattform, Betrugsprävention und aggregierte Nachfragestatistiken.",
+            "**Rechtliche Verpflichtung** (Art. 6.1.c DSGVO): Aufbewahrung von Aufzeichnungen für Steuer- und Buchhaltungszwecke.",
           ],
         },
         {
-          t: "4. Speicherdauer",
-          p: ["Kontodaten werden gespeichert, solange das Konto aktiv ist. Die Fahrtenhistorie wird zu Steuer- und Sicherheitszwecken **5 Jahre** aufbewahrt. Der Echtzeit-GPS-Standort wird nicht dauerhaft gespeichert; er wird nur zur Erbringung des Dienstes während der aktiven Sitzung verwendet."],
-        },
-        {
-          t: "5. Weitergabe an Dritte",
-          p: ["Wir geben personenbezogene Daten nicht an Dritte weiter, außer:"],
-          list: [
-            "Infrastrukturanbieter (Railway für den Server, Vercel für das Webhosting) im Rahmen DSGVO-konformer Auftragsverarbeitungsverträge.",
-            "Wenn dies gesetzlich vorgeschrieben oder gerichtlich angeordnet ist.",
-          ],
-        },
-        {
-          t: "6. Ihre Rechte",
+          t: "4. Automatisierte Entscheidungen",
           p: [
-            "Gemäß DSGVO und spanischem LOPDGDD können Sie Ihre Rechte auf **Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch** ausüben.",
-            "**Auskunft und Datenübertragbarkeit:** Unter Einstellungen → Ihre Daten → „Meine Daten herunterladen“ erhalten Sie sofort eine vollständige Kopie aller über Sie gespeicherten Daten im JSON-Format.",
-            "**Löschung:** Unter Einstellungen → Ihre Daten → „Konto löschen“ können Sie Ihr Konto sofort und eigenständig löschen, ohne uns kontaktieren zu müssen. Die Fahrtenhistorie wird aus steuerlichen Gründen **anonymisiert** 5 Jahre aufbewahrt (Art. 17 Abs. 3 lit. b DSGVO), ist aber nicht mehr mit Ihrer Identität verknüpft.",
-            "Für Berichtigung, Einschränkung oder Widerspruch sowie sonstige Anfragen wenden Sie sich an **privacidad@canarycab.com**. Sie können auch eine Beschwerde bei der spanischen Datenschutzbehörde einreichen (www.aepd.es).",
+            "Die Zuweisung einer Fahrt an einen Fahrer erfolgt automatisch nach Nähe, Verfügbarkeit und — auf Wunsch — Barrierefreiheit des Fahrzeugs. **Es findet kein Profiling und keine automatisierte Entscheidung mit rechtlicher Wirkung** im Sinne des Artikels 22 DSGVO statt.",
           ],
         },
         {
-          t: "7. Sicherheit",
-          p: ["Wir setzen geeignete technische und organisatorische Maßnahmen um: HTTPS-Verschlüsselung aller Kommunikation, Authentifizierung mit JWT-Tokens, mit bcrypt gespeicherte Passwörter, eingeschränkter Datenbankzugriff."],
+          t: "5. Speicherdauer",
+          p: [
+            "Kontodaten werden gespeichert, solange das Konto besteht. Bei Löschung werden identifizierende Daten sofort entfernt.",
+            "Der Fahrtverlauf wird **fünf Jahre anonymisiert** und von Ihrer Identität getrennt aufbewahrt (steuerliche Pflicht, Art. 17.3.b DSGVO).",
+            "**Der GPS-Standort in Echtzeit wird nicht dauerhaft gespeichert**: Er verbleibt während der aktiven Sitzung im Arbeitsspeicher und verfällt nach wenigen Sekunden automatisch.",
+          ],
+        },
+        {
+          t: "6. Empfänger und Drittlandtransfers",
+          p: ["Wir verkaufen oder überlassen Ihre Daten nicht. Die App nutzt folgende Anbieter:"],
+          table: {
+            headers: ["Anbieter", "Wofür", "Ort der Verarbeitung"],
+            rows: [
+              ["Railway", "Server und Datenbank", "USA — Standardvertragsklauseln"],
+              ["Vercel", "Webhosting und cookiefreie Analyse", "USA — Standardvertragsklauseln"],
+              ["Google", "Anmeldung mit Google (nur bei Nutzung)", "USA — EU-US Data Privacy Framework"],
+              ["CARTO / OpenStreetMap", "Karten und Straßendaten", "Europäische Union"],
+              ["Komoot (Photon), Cartociudad (IGN)", "Adresssuche", "Europäische Union / Spanien"],
+            ],
+          },
+          note: "Übermittlungen außerhalb der Europäischen Union stützen sich auf von der Europäischen Kommission genehmigte Standardvertragsklauseln oder auf das EU-US Data Privacy Framework.",
+        },
+        {
+          t: "7. Was andere Nutzer über Sie sehen",
+          list: [
+            "Während einer zugewiesenen Fahrt sieht der Kunde **Name, Telefonnummer, Kennzeichen, Modell und Lizenznummer** des Fahrers, um ihn zu erkennen und zu kontaktieren.",
+            "Der Fahrer sieht während derselben Fahrt **Name und Telefonnummer** des Kunden.",
+            "**Nach Ende der Fahrt werden die Telefonnummern nicht mehr angezeigt.** Im Verlauf bleibt nur der Name: Niemand sammelt ein Adressbuch der Personen, mit denen er gefahren ist.",
+          ],
+        },
+        {
+          t: "8. Ihre Rechte",
+          p: [
+            "Sie können die Rechte auf **Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch** ausüben sowie Ihre **Einwilligung jederzeit widerrufen**.",
+            "**Auskunft und Übertragbarkeit:** Unter Einstellungen → Deine Daten → „Meine Daten herunterladen\" erhalten Sie sofort eine vollständige Kopie im JSON-Format.",
+            "**Löschung:** Unter Einstellungen → Deine Daten → „Mein Konto löschen\" können Sie es selbst löschen, ohne uns schreiben zu müssen.",
+            `Für die übrigen Rechte schreiben Sie an **${EMAIL}**. Wir antworten spätestens innerhalb eines Monats.`,
+            "Wenn Sie meinen, Ihr Anliegen sei nicht ordnungsgemäß bearbeitet worden, können Sie sich bei der **spanischen Datenschutzbehörde** (www.aepd.es), C/ Jorge Juan 6, 28001 Madrid, beschweren.",
+          ],
+        },
+        {
+          t: "9. Sicherheit",
+          p: [
+            "Wir treffen dem Risiko angemessene technische und organisatorische Maßnahmen: HTTPS-Verschlüsselung aller Verbindungen, Authentifizierung mit signierten Tokens, bcrypt-geschützte Passwörter, Begrenzung von Anmeldeversuchen, Sicherheits-Header im Browser und eingeschränkter Datenbankzugriff.",
+            "Kein System ist unfehlbar. Sollte es zu einer Verletzung mit Risiko für Ihre Rechte kommen, würden wir Sie informieren und die Aufsichtsbehörde gemäß Art. 33 und 34 DSGVO benachrichtigen.",
+          ],
+        },
+        {
+          t: "10. Minderjährige",
+          p: [
+            "Der Dienst richtet sich an Personen ab 18 Jahren. Wir erheben wissentlich keine Daten von Minderjährigen. Wird ein solches Konto festgestellt, löschen wir es.",
+          ],
+        },
+        {
+          t: "11. Änderungen dieser Erklärung",
+          p: [
+            "Bei wesentlichen Änderungen informieren wir Sie per E-Mail und holen, soweit gesetzlich erforderlich, erneut Ihre Einwilligung ein.",
+          ],
         },
       ],
     },
+
     terms: {
       title: "Nutzungsbedingungen",
       sections: [
         {
           t: "1. Gegenstand und Geltungsbereich",
-          p: ["CanaryCab ist eine digitale Vermittlungsplattform, die Nutzer, die einen Taxidienst benötigen, mit autorisierten Fahrern auf den Kanarischen Inseln verbindet. CanaryCab ist kein Transportunternehmen; die Fahrer sind selbstständige Berufskraftfahrer mit einer Taxi- oder VTC-Lizenz gemäß der geltenden kanarischen Gesetzgebung."],
+          p: [
+            "CanaryCab ist eine digitale Vermittlungsplattform, die Personen mit Taxibedarf und lizenzierte Berufsfahrer auf den Kanarischen Inseln zusammenbringt.",
+            "**CanaryCab ist kein Transportunternehmen.** Die Leistung erbringt der Lizenzinhaber selbstständig und in eigener Verantwortung, nach der kanarischen Taxiverordnung (Dekret 74/2012) und den geltenden kommunalen Vorschriften.",
+          ],
         },
         {
           t: "2. Nutzungsvoraussetzungen",
           list: [
-            "Mindestens 18 Jahre alt sein oder die Zustimmung eines Erziehungsberechtigten haben.",
-            "Bei der Registrierung wahrheitsgemäße Angaben machen.",
-            "Für Fahrer: eine gültige Taxi- oder VTC-Lizenz besitzen, ausgestellt von der zuständigen Behörde der Autonomen Gemeinschaft der Kanarischen Inseln.",
+            "Mindestalter 18 Jahre.",
+            "Wahrheitsgemäße Angaben bei der Registrierung und deren Aktualisierung.",
+            "Ausdrückliche Zustimmung zur Datenschutzerklärung bei der Registrierung.",
+            "Für Fahrer: **gültige Taxilizenz** der zuständigen Gemeinde. Das Konto muss von der Plattformverwaltung geprüft werden, bevor Fahrten angenommen werden können.",
           ],
         },
         {
-          t: "3. Tarife und Zahlungen",
-          p: ["Die in der Anwendung angezeigten Tarife sind **Schätzungen**, berechnet nach den zum Zeitpunkt der Fahrt geltenden offiziellen Tarifen des BOC (Amtsblatt der Kanarischen Inseln). Der endgültige Preis wird durch das geeichte Taxameter des Fahrzeugs bestimmt. CanaryCab wickelt keine Zahlungen ab; die Bezahlung erfolgt direkt an den Fahrer am Ende der Fahrt (bar oder nach Vereinbarung zwischen den Parteien)."],
+          t: "3. Preise und Zahlung",
+          p: [
+            "Die in der App angezeigten Beträge sind **Schätzungen** auf Basis der jeweils geltenden, im Amtsblatt der Kanarischen Inseln veröffentlichten offiziellen Tarife und der tatsächlichen Route.",
+            "**Den endgültigen Betrag bestimmt das geeichte Taxameter des Fahrzeugs**; er kann wegen Verkehr, Wartezeiten oder der konkreten Strecke abweichen. Deshalb wird der Preis als Spanne und nicht als Festbetrag angezeigt.",
+            "**CanaryCab wickelt keine Zahlungen ab und erhebt keine Provision vom Nutzer.** Die Zahlung erfolgt direkt an den Fahrer am Ende der Fahrt, auf dem zwischen den Parteien vereinbarten Weg.",
+          ],
         },
         {
           t: "4. Stornierungen",
-          p: ["Der Kunde kann eine Fahrt stornieren, bis der Fahrer seine Ankunft am Abholpunkt gemeldet hat. Wiederholte oder missbräuchliche Stornierungen können zur vorübergehenden Sperrung des Kontos führen."],
+          p: [
+            "Kunden können kostenlos stornieren, bis der Fahrer die Ankunft am Abholpunkt meldet. Wiederholte oder missbräuchliche Stornierungen können zur vorübergehenden Sperrung des Kontos führen.",
+          ],
         },
         {
           t: "5. Haftung",
-          p: ["CanaryCab handelt ausschließlich als technischer Vermittler. Die Verantwortung für die Erbringung der Transportdienstleistung liegt allein beim autorisierten Fahrer. CanaryCab haftet nicht für Schäden aus der Transportdienstleistung, Verspätungen, Unfälle oder andere Vorfälle während der Fahrt."],
+          p: [
+            "CanaryCab handelt lediglich als technischer Vermittler. Die Verantwortung für die Beförderung — einschließlich Verspätungen, Vorfällen, Schäden oder Unfällen — liegt ausschließlich beim Fahrer und seiner Pflichtversicherung.",
+            "Die Plattform garantiert weder die jederzeitige Verfügbarkeit eines Taxis noch einen unterbrechungsfreien technischen Betrieb.",
+            "Diese Bedingungen schränken zwingende Verbraucherrechte nicht ein.",
+          ],
         },
         {
           t: "6. Verbotenes Verhalten",
           list: [
             "Betrügerische Nutzung der Plattform oder Identitätsmissbrauch.",
-            "Anfordern von Fahrten ohne Absicht, sie anzutreten.",
-            "Beleidigendes oder bedrohliches Verhalten gegenüber anderen Nutzern oder Fahrern.",
-            "Reverse Engineering, Scraping oder jede unbefugte Nutzung der API.",
+            "Anfordern von Fahrten ohne tatsächliche Absicht, sie anzutreten.",
+            "Beleidigendes, diskriminierendes oder bedrohliches Verhalten gegenüber anderen Nutzern oder Fahrern.",
+            "Reverse Engineering, massenhaftes Auslesen von Daten oder jede unbefugte Nutzung der API.",
           ],
         },
         {
-          t: "7. Geistiges Eigentum",
-          p: ["Quellcode, Design, Logos und Inhalte von CanaryCab sind Eigentum ihrer Entwickler und durch spanisches und internationales Urheberrecht geschützt. Die Vervielfältigung ohne schriftliche Genehmigung ist untersagt."],
+          t: "7. Sperrung und Kontolöschung",
+          p: [
+            "Verstöße gegen diese Bedingungen können zur Sperrung oder Schließung des Kontos führen. Nutzer können ihr Konto jederzeit unter Einstellungen → Deine Daten → „Mein Konto löschen\" schließen.",
+          ],
         },
         {
-          t: "8. Änderungen",
-          p: ["CanaryCab behält sich das Recht vor, diese Bedingungen jederzeit zu ändern. Wesentliche Änderungen werden registrierten Nutzern mindestens 15 Tage im Voraus per E-Mail mitgeteilt."],
+          t: "8. Geistiges Eigentum",
+          p: [
+            "Code, Design, Logos und Inhalte von CanaryCab gehören dem Betreiber und sind urheberrechtlich geschützt. Das Kartenmaterial stammt von OpenStreetMap und seinen Mitwirkenden (ODbL-Lizenz).",
+          ],
         },
         {
-          t: "9. Anwendbares Recht und Gerichtsstand",
-          p: ["Diese Bedingungen unterliegen spanischem Recht. Für Streitigkeiten sind die Gerichte von Las Palmas de Gran Canaria zuständig, sofern das Verbraucherrecht keinen anderen Gerichtsstand vorsieht."],
+          t: "9. Änderungen",
+          p: [
+            "Diese Bedingungen können geändert werden. Wesentliche Änderungen werden registrierten Nutzern mindestens 15 Tage im Voraus per E-Mail mitgeteilt.",
+          ],
         },
         {
-          t: "10. Kontakt",
-          p: ["Für alle Anfragen: **legal@canarycab.com**"],
+          t: "10. Anwendbares Recht und Gerichtsstand",
+          p: [
+            "Es gilt spanisches Recht. Für Streitigkeiten sind die Gerichte von Las Palmas de Gran Canaria zuständig, sofern das Verbraucherrecht keinen für den Nutzer günstigeren Gerichtsstand vorsieht.",
+          ],
+        },
+        {
+          t: "11. Kontakt",
+          p: [`Für Anfragen: **${EMAIL}**`],
         },
       ],
     },
+
     cookies: {
       title: "Cookie-Richtlinie",
       sections: [
         {
           t: "Was sind Cookies?",
-          p: ["Cookies sind kleine Textdateien, die Websites auf Ihrem Gerät speichern, um Einstellungen zu merken, Sitzungen aktiv zu halten und anonyme Nutzungsdaten zu erfassen."],
+          p: [
+            "Cookies und ähnliche Technologien (etwa der lokale Browserspeicher) sind kleine Dateien, die eine Website auf Ihrem Gerät ablegt, um Einstellungen zu merken oder die Sitzung offen zu halten.",
+          ],
         },
         {
-          t: "Verwendete Cookies",
+          t: "Was wir speichern",
+          p: [
+            "CanaryCab **verwendet keine eigenen Cookies**: Es speichert nur das Nötigste im lokalen Browserspeicher, der — anders als Cookies — nicht bei jeder Anfrage an den Server gesendet wird.",
+          ],
           table: {
-            headers: ["Name", "Typ", "Zweck", "Dauer"],
+            headers: ["Name", "Art", "Wofür", "Dauer"],
             rows: [
-              ["taya_token", "Technisch · Sitzung", "Hält die Sitzung des authentifizierten Nutzers aufrecht (JWT).", "Browsersitzung"],
-              ["taya:online", "Technisch · Lokal", "Merkt sich, ob der Fahrer beim Schließen der App online war.", "Dauerhaft"],
-              ["taya:prefs", "Einstellungen", "Speichert Ton- und Benachrichtigungseinstellungen.", "Dauerhaft"],
+              ["taya_token", "Technisch · notwendig", "Hält Sie angemeldet.", "Bis zum Schließen des Tabs"],
+              ["taya:lang", "Präferenz", "Merkt sich die gewählte Sprache.", "Dauerhaft"],
+              ["taya:prefs", "Präferenz", "Ton- und Benachrichtigungseinstellungen.", "Dauerhaft"],
+              ["taya:online", "Technisch · notwendig", "Merkt sich, ob der Fahrer online war.", "Dauerhaft"],
             ],
           },
-          note: "CanaryCab **verwendet keine Tracking-, Werbe- oder Analyse-Cookies von Drittanbietern**.",
+          note: "Alle sind **notwendig oder Präferenz-Einträge** und bedürfen daher keiner vorherigen Einwilligung (Art. 22.2 LSSI). Wir setzen keine Werbe- oder Tracking-Cookies ein.",
         },
         {
-          t: "Lokaler Speicher (sessionStorage / localStorage)",
-          p: ["Anstelle klassischer Cookies verwenden wir `sessionStorage` für die Sitzung (wird beim Schließen des Tabs gelöscht) und `localStorage` für dauerhafte Einstellungen. Diese Daten werden niemals automatisch mit jeder Anfrage an den Server gesendet."],
+          t: "Dienste Dritter",
+          p: ["Einige Funktionen stützen sich auf Dritte, die beim Laden eigene Cookies setzen können:"],
+          list: [
+            "**Google** — nur bei Nutzung von „Weiter mit Google\". Beim Klick wird der Google-Dienst geladen, der eigene, für die Anmeldung notwendige Cookies setzt. Ohne Nutzung wird er nie geladen.",
+            "**Vercel Analytics** — misst Besuche aggregiert **ohne Cookies und ohne Identifizierung**, weshalb kein Einwilligungsbanner nötig ist.",
+            "**Karten (CARTO / OpenStreetMap)** — liefern das Kartenbild; sie dienen nicht der Nachverfolgung.",
+          ],
         },
         {
-          t: "Verwaltung und Löschung",
-          p: ["Sie können alle Cookies und lokalen Daten jederzeit in den Einstellungen Ihres Browsers oder Mobilgeräts löschen. Beim Löschen werden Sie abgemeldet und die Einstellungen zurückgesetzt."],
+          t: "Browserspeicher und Offline-Modus",
+          p: [
+            "Die App läuft als PWA: Ein `Service Worker` hält eine Kopie der Oberfläche vor, damit sie schnell lädt und bei schlechtem Empfang funktioniert. Er enthält keine personenbezogenen Daten.",
+          ],
+        },
+        {
+          t: "Wie Sie es löschen",
+          p: [
+            "Sie können Cookies und lokalen Speicher jederzeit über die Einstellungen Ihres Browsers oder Geräts löschen. Dabei werden Sie abgemeldet und die Einstellungen zurückgesetzt.",
+          ],
         },
         {
           t: "Kontakt",
-          p: ["Bei Fragen zur Verwendung von Cookies: **privacidad@canarycab.com**"],
+          p: [`Bei Fragen: **${EMAIL}**`],
         },
       ],
     },

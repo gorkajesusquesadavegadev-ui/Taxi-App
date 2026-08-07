@@ -888,7 +888,7 @@ const urls = [
         `  <url>\n    <loc>${SITIO}/${r.slugs[c]}</loc>\n    <lastmod>${hoy}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.8</priority>\n${alt}\n  </url>`
     );
   }),
-  ...["privacidad", "cookies", "terminos"].map(
+  ...["aviso-legal", "privacidad", "cookies", "terminos"].map(
     (p) =>
       `  <url>\n    <loc>${SITIO}/${p}</loc>\n    <lastmod>${hoy}</lastmod>\n    <changefreq>yearly</changefreq>\n    <priority>0.3</priority>\n  </url>`
   ),

@@ -73,7 +73,7 @@ const CARTO_TIPO_EXACTO = new Set(["portal", "callejero", "via"]);
 async function buscarCartociudad(q) {
   const r = await fetch(
     `${CARTOCIUDAD}/candidatesJsonp?q=${encodeURIComponent(q)}&limit=20`,
-    { headers: { "User-Agent": "CanaryCab/1.0 gorquesadave@gmail.com" } }
+    { headers: { "User-Agent": "CanaryCab/1.0 gorkajesusquesadavegadev@gmail.com" } }
   );
   if (!r.ok) return [];
   const data = parseJsonp(await r.text());
@@ -109,7 +109,7 @@ async function buscarCartociudad(q) {
 async function buscarPhoton(q) {
   const r = await fetch(
     `${PHOTON}/?q=${encodeURIComponent(q)}&limit=10&bbox=${BBOX_CANARIAS}`,
-    { headers: { "User-Agent": "CanaryCab/1.0 gorquesadave@gmail.com" } }
+    { headers: { "User-Agent": "CanaryCab/1.0 gorkajesusquesadavegadev@gmail.com" } }
   );
   if (!r.ok) return [];
   const d = await r.json();
@@ -148,7 +148,7 @@ export async function resolverPunto(p) {
   try {
     const r = await fetch(
       `${CARTOCIUDAD}/findJsonp?q=${encodeURIComponent(p.label)}`,
-      { headers: { "User-Agent": "CanaryCab/1.0 gorquesadave@gmail.com" } }
+      { headers: { "User-Agent": "CanaryCab/1.0 gorkajesusquesadavegadev@gmail.com" } }
     );
     if (!r.ok) return null;
     const d = parseJsonp(await r.text());
@@ -165,7 +165,7 @@ async function buscarNominatim(q) {
   const r = await fetch(
     `${NOMINATIM}/search?format=jsonv2&q=${encodeURIComponent(q)}` +
     `&limit=10&viewbox=${VIEWBOX}&bounded=1&accept-language=es&addressdetails=1&countrycodes=es`,
-    { headers: { "User-Agent": "CanaryCab/1.0 gorquesadave@gmail.com" } }
+    { headers: { "User-Agent": "CanaryCab/1.0 gorkajesusquesadavegadev@gmail.com" } }
   );
   if (!r.ok) return [];
   const d = await r.json();
@@ -245,7 +245,7 @@ export async function direccionDe(lat, lng) {
   try {
     const r = await fetch(
       `${CARTOCIUDAD}/reverseGeocode?lat=${lat}&lon=${lng}`,
-      { headers: { "User-Agent": "CanaryCab/1.0 gorquesadave@gmail.com" } }
+      { headers: { "User-Agent": "CanaryCab/1.0 gorkajesusquesadavegadev@gmail.com" } }
     );
     if (r.ok) {
       const d = await r.json();
@@ -266,7 +266,7 @@ export async function direccionDe(lat, lng) {
   try {
     const r = await fetch(
       `${NOMINATIM}/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=es&zoom=18&addressdetails=1`,
-      { headers: { "User-Agent": "CanaryCab/1.0 gorquesadave@gmail.com" } }
+      { headers: { "User-Agent": "CanaryCab/1.0 gorkajesusquesadavegadev@gmail.com" } }
     );
     if (!r.ok) return null;
     const d = await r.json();

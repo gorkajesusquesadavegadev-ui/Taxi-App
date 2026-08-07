@@ -108,7 +108,7 @@ function CostaSegment({ t }) {
   return (
     <View className="flex-row items-end gap-8 px-5">
       <Hito label="Dunas de Maspalomas"><DunasSvg /></Hito>
-      <Billboard t={t} bg="#0B2E4F" color="#FFC400" label="contacto@canarycab.com" />
+      <Billboard t={t} bg="#0B2E4F" color="#FFC400" label="gorkajesusquesadavegadev@gmail.com" />
       <PalmSvg h={80} />
       <Hito label="Teide · Tenerife"><TeideSvg /></Hito>
       <Billboard t={t} bg="#1577C2" color="#ffffff" label="canarycab.com" />
