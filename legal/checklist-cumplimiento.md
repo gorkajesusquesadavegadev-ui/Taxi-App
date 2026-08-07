@@ -41,6 +41,10 @@
 - ✅ **Registro de Actividades de Tratamiento** (art. 30) — `registro-actividades-tratamiento.md`
 - ✅ **Procedimiento ante brechas** (art. 33/34) — `procedimiento-brechas.md`
 - ✅ **DPA de Railway firmado** — `dpa/railway-dpa-firmado.pdf` (no versionado)
+- ✅ **Consentimiento de cuentas antiguas**: las 35 cuentas creadas antes de que
+  existiera la casilla no tenían constancia de consentimiento (art. 7.1). Se
+  les pide aceptar la política al entrar, con un aviso bloqueante; quien no
+  quiera, cierra sesión. Alternativa habría sido borrarles la cuenta.
 
 ---
 

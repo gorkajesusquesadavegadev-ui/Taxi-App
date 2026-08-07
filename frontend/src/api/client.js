@@ -46,6 +46,7 @@ export const api = {
   loginGoogle: (idToken) => req("POST", "/auth/google", { idToken }),
   logout: () => req("POST", "/auth/logout"),
   me: () => req("GET", "/usuarios/me"),
+  aceptarConsentimiento: () => req("POST", "/usuarios/me/consentimiento"),
   actualizarMe: (d) => req("PUT", "/usuarios/me", d),
   cambiarPassword: (d) => req("PUT", "/usuarios/me/password", d),
   exportarMisDatos: () => req("GET", "/usuarios/me/exportar"),

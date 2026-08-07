@@ -59,12 +59,29 @@ public class UsuarioController {
         return new UsuarioResponse(u.getId(), u.getNombre(), u.getEmail(), u.getRol().name(),
             u.getVehiculoMatricula(), u.getVehiculoModelo(), u.getTelefono(),
             u.isVerificado(), u.getRatingMedia(), u.getRatingCount(), u.getLicencia(),
-            u.isVehiculoAccesible());
+            u.isVehiculoAccesible(), u.getConsentimientoEn() == null);
     }
 
     @GetMapping("/me")
     public UsuarioResponse me(@AuthenticationPrincipal String userId) {
         return aResponse(usuarios.findById(Long.valueOf(userId)).orElseThrow());
+    }
+
+    /**
+     * Acepta la politica de privacidad desde la propia app. Existe para las
+     * cuentas creadas antes de que hubiera casilla en el registro: sin esto,
+     * de esos usuarios no habria constancia del consentimiento (art. 7.1) y la
+     * unica alternativa limpia habria sido borrarles la cuenta.
+     */
+    @PostMapping("/me/consentimiento")
+    public UsuarioResponse aceptarConsentimiento(@AuthenticationPrincipal String userId) {
+        var u = usuarios.findById(Long.valueOf(userId)).orElseThrow();
+        if (u.getConsentimientoEn() == null) {
+            u.setConsentimientoEn(java.time.Instant.now());
+            u.setConsentimientoVersion(com.taya.service.AuthService.POLITICA_VERSION);
+            usuarios.save(u);
+        }
+        return aResponse(u);
     }
 
     @PutMapping("/me")

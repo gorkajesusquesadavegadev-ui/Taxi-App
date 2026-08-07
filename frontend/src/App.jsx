@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import Spinner from "./components/Spinner.jsx";
+import ConsentimientoPendiente from "./components/ConsentimientoPendiente.jsx";
 
 // El <link rel="canonical"> del index.html apunta a la home siempre (misma
 // SPA sirve todas las rutas) — Lighthouse lo marca mal en cualquier página
@@ -64,10 +65,22 @@ function Protected({ children }) {
 }
 
 export default function App() {
-  const { user, loading } = useAuth();
+  const { user, loading, setUser, logout } = useAuth();
   const location = useLocation();
   useCanonical();
   if (loading) return <Splash />;
+
+  // Cuentas creadas antes de que el registro tuviera casilla de aceptacion: no
+  // hay constancia de su consentimiento (art. 7.1 RGPD), asi que se pide antes
+  // de dejar seguir usando la app.
+  if (user?.requiereConsentimiento) {
+    return (
+      <ConsentimientoPendiente
+        onAceptado={() => setUser((u) => ({ ...u, requiereConsentimiento: false }))}
+        onSalir={logout}
+      />
+    );
+  }
 
   return (
     <Suspense fallback={<Splash />}>

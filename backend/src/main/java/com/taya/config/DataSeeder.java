@@ -6,6 +6,8 @@ import com.taya.model.Usuario;
 import com.taya.repository.ConfiguracionTarifaRepository;
 import com.taya.repository.EventoRepository;
 import com.taya.repository.UsuarioRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -23,13 +25,18 @@ import java.time.Instant;
  */
 @Component
 public class DataSeeder implements CommandLineRunner {
+    private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
+
     private final ConfiguracionTarifaRepository repo;
     private final EventoRepository eventos;
     private final UsuarioRepository usuarios;
     private final PasswordEncoder encoder;
     private final JdbcTemplate jdbc;
     @Value("${admin.email:admin@canarycab.com}") private String adminEmail;
-    @Value("${admin.password:CanaryCab-Admin-2024}") private String adminPassword;
+    // SIN valor por defecto A PROPOSITO: una contrasena de administrador
+    // escrita en el codigo es una puerta trasera. Si falta ADMIN_PASSWORD no
+    // se crea ni se toca la cuenta de admin (ver abajo).
+    @Value("${admin.password:}") private String adminPassword;
 
     public DataSeeder(ConfiguracionTarifaRepository repo, EventoRepository eventos,
                       UsuarioRepository usuarios, PasswordEncoder encoder, JdbcTemplate jdbc) {
@@ -57,6 +64,15 @@ public class DataSeeder implements CommandLineRunner {
         // rol=ADMIN. Idempotente y tolerante a fallos (distintos nombres/SGBD).
         try { jdbc.execute("ALTER TABLE usuarios DROP CONSTRAINT IF EXISTS usuarios_rol_check"); }
         catch (Exception ignored) {}
+
+        // Sin ADMIN_PASSWORD no se crea admin ni se toca el existente. Antes habia
+        // una contrasena por defecto en el codigo: cualquiera con acceso al
+        // repositorio podia entrar al panel de administracion si la variable
+        // faltaba en algun entorno.
+        if (adminPassword == null || adminPassword.isBlank()) {
+            log.warn("ADMIN_PASSWORD no configurada: no se crea ni actualiza la cuenta de administrador");
+            return;
+        }
 
         // La env var ADMIN_PASSWORD es la fuente de verdad: si el admin ya existe,
         // sincroniza su contraseña con la env en cada arranque (permite rotarla).
