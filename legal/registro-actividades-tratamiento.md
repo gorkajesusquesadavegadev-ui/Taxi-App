@@ -132,9 +132,15 @@ registro.
 | **Komoot (Photon)** | Búsqueda de direcciones | Unión Europea | No procede — dentro de la UE |
 | **Cartociudad (IGN)** | Callejero oficial español | España | No procede |
 
-> **Pendiente de acreditar:** conviene descargar y archivar el Acuerdo de
-> Encargado del Tratamiento (DPA) de Railway, Vercel y Google, disponible en
-> sus respectivos paneles de administración. Ver `checklist-cumplimiento.md`.
+> **Estado de los acuerdos de encargado (art. 28):**
+> - **Vercel** — DPA en vigor automáticamente al aceptar sus términos, con las
+>   SCC de 2021 incorporadas por firma implícita. Pendiente solo archivar copia.
+> - **Railway** — requiere **firma activa** (DocuSign, sección 14 de su DPA).
+>   Es el encargado principal: aloja servidor, base de datos y Redis. **Pendiente.**
+> - **Google** — no procede: en «Continuar con Google» Google actúa como
+>   responsable independiente frente al usuario, no como encargado nuestro.
+>
+> Ver `checklist-cumplimiento.md` y `dpa/LEEME.md`.
 
 ---
 

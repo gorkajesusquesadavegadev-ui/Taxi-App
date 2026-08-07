@@ -45,17 +45,54 @@
 
 ## Pendiente, y depende de ti ⬜
 
-### 1. Acuerdos de Encargado del Tratamiento (art. 28) — 15 minutos
+### 1. Acuerdos de Encargado del Tratamiento (art. 28)
 
-El RGPD exige un contrato con cada proveedor que trate datos por tu cuenta.
-Los tres los ofrecen ya redactados; solo hay que aceptarlos y **guardar una
-copia**:
+Comprobado el mecanismo de cada proveedor — **no los tres funcionan igual**:
 
-- ⬜ **Railway** — https://railway.app/legal/dpa
-- ⬜ **Vercel** — Dashboard → Settings → Legal → *Data Processing Agreement*
-- ⬜ **Google Cloud** — Console → IAM & Admin → Privacy & Security → aceptar el *Data Processing Amendment*
+#### ✅ Vercel — ya está en vigor, no hay que firmar nada
 
-Descarga cada PDF y guárdalo en `legal/dpa/`.
+Su DPA se incorpora automáticamente: *«This Addendum shall become legally
+binding upon Customer entering into the Agreement»*. Al crear la cuenta quedó
+aceptado, y con él las Cláusulas Contractuales Tipo de 2021 (*«By entering into
+the Agreement, Data Exporter is deemed to have signed these Standard
+Contractual Clauses»*).
+
+- ⬜ Única tarea: descargar https://vercel.com/legal/dpa en PDF y guardarlo en
+  `legal/dpa/` como prueba documental.
+
+#### ⬜ Railway — SÍ hay que firmarlo
+
+Es el único que exige ejecución activa. Su sección 14 dice: *«This DPA will
+become legally binding upon Company's execution in the signature block
+below»*, y se firma mediante un formulario DocuSign enlazado en el propio
+documento.
+
+- ⬜ Ir a https://railway.com/legal/dpa, abrir el enlace de DocuSign de la
+  sección 14 y firmarlo. Incluye las SCC de la UE, el anexo del Reino Unido y
+  las cláusulas suizas.
+- ⬜ Guardar el PDF firmado en `legal/dpa/`.
+
+**Este es el importante**: Railway aloja el servidor, la base de datos y Redis
+— es el encargado que trata *todos* los datos personales del proyecto.
+
+#### ℹ️ Google — probablemente NO necesita DPA
+
+Aquí conviene no firmar por firmar. El *Cloud Data Processing Addendum* de
+Google está pensado para cuando Google trata datos **por cuenta tuya** (Google
+Cloud Platform, Workspace, Cloud Identity). No es el caso:
+
+En «Continuar con Google» el usuario se autentica **directamente ante Google**,
+y Google le pide su consentimiento para compartir contigo el correo, el nombre
+y un identificador. Google no actúa como encargado tuyo, sino como
+**responsable independiente** de su propia relación con ese usuario. A partir
+del momento en que recibes esos datos, el responsable eres tú — y eso ya está
+cubierto por tu propia política de privacidad y por el consentimiento del
+registro.
+
+- ⬜ Solo si algún día usas Google Cloud para *almacenar* datos (Firestore,
+  Cloud Storage, BigQuery…) habría que aceptar su Addendum. Hoy no aplica.
+- ✅ El uso actual se rige por los términos de Google Identity Services, ya
+  aceptados al crear el Client ID en Google Cloud Console.
 
 ### 2. Rotar la contraseña de la base de datos — 10 minutos
 
