@@ -36,6 +36,14 @@ public class WebPushService {
 
     @PostConstruct
     void init() {
+        // Sin claves VAPID (entorno local: ya no hay valores por defecto en el
+        // repositorio, porque una clave privada escrita en el codigo es una
+        // credencial filtrada) el push queda simplemente desactivado. No es un
+        // error: se avisa y se sigue.
+        if (publicKey == null || publicKey.isBlank() || privateKey == null || privateKey.isBlank()) {
+            log.info("Web Push desactivado: no hay claves VAPID configuradas (VAPID_PUBLIC / VAPID_PRIVATE)");
+            return;
+        }
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
             Security.addProvider(new BouncyCastleProvider());
         try {
