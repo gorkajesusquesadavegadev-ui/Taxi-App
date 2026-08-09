@@ -15,6 +15,10 @@
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+// Los textos legales se leen del mismo módulo que usa la app, no de una copia:
+// dos versiones del mismo documento acabarían diciendo cosas distintas.
+import { LEGAL } from "../src/i18n/legal.js";
+import { DICT } from "../src/i18n/dict.js";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SALIDA = join(RAIZ, "public");
@@ -855,8 +859,161 @@ ${alternates}
 `;
 }
 
+/* ── Páginas legales ────────────────────────────────────────────────────────
+ *
+ * Van aquí porque, siendo rutas de la SPA, el servidor devolvía para todas el
+ * mismo index.html: /privacidad, /terminos, /cookies, /aviso-legal y la portada
+ * eran cinco URLs con HTML byte a byte idéntico. Estaban en el sitemap, así que
+ * se le pedía a Google indexar cuatro duplicados de la portada; Search Console
+ * las dejaba en «Descubierta: actualmente sin indexar», sin llegar a rastrearlas.
+ *
+ * El contenido sale de src/i18n/legal.js, el mismo módulo que pinta la app, para
+ * que no puedan decir cosas distintas. Se generan solo en español: es la versión
+ * vinculante y no hay una URL por idioma que justifique hreflang.
+ */
+// La descripción va escrita a mano y no sacada del primer párrafo: extraerla
+// automáticamente daba resultados absurdos (la de privacidad abría hablando del
+// Delegado de Protección de Datos). Es lo que se lee bajo el título en Google.
+const DOCS_LEGALES = [
+  {
+    doc: "aviso",
+    slug: "aviso-legal",
+    desc: "Titular, domicilio y contacto de CanaryCab, condiciones de uso del sitio y legislación aplicable, conforme al artículo 10 de la LSSI-CE.",
+  },
+  {
+    doc: "privacy",
+    slug: "privacidad",
+    desc: "Qué datos recoge CanaryCab, con qué base jurídica los trata, quién los recibe, cuánto se conservan y cómo ejercer tus derechos de acceso, supresión y portabilidad.",
+  },
+  {
+    doc: "terms",
+    slug: "terminos",
+    desc: "Condiciones de uso de CanaryCab: qué es y qué no es el servicio, obligaciones de clientes y taxistas, precios estimados, cancelaciones y responsabilidades.",
+  },
+  {
+    doc: "cookies",
+    slug: "cookies",
+    desc: "Qué cookies y almacenamiento local usa CanaryCab, para qué sirve cada uno, qué servicios de terceros intervienen y cómo eliminarlos desde el navegador.",
+  },
+];
+
+/** Convierte el marcado ligero de legal.js (**negrita**, `código`) a HTML. */
+const rico = (t) =>
+  esc(t)
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/`([^`]+)`/g, "<code>$1</code>");
+
+function paginaLegal({ doc, slug, desc: descripcion }) {
+  const L = LEGAL.es;
+  const c = L[doc];
+  const url = `${SITIO}/${slug}`;
+  const desc = esc(descripcion);
+
+  const cuerpo = c.sections
+    .map((s) => {
+      const trozos = [`      <h2>${rico(s.t)}</h2>`];
+      for (const p of [...(s.p ?? []), ...(s.p2 ?? [])]) trozos.push(`      <p>${rico(p)}</p>`);
+      if (s.list?.length)
+        trozos.push(`      <ul>\n${s.list.map((i) => `        <li>${rico(i)}</li>`).join("\n")}\n      </ul>`);
+      if (s.table)
+        trozos.push(
+          `      <div class="tabla-scroll">\n        <table>\n` +
+            `          <thead><tr>${s.table.headers.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead>\n` +
+            `          <tbody>\n${s.table.rows
+              .map((r) => `            <tr>${r.map((v) => `<td>${rico(String(v))}</td>`).join("")}</tr>`)
+              .join("\n")}\n          </tbody>\n        </table>\n      </div>`
+        );
+      if (s.note) trozos.push(`      <p class="nota">${rico(s.note)}</p>`);
+      return trozos.join("\n");
+    })
+    .join("\n\n");
+
+  const otros = DOCS_LEGALES.filter((d) => d.slug !== slug)
+    .map((d) => `<a href="/${d.slug}">${esc(LEGAL.es[d.doc].title)}</a>`)
+    .join(" · ");
+
+  return `<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0B2E4F" />
+    <title>${esc(c.title)} · CanaryCab</title>
+    <meta name="description" content="${desc}" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="${url}" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="${url}" />
+    <meta property="og:title" content="${esc(c.title)} · CanaryCab" />
+    <meta property="og:description" content="${desc}" />
+    <meta property="og:site_name" content="CanaryCab" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      :root { --volcanic:#0B2E4F; --taxi:#FFC400; --cream:#F7FBFE; --sand:#EFE7D6; --sand-deep:#DCCFB4; }
+      * { box-sizing: border-box; }
+      body { margin:0; background:var(--cream); color:var(--volcanic);
+        font: 16px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+      .wrap { max-width: 48rem; margin: 0 auto; padding: 0 1.25rem 4rem; }
+      header.hero { background:var(--volcanic); color:var(--cream); padding:2.5rem 0 2.25rem; }
+      header.hero .wrap { padding-bottom:0; }
+      .marca { font-weight:900; letter-spacing:-.5px; font-size:1.35rem; color:var(--taxi);
+        text-decoration:none; display:inline-block; }
+      h1 { font-size: clamp(1.7rem, 5vw, 2.4rem); line-height:1.15; margin:.9rem 0 .4rem; letter-spacing:-.5px; }
+      header.hero p { margin:0; color:#F7FBFEa0; font-size:.9rem; }
+      h2 { font-size: clamp(1.1rem, 2.8vw, 1.35rem); margin:2.4rem 0 .5rem; letter-spacing:-.3px;
+        padding-left:.7rem; border-left:4px solid var(--taxi); }
+      p { margin:.7rem 0; }
+      ul { margin:.7rem 0; padding-left:1.1rem; }
+      li { margin:.35rem 0; }
+      code { background:var(--sand); padding:.1rem .35rem; border-radius:4px; font-size:.9em; }
+      .nota { background:#fff; border:1px solid var(--sand-deep); border-radius:12px;
+        padding:.7rem 1rem; font-size:.92rem; color:#0B2E4Fc0; }
+      .aviso { margin:1.75rem 0 0; background:#FFC40018; border:1px solid #FFC40060;
+        border-radius:12px; padding:.75rem 1rem; font-size:.88rem; font-weight:600; }
+      .tabla-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch;
+        border:1px solid var(--sand-deep); border-radius:12px; background:#fff; margin:.9rem 0; }
+      table { border-collapse:collapse; width:100%; min-width:28rem; }
+      th, td { padding:.6rem .9rem; text-align:left; border-bottom:1px solid var(--sand); font-size:.92rem; }
+      thead th { background:var(--sand); font-size:.75rem; text-transform:uppercase; letter-spacing:.06em; }
+      tbody tr:last-child td { border-bottom:0; }
+      footer { margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--sand-deep);
+        font-size:.85rem; color:#0B2E4F99; }
+      footer a { color:inherit; }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="wrap">
+        <a class="marca" href="/">CanaryCab</a>
+        <h1>${esc(c.title)}</h1>
+        <p>${esc(L.updated)}</p>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <p class="aviso">${esc(DICT.es["legal.binding"])}</p>
+
+${cuerpo}
+    </main>
+
+    <div class="wrap">
+      <footer>
+        <p>${otros}</p>
+        <p><a href="/">Volver a CanaryCab</a></p>
+      </footer>
+    </div>
+  </body>
+</html>
+`;
+}
+
 // ── Escribir páginas ────────────────────────────────────────────────────────
 mkdirSync(SALIDA, { recursive: true });
+for (const d of DOCS_LEGALES) {
+  writeFileSync(join(SALIDA, `${d.slug}.html`), paginaLegal(d), "utf8");
+  console.log(`  ✔ ${d.slug}.html`);
+}
 for (const [codigo, L] of Object.entries(IDIOMAS)) {
   writeFileSync(join(SALIDA, `${L.slug}.html`), paginaHtml(codigo, L), "utf8");
   console.log(`  ✔ ${L.slug}.html`);

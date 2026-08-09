@@ -53,6 +53,12 @@ export default defineConfig({
         // ya tuviera el Service Worker instalado acababa en el login en vez de
         // en la página. (Googlebot no ejecuta el SW, así que el problema solo
         // lo sufren los usuarios reales — justo los que traería el SEO.)
+        // Las páginas legales (/privacidad, /terminos…) NO van en esta lista a
+        // propósito, aunque también tengan HTML estático. El fichero estático
+        // es solo español —es la versión vinculante— y existe para que Google
+        // pueda indexarlas; quien ya tiene la app instalada sigue viéndolas
+        // dentro de la SPA, que respeta el idioma que eligió. Metiéndolas aquí,
+        // un alemán que recargara /privacidad saltaría al español.
         navigateFallbackDenylist: [/^\/(tarifas-taxi-gran-canaria|taxi-aeropuerto-las-palmas|taxi-aeropuerto-maspalomas|taxi-aeropuerto-puerto-mogan|taxi-aeropuerto-puerto-rico|taxi-airport-las-palmas|taxi-airport-maspalomas|taxi-airport-puerto-mogan|taxi-airport-puerto-rico|taxi-fares-gran-canaria|taxi-flughafen-las-palmas|taxi-flughafen-maspalomas|taxi-flughafen-puerto-mogan|taxi-flughafen-puerto-rico|taxi-las-palmas-maspalomas-de|taxi-las-palmas-maspalomas-en|taxi-las-palmas-maspalomas|taxitarife-gran-canaria)$/],
         // handlers Web Push (push + notificationclick) en el SW generado
         importScripts: ["/push-sw.js"],
