@@ -257,11 +257,11 @@ export default function Ajustes() {
                           <span className={`grid h-4 w-4 place-items-center rounded-full border-2 ${tono === t.id ? "border-taxi" : "border-volcanic/30"}`}>
                             {tono === t.id && <span className="h-2 w-2 rounded-full bg-taxi" />}
                           </span>
-                          {t.label}
+                          {tr(t.labelKey)}
                         </button>
                         <button
                           onClick={() => reproducirTono(t.id)}
-                          aria-label={`Escuchar ${t.label}`}
+                          aria-label={`${tr("set.test")} — ${tr(t.labelKey)}`}
                           className="rounded-lg bg-sand px-2.5 py-1 text-xs font-bold text-volcanic hover:bg-sand-deep"
                         >
                           ▶ {tr("set.test")}
