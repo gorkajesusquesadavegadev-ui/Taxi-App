@@ -31,7 +31,7 @@ class WebSocketIT {
 
     @Test void taxistaRecibeTripNew() throws Exception {
         var reg = authService.register(new com.taya.dto.request.RegisterRequest(
-            "T","tws@taya.com","secret1", com.taya.model.Rol.TAXISTA, null, null, null, null));
+            "T","tws@taya.com","secret1", com.taya.model.Rol.TAXISTA, null, null, null, null, true));
         var token = reg.token();
         var future = new CompletableFuture<String>();
         var client = new StandardWebSocketClient();

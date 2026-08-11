@@ -37,26 +37,24 @@ public class TarifaService {
     private final ConfiguracionTarifaRepository repo;
     private final OsrmClient osrm;
     private final FestivoService festivos;
+    /** Reloj inyectable. En producción es el del sistema en horario canario; los
+     *  tests lo fijan para poder comprobar cada franja horaria del BOC sin
+     *  depender de cuándo se ejecuten. */
+    private final Clock reloj;
+
+    @org.springframework.beans.factory.annotation.Autowired
     public TarifaService(ConfiguracionTarifaRepository repo, OsrmClient osrm, FestivoService festivos) {
-        this.repo = repo; this.osrm = osrm; this.festivos = festivos;
+        this(repo, osrm, festivos, Clock.system(ZoneId.of("Atlantic/Canary")));
+    }
+
+    /** Solo para tests: permite situar el cálculo en un instante concreto. */
+    TarifaService(ConfiguracionTarifaRepository repo, OsrmClient osrm, FestivoService festivos, Clock reloj) {
+        this.repo = repo; this.osrm = osrm; this.festivos = festivos; this.reloj = reloj;
     }
 
     private static final ZoneId     CANARIAS          = ZoneId.of("Atlantic/Canary");
     private static final BigDecimal KM_INCLUIDOS_URB   = new BigDecimal("0.500");
     private static final BigDecimal KM_INCLUIDOS_T3    = new BigDecimal("1.500");
-
-    private enum Isla { GRAN_CANARIA, TENERIFE, LANZAROTE, FUERTEVENTURA, LA_PALMA, LA_GOMERA, EL_HIERRO, UNKNOWN }
-
-    private static Isla islaDeL(double lat, double lng) {
-        if (lat >= 27.70 && lat <= 28.20 && lng >= -15.85 && lng <= -15.30) return Isla.GRAN_CANARIA;
-        if (lat >= 27.90 && lat <= 28.60 && lng >= -16.95 && lng <= -16.10) return Isla.TENERIFE;
-        if (lat >= 28.75 && lat <= 29.25 && lng >= -13.95 && lng <= -13.40) return Isla.LANZAROTE;
-        if (lat >= 27.60 && lat <= 28.75 && lng >= -14.55 && lng <= -13.70) return Isla.FUERTEVENTURA;
-        if (lat >= 28.40 && lat <= 28.95 && lng >= -17.95 && lng <= -17.60) return Isla.LA_PALMA;
-        if (lat >= 28.00 && lat <= 28.30 && lng >= -17.45 && lng <= -17.00) return Isla.LA_GOMERA;
-        if (lat >= 27.60 && lat <= 27.95 && lng >= -18.20 && lng <= -17.85) return Isla.EL_HIERRO;
-        return Isla.UNKNOWN;
-    }
 
     // [lat, lng, radioKm] capitales/núcleos urbanos de cada isla — solo aquí
     // (y solo si origen Y destino caen dentro) se aplica Tarifa 1.
@@ -71,11 +69,23 @@ public class TarifaService {
         {27.807, -17.912, 3.0},  // Valverde (El Hierro)
     };
 
-    private static boolean esUrbano(double lat, double lng) {
-        for (double[] c : CENTROS_URBANOS) {
-            if (GeoUtil.haversineKm(lat, lng, c[0], c[1]) <= c[2]) return true;
+    /** Índice del casco urbano que contiene el punto, o -1 si no está en ninguno.
+     *  Devuelve el índice y no un booleano porque para elegir tarifa no basta
+     *  con saber que los dos extremos son urbanos: tienen que serlo del MISMO
+     *  casco (ver zonaDe). */
+    private static int centroUrbano(double lat, double lng) {
+        int mejor = -1;
+        double mejorDist = Double.MAX_VALUE;
+        for (int i = 0; i < CENTROS_URBANOS.length; i++) {
+            double[] c = CENTROS_URBANOS[i];
+            double dist = GeoUtil.haversineKm(lat, lng, c[0], c[1]);
+            // Gana el casco más cercano, no el primero de la lista: los radios
+            // se solapan (el de Santa Cruz de Tenerife, 7 km, alcanza el centro
+            // de La Laguna) y quedarse con el primero metía los dos municipios
+            // en el mismo casco.
+            if (dist <= c[2] && dist < mejorDist) { mejor = i; mejorDist = dist; }
         }
-        return false;
+        return mejor;
     }
 
     // Muelle Santa Catalina (Puerto de Las Palmas) — mismas coords que DataSeeder.
@@ -119,8 +129,15 @@ public class TarifaService {
     private enum Zona { URBANA, INTERURBANO }
 
     private static Zona zonaDe(double oLat, double oLng, double dLat, double dLng) {
-        if (esUrbano(oLat, oLng) && esUrbano(dLat, dLng)) return Zona.URBANA;
-        return Zona.INTERURBANO;
+        int origen = centroUrbano(oLat, oLng);
+        // Ambos extremos tienen que caer en el MISMO casco urbano. Comprobar
+        // solo que los dos fueran "urbanos" hacía que Santa Cruz → La Laguna
+        // (dos municipios) y hasta Las Palmas → Arrecife (dos islas) se
+        // cobraran con la tarifa urbana de Las Palmas, más barata que la
+        // interurbana que corresponde: el taxista perdía dinero en cada viaje.
+        return origen >= 0 && origen == centroUrbano(dLat, dLng)
+            ? Zona.URBANA
+            : Zona.INTERURBANO;
     }
 
     // ─────────────────────────── TARIFA 1 (urbana) ───────────────────────────
@@ -275,7 +292,7 @@ public class TarifaService {
      */
     public BigDecimal precioPorRuta(double oLat, double oLng, double dLat, double dLng, double km) {
         Zona zona = zonaDe(oLat, oLng, dLat, dLng);
-        ZonedDateTime ahora = ZonedDateTime.now(CANARIAS);
+        ZonedDateTime ahora = ZonedDateTime.now(reloj);
         BigDecimal base = zona == Zona.URBANA
             ? aplicarUrbana(franjaUrbana(ahora), km)
             : aplicarT3(franjaT3(ahora), km);
@@ -311,7 +328,7 @@ public class TarifaService {
 
     /** Información de la tarifa vigente ahora mismo (para mostrar a usuarios). */
     public java.util.Map<String, Object> infoActual() {
-        var t   = ZonedDateTime.now(CANARIAS);
+        var t   = ZonedDateTime.now(reloj);
         var fU  = franjaUrbana(t);
         var f3  = franjaT3(t);
         int h   = t.getHour();
