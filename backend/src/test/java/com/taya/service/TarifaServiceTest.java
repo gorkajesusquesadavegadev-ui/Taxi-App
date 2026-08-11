@@ -335,6 +335,113 @@ class TarifaServiceTest {
         }
     }
 
+    // ────────────── La estimación completa (lo que sale por la API) ──────────────
+    //
+    // precioPorRuta es el núcleo, pero lo que consume el cliente es estimarVia:
+    // pide la ruta a OSRM, calcula el precio con la distancia REAL del recorrido
+    // y compone la respuesta. Aquí OSRM va mockeado: lo que se comprueba es el
+    // ensamblaje, no el router.
+
+    @Nested class EstimacionCompleta {
+
+        private TarifaService conRuta(double km, double minutos) {
+            var osrm = mock(OsrmClient.class);
+            when(osrm.rutaVia(any())).thenReturn(
+                new OsrmClient.Ruta(km, minutos, java.util.List.of(), false));
+            var instante = LocalDateTime.parse("2026-08-12T10:00:00").atZone(CANARIAS).toInstant();
+            return new TarifaService(
+                mock(ConfiguracionTarifaRepository.class),
+                osrm,
+                mock(FestivoService.class),
+                Clock.fixed(instante, CANARIAS));
+        }
+
+        @Test void devuelve_precio_horquilla_zona_y_suplementos() {
+            var e = conRuta(25.0, 28.4)
+                .estimar(LPA_LAT, LPA_LNG, MASPALOMAS_LAT, MASPALOMAS_LNG);
+
+            euros("36.18", e.precioEstimado());
+            euros("36", e.precioMin());
+            euros("41", e.precioMax());
+            assertEquals("Tarifa 3 · Interurbano", e.zona());
+            assertEquals("Radiotaxi 0,60€", e.suplementos());
+        }
+
+        @Test void el_detalle_de_suplementos_nombra_el_aeropuerto() {
+            var e = conRuta(25.0, 28.0)
+                .estimar(LPA_LAT, LPA_LNG, AEROPUERTO_LAT, AEROPUERTO_LNG);
+            assertEquals("Radiotaxi 0,60€ + Aeropuerto/Puerto 2,10€", e.suplementos());
+            euros("38.28", e.precioEstimado());
+        }
+
+        @Test void los_minutos_se_redondean_hacia_arriba() {
+            // 28,1 min → 29. Nunca prometer al cliente menos tiempo del estimado.
+            var e = conRuta(25.0, 28.1)
+                .estimar(LPA_LAT, LPA_LNG, MASPALOMAS_LAT, MASPALOMAS_LNG);
+            assertEquals(0, new BigDecimal("29").compareTo(e.duracionMin()));
+        }
+
+        @Test void con_paradas_el_precio_usa_la_distancia_del_recorrido_completo() {
+            // La zona la marca origen→destino, pero el importe sale de los km
+            // reales del recorrido con paradas: 30 km en vez de los 25 directos.
+            var e = conRuta(30.0, 40.0).estimarVia(
+                LPA_LAT, LPA_LNG, MASPALOMAS_LAT, MASPALOMAS_LNG,
+                java.util.List.of(new double[]{27.9, -15.5}));
+            // 3,85 + 1,35 × 28,500 = 42,325 → +0,60 = 42,925 → 42,93
+            euros("42.93", e.precioEstimado());
+            assertEquals("Tarifa 3 · Interurbano", e.zona());
+        }
+    }
+
+    // ──────────── Datos de tarifa que se le muestran al usuario ────────────
+
+    @Nested class InfoDeTarifaVigente {
+
+        @Test void de_dia_entre_semana_describe_la_franja_correcta() {
+            var m = alas("2026-08-12T10:00:00").infoActual();
+            assertEquals("Diurna laborable", m.get("franja"));
+            assertEquals(false, m.get("esFestivo"));
+            euros("3.05", (BigDecimal) m.get("bajadaBandera"));
+            euros("3.85", (BigDecimal) m.get("minimoPercepcionT3"));
+            assertEquals(500, m.get("metrosIncluidosUrbano"));
+            assertEquals(1500, m.get("metrosIncluidosT3"));
+        }
+
+        @Test void de_noche_lo_dice() {
+            assertEquals("Nocturna (22:00–6:00)", alas("2026-08-12T23:00:00").infoActual().get("franja"));
+        }
+
+        @Test void el_sabado_lo_dice() {
+            assertEquals("Sábado", alas("2026-08-15T10:00:00").infoActual().get("franja"));
+        }
+
+        @Test void el_domingo_lo_dice() {
+            var m = alas("2026-08-16T10:00:00").infoActual();
+            assertEquals("Festiva/Domingo", m.get("franja"));
+            assertEquals(true, m.get("esFestivo"));
+        }
+
+        @Test void publica_los_dos_suplementos() {
+            var m = alas("2026-08-12T10:00:00").infoActual();
+            euros("0.60", (BigDecimal) m.get("suplementoRadiotaxi"));
+            euros("2.10", (BigDecimal) m.get("suplementoAeropuertoPuerto"));
+        }
+    }
+
+    // ───────────────────── Radio de búsqueda de taxis ─────────────────────
+
+    @Nested class RadioDeBusqueda {
+
+        @Test void sin_configuracion_en_base_de_datos_usa_cinco_kilometros() {
+            var repo = mock(ConfiguracionTarifaRepository.class);
+            when(repo.findAll()).thenReturn(java.util.List.of());
+            var t = new TarifaService(repo, mock(OsrmClient.class), mock(FestivoService.class),
+                Clock.systemUTC());
+            // Si esto devolviera null o 0, el matching no encontraría ningún taxi.
+            euros("5", t.radioBusquedaKm());
+        }
+    }
+
     // ───────────── La horquilla que se le enseña al cliente ─────────────
 
     @Nested class Horquilla {
