@@ -45,6 +45,13 @@ public class AuthService {
     public AuthResponse register(RegisterRequest r) {
         if (usuarios.existsByEmail(r.email()))
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe una cuenta con ese correo. Inicia sesión o usa otro.");
+        // El rol llega en el cuerpo de la peticion, asi que un registro publico
+        // NO puede crear administradores: cualquiera mandaba {"rol":"ADMIN"} y se
+        // colaba en el panel. Solo se admite CLIENTE o TAXISTA; ADMIN se crea
+        // aparte (DataSeeder, con ADMIN_PASSWORD). Ante cualquier otro valor, se
+        // trata como CLIENTE en vez de fallar: menos privilegio por defecto.
+        if (r.rol() != Rol.CLIENTE && r.rol() != Rol.TAXISTA)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Elige si viajas o conduces.");
         Usuario u = new Usuario();
         u.setNombre(r.nombre()); u.setEmail(r.email());
         u.setPasswordHash(encoder.encode(r.password())); u.setRol(r.rol());
