@@ -7,6 +7,10 @@ import { AuthProvider } from "./context/AuthContext.jsx";
 import { I18nProvider } from "./i18n/index.jsx";
 import "./index.css";
 import "./pwa.js";
+import { silenciarConsola } from "./utils/silenciarConsola.js";
+
+// Lo primero de todo: antes de que ninguna librería tenga ocasión de escribir.
+silenciarConsola();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

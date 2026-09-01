@@ -82,7 +82,34 @@ export default defineConfig({
     }),
   ],
   server: { port: 5173, host: true },
+  /*
+   * Nada de consola en producción.
+   *
+   * Nuestro código no llama a console en ningún sitio, pero las librerías sí
+   * (Leaflet, React, el script de analítica, html2canvas...). Cualquiera que
+   * abra las herramientas de desarrollo veía esos mensajes, y algunos dicen
+   * qué se está usando por dentro y con qué versión. `drop` los elimina del
+   * bundle en el build: no es que se silencien, es que no llegan a existir.
+   *
+   * Solo afecta a la compilación de producción; en `npm run dev` la consola
+   * sigue funcionando igual.
+   */
+  esbuild: {
+    drop: ["console", "debugger"],
+  },
   build: {
+    // Sin mapas de código: publicarlos entrega el código fuente original,
+    // comentarios incluidos, a cualquiera que abra el navegador.
+    sourcemap: false,
+    // Terser en vez del minificador por defecto: `esbuild.drop` de arriba
+    // limpia nuestro código, pero deja los console de algunas dependencias ya
+    // minificadas (html2canvas y jspdf, del recibo en PDF). Terser los quita
+    // también, y con ellos los comentarios que llevaban dentro.
+    minify: "terser",
+    terserOptions: {
+      compress: { drop_console: true, drop_debugger: true },
+      format: { comments: false },
+    },
     rollupOptions: {
       output: {
         manualChunks(id) {

@@ -43,7 +43,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**", "/ws/**", "/error").permitAll()
-                .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
+                .requestMatchers("/actuator/health/**").permitAll()   // solo el estado; /actuator/info retirado
                 .requestMatchers(HttpMethod.GET, "/api/push/vapid-public-key").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/viajes/seguir/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")

@@ -28,10 +28,12 @@ public class AuthService {
     private final PasswordEncoder encoder;
     private final JwtTokenProvider jwt;
     private final GoogleIdTokenVerifier googleVerifier;
+    private final com.taya.security.IntentosLogin intentos;
 
     public AuthService(UsuarioRepository u, PasswordEncoder e, JwtTokenProvider j,
+                        com.taya.security.IntentosLogin intentos,
                         @Value("${google.client-id:}") String googleClientId) {
-        this.usuarios = u; this.encoder = e; this.jwt = j;
+        this.usuarios = u; this.encoder = e; this.jwt = j; this.intentos = intentos;
         // Sin GOOGLE_CLIENT_ID configurado, /auth/google queda deshabilitado
         // (verifier null) en vez de arrancar roto — útil en local/dev.
         this.googleVerifier = googleClientId.isBlank() ? null : new GoogleIdTokenVerifier.Builder(
@@ -58,11 +60,21 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest r) {
-        Usuario u = usuarios.findByEmail(r.email())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Correo o contraseña incorrectos"));
+        // Freno por cuenta antes de tocar la base de datos: si esta cuenta
+        // lleva demasiados fallos seguidos, el intento se corta aquí y no se
+        // gasta ni una comprobación de bcrypt.
+        intentos.comprobar(r.email());
+
+        Usuario u = usuarios.findByEmail(r.email()).orElse(null);
         // Cuenta creada por "Continuar con Google": no tiene contraseña propia.
-        if (u.getPasswordHash() == null || !encoder.matches(r.password(), u.getPasswordHash()))
+        if (u == null || u.getPasswordHash() == null || !encoder.matches(r.password(), u.getPasswordHash())) {
+            // Se cuenta el fallo exista la cuenta o no, y se responde lo mismo
+            // en los dos casos: si no, el mensaje diría qué correos están
+            // registrados.
+            intentos.fallo(r.email());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Correo o contraseña incorrectos");
+        }
+        intentos.acierto(r.email());
         if (u.isBloqueado())
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Tu cuenta está bloqueada. Escribe a gorkajesusquesadavegadev@gmail.com para recuperarla.");
         return new AuthResponse(jwt.generate(u.getId(), u.getRol().name()), u.getId(), u.getNombre(), u.getRol().name());
