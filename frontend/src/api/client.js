@@ -37,6 +37,26 @@ function textoUsable(t) {
     && t.length <= 300 && !TEXTO_TECNICO.test(t);
 }
 
+/*
+ * Aviso de "el servidor ha rechazado el token".
+ *
+ * client.js no sabe nada de React, así que no puede cerrar sesión por su
+ * cuenta: se limita a avisar, y AuthContext decide (confirmando contra
+ * /usuarios/me, porque un 403 también puede ser legítimo).
+ */
+const oyentesSesion = new Set();
+
+export function alPerderSesion(fn) {
+  oyentesSesion.add(fn);
+  return () => oyentesSesion.delete(fn);
+}
+
+function avisarSesion() {
+  for (const fn of oyentesSesion) {
+    try { fn(); } catch (_) { /* un oyente roto no debe tumbar la petición */ }
+  }
+}
+
 async function req(method, path, body) {
   const headers = { "Content-Type": "application/json" };
   const token = tokenStore.get();
@@ -58,6 +78,11 @@ async function req(method, path, body) {
   }
 
   if (!res.ok) {
+    // Enviamos token y aun así lo rechaza: puede haber caducado o haber sido
+    // revocado. No se decide aquí; se avisa y AuthContext lo confirma.
+    if ((res.status === 401 || res.status === 403) && token && path !== "/usuarios/me") {
+      avisarSesion();
+    }
     const text = await res.text().catch(() => "");
     let msg = null;
     try {

@@ -600,6 +600,28 @@ export default function Auth() {
   // no está configurado).
   const googleBtnRef = useRef(null);
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  // El callback se guarda en una ref para que el efecto NO dependa de él.
+  // loginGoogle venía de un contexto que creaba funciones nuevas en cada
+  // render, así que el efecto se relanzaba constantemente y Google avisaba:
+  // «google.accounts.id.initialize() is called multiple times». Además de
+  // ensuciar la consola, GSI se queda con la última instancia inicializada,
+  // así que el botón podía acabar apuntando a un callback ya obsoleto.
+  const alCredencial = useRef(null);
+  alCredencial.current = async ({ credential }) => {
+    setBusy(true);
+    setError("");
+    try {
+      await loginGoogle(credential);
+    } catch (err) {
+      setError(err.message || t("auth.couldNotComplete"));
+      failShake();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const gsiListo = useRef(false);
+
   useEffect(() => {
     if (!open || !clientId) return;
     if (!document.querySelector('script[src="https://accounts.google.com/gsi/client"]')) {
@@ -614,21 +636,14 @@ export default function Auth() {
     const intentar = () => {
       if (cancelado) return;
       if (window.google?.accounts?.id && googleBtnRef.current) {
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: async ({ credential }) => {
-            setBusy(true);
-            setError("");
-            try {
-              await loginGoogle(credential);
-            } catch (err) {
-              setError(err.message || t("auth.couldNotComplete"));
-              failShake();
-            } finally {
-              setBusy(false);
-            }
-          },
-        });
+        // initialize() es global y se llama UNA vez por carga de página.
+        if (!gsiListo.current) {
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: (respuesta) => alCredencial.current?.(respuesta),
+          });
+          gsiListo.current = true;
+        }
         googleBtnRef.current.innerHTML = "";
         window.google.accounts.id.renderButton(googleBtnRef.current, {
           type: "standard", theme: "filled_blue", size: "large", shape: "pill",
@@ -640,7 +655,9 @@ export default function Auth() {
     };
     intentar();
     return () => { cancelado = true; };
-  }, [open, clientId, loginGoogle, t]);
+    // Solo depende de si la tarjeta está abierta y de si hay client id: el
+    // callback vive en una ref, así que no hace falta volver a montar nada.
+  }, [open, clientId]);
 
   const errs = validate(form, mode);
   const fieldError = (k) => (touched[k] && errs[k] ? t(errs[k]) : "");

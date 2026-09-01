@@ -147,16 +147,26 @@ export default function ClienteHome() {
   // (COMPLETADO/CANCELADO), so polling only /activo strands the client at the end.
   useEffect(() => {
     let alive = true;
+    let temporizador = null;
+    // El primer ciclo mira además si quedó un viaje terminado sin valorar:
+    // /activo no devuelve estados terminales, así que al recargar la página
+    // tras completar un viaje la tarjeta de valoración desaparecía y ya no se
+    // podía puntuar nunca. Basta comprobarlo al entrar, no cada dos segundos.
+    let faltaBuscarValorable = true;
+
     const sync = async () => {
       try {
         const cur = viajeRef.current;
-        // Sin viaje en curso, además del activo se busca el último terminado
-        // sin valorar: /activo no devuelve estados terminales, así que al
-        // recargar tras completar un viaje la tarjeta de valoración
-        // desaparecía y ya no se podía puntuar nunca.
-        const a = cur
-          ? await api.viaje(cur.id)
-          : (await api.activo()) || (await api.ultimoValorable().catch(() => null));
+        let a;
+        if (cur) {
+          a = await api.viaje(cur.id);
+        } else {
+          a = await api.activo();
+          if (!a && faltaBuscarValorable) {
+            faltaBuscarValorable = false;
+            a = await api.ultimoValorable().catch(() => null);
+          }
+        }
         if (!alive || !a) return;
         setViaje((c) =>
           !c || c.id !== a.id || c.estado !== a.estado || c.precioFinal !== a.precioFinal
@@ -169,11 +179,33 @@ export default function ClienteHome() {
         /* keep current state on transient error */
       }
     };
-    sync();
-    const id = setInterval(sync, 2000);
+    /*
+     * Cadencia adaptativa.
+     *
+     * Antes se sondeaba cada 2 s de forma fija, y sin viaje en curso cada
+     * vuelta lanzaba DOS peticiones (/activo y /ultimo-valorable): unas 60 al
+     * minuto de un cliente que no estaba haciendo nada. Sumando el sondeo de
+     * taxis cercanos, un solo cliente parado rondaba las 68 por minuto contra
+     * un límite de 120: con dos pestañas abiertas la propia app se ganaba un
+     * 429 y el usuario veía «Demasiados intentos» sin haber tocado nada.
+     *
+     * Los avisos en vivo llegan por WebSocket; esto es solo la red de
+     * seguridad por si se pierde alguno. Así que se sondea rápido únicamente
+     * mientras hay un viaje en marcha, que es cuando importan los segundos.
+     */
+    const proximo = () => {
+      const est = viajeRef.current?.estado;
+      const enMarcha = est && est !== "COMPLETADO" && est !== "CANCELADO";
+      return enMarcha ? 3000 : 15000;
+    };
+    const ciclo = async () => {
+      await sync();
+      if (alive) temporizador = setTimeout(ciclo, proximo());
+    };
+    ciclo();
     return () => {
       alive = false;
-      clearInterval(id);
+      clearTimeout(temporizador);
     };
   }, []);
 
