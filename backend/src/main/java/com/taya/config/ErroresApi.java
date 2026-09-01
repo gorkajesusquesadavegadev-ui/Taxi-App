@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -70,6 +71,27 @@ public class ErroresApi {
         log.warn("Cuerpo de petición ilegible: {}", e.getMostSpecificCause().toString());
         return problema(HttpStatus.BAD_REQUEST,
             "No hemos podido leer los datos enviados. Revisa el formulario e inténtalo de nuevo.");
+    }
+
+    /**
+     * La base de datos rechaza el dato (columna demasiado corta, restricción
+     * única, campo obligatorio a null).
+     *
+     * Este es el que provocó la fuga que reportó un usuario al registrarse: el
+     * mensaje de Hibernate para un fallo así incluye la sentencia INSERT
+     * completa, es decir el nombre de las 23 columnas de la tabla de usuarios
+     * —password_hash entre ellas— y a veces la fila que falló con sus valores.
+     * Con server.error.include-message=always aquello viajaba tal cual al
+     * navegador de quien se estaba dando de alta.
+     *
+     * Los DTO ya validan longitudes para que no se llegue hasta aquí; esto es
+     * la segunda barrera, por si aparece una restricción que nadie previó.
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    ProblemDetail conflictoDeDatos(DataIntegrityViolationException e) {
+        log.error("Restricción de base de datos violada", e);
+        return problema(HttpStatus.CONFLICT,
+            "No hemos podido guardar esos datos. Revisa el formulario e inténtalo de nuevo.");
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

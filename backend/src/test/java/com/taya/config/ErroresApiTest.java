@@ -18,6 +18,8 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -110,6 +112,83 @@ class ErroresApiTest {
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED).content("hola"))
                 .andExpect(status().isUnsupportedMediaType())
                 .andExpect(jsonPath("$.detail", not(containsString("application/x-www-form-urlencoded"))));
+        }
+    }
+
+    /**
+     * La fuga que reportó un usuario al registrarse: veía en pantalla los
+     * nombres de todas las columnas de la tabla. Venía del mensaje de
+     * Hibernate, que incluye la sentencia INSERT entera.
+     */
+    @Nested class FugaDeEsquema {
+
+        private static final String MENSAJE_REAL_DE_HIBERNATE =
+            "could not execute statement [ERROR: value too long for type character varying(255)] "
+          + "[insert into usuarios (bloqueado,consentimiento_en,consentimiento_version,creado_en,"
+          + "disponible,email,google_sub,licencia,nombre,password_hash,rating_count,rating_media,"
+          + "rol,telefono,vehiculo_accesible,vehiculo_matricula,vehiculo_modelo,verificado,id) "
+          + "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)]";
+
+        private org.springframework.test.web.servlet.ResultActions registroQueRevienta() throws Exception {
+            when(auth.register(any())).thenThrow(
+                new org.springframework.dao.DataIntegrityViolationException(MENSAJE_REAL_DE_HIBERNATE));
+            return mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nombre\":\"A\",\"email\":\"a@b.com\",\"password\":\"Abcd1234!\","
+                       + "\"rol\":\"CLIENTE\",\"aceptaPrivacidad\":true}"));
+        }
+
+        @Test void no_se_filtra_ni_una_columna_de_la_tabla() throws Exception {
+            registroQueRevienta()
+                .andExpect(jsonPath("$.detail", not(containsString("password_hash"))))
+                .andExpect(jsonPath("$.detail", not(containsString("consentimiento"))))
+                .andExpect(jsonPath("$.detail", not(containsString("google_sub"))))
+                .andExpect(jsonPath("$.detail", not(containsString("usuarios"))))
+                .andExpect(jsonPath("$.detail", not(containsString("insert into"))));
+        }
+
+        @Test void tampoco_el_tipo_ni_el_motor_de_la_base_de_datos() throws Exception {
+            registroQueRevienta()
+                .andExpect(jsonPath("$.detail", not(containsString("character varying"))))
+                .andExpect(jsonPath("$.detail", not(containsString("could not execute"))));
+        }
+
+        @Test void el_usuario_recibe_algo_que_puede_entender() throws Exception {
+            registroQueRevienta()
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail", containsString("No hemos podido guardar esos datos")));
+        }
+
+        @Test void un_nombre_larguisimo_se_frena_en_la_validacion_no_en_la_bd() throws Exception {
+            // Si llega a la base de datos es que falta un @Size en el DTO.
+            String largo = "A".repeat(400);
+            mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"nombre\":\"" + largo + "\",\"email\":\"a@b.com\","
+                           + "\"password\":\"Abcd1234!\",\"rol\":\"CLIENTE\",\"aceptaPrivacidad\":true}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("El nombre es demasiado largo"));
+            verify(auth, never()).register(any());
+        }
+
+        @Test void una_matricula_larguisima_tampoco_llega_a_la_bd() throws Exception {
+            String largo = "B".repeat(400);
+            mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"nombre\":\"A\",\"email\":\"a@b.com\",\"password\":\"Abcd1234!\","
+                           + "\"rol\":\"TAXISTA\",\"vehiculoMatricula\":\"" + largo + "\","
+                           + "\"aceptaPrivacidad\":true}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("La matrícula es demasiado larga"));
+            verify(auth, never()).register(any());
+        }
+
+        @Test void una_contrasena_mas_larga_que_bcrypt_se_rechaza_en_vez_de_recortarse() throws Exception {
+            // bcrypt ignora todo lo que pase de 72 bytes. Sin este límite, el
+            // usuario creería tener una contraseña de 100 caracteres.
+            mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"nombre\":\"A\",\"email\":\"a@b.com\",\"password\":\"" + "x".repeat(100)
+                           + "\",\"rol\":\"CLIENTE\",\"aceptaPrivacidad\":true}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail", containsString("entre 6 y 72")));
+            verify(auth, never()).register(any());
         }
     }
 

@@ -44,16 +44,28 @@ public class UsuarioController {
     }
 
     /** Campos de vehículo solo se aplican a taxistas; en cliente se ignoran. */
-    public record ActualizarMeRequest(@NotBlank @Size(min = 2, max = 60) String nombre,
-                                      String vehiculoModelo, String vehiculoMatricula,
-                                      String telefono, Boolean vehiculoAccesible) {}
+    // Mismos límites que en el alta: sin ellos un campo largo llegaba a la
+    // columna de la base de datos y el error resultante devolvía al usuario la
+    // sentencia INSERT entera de Hibernate. Y los mensajes van escritos, que si
+    // no Bean Validation responde en inglés y eso es lo que se ve en pantalla.
+    public record ActualizarMeRequest(
+        @NotBlank(message = "Escribe tu nombre")
+        @Size(min = 2, max = 60, message = "El nombre debe tener entre 2 y 60 caracteres") String nombre,
+        @Size(max = 60, message = "El modelo del vehículo es demasiado largo") String vehiculoModelo,
+        @Size(max = 15, message = "La matrícula es demasiado larga") String vehiculoMatricula,
+        @Size(max = 20, message = "El teléfono es demasiado largo") String telefono,
+        Boolean vehiculoAccesible) {}
 
-    public record CambiarPasswordRequest(@NotBlank String actual,
-                                         @NotBlank @Size(min = 6, max = 100) String nueva) {}
+    public record CambiarPasswordRequest(
+        @NotBlank(message = "Escribe tu contraseña actual") String actual,
+        @NotBlank(message = "Escribe la contraseña nueva")
+        // 72 bytes es el máximo real de bcrypt; más allá recorta sin avisar.
+        @Size(min = 6, max = 72, message = "La contraseña debe tener entre 6 y 72 caracteres") String nueva) {}
 
     /** RGPD art. 17: confirmación de contraseña obligatoria — evita que una sesión
      *  robada/olvidada en un dispositivo borre la cuenta sin el consentimiento real. */
-    public record EliminarCuentaRequest(@NotBlank String password) {}
+    public record EliminarCuentaRequest(
+        @NotBlank(message = "Escribe tu contraseña para confirmar") String password) {}
 
     private UsuarioResponse aResponse(com.taya.model.Usuario u) {
         return new UsuarioResponse(u.getId(), u.getNombre(), u.getEmail(), u.getRol().name(),
