@@ -42,7 +42,7 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest r) {
         if (usuarios.existsByEmail(r.email()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "email ya registrado");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe una cuenta con ese correo. Inicia sesión o usa otro.");
         Usuario u = new Usuario();
         u.setNombre(r.nombre()); u.setEmail(r.email());
         u.setPasswordHash(encoder.encode(r.password())); u.setRol(r.rol());
@@ -59,12 +59,12 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest r) {
         Usuario u = usuarios.findByEmail(r.email())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "credenciales inválidas"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Correo o contraseña incorrectos"));
         // Cuenta creada por "Continuar con Google": no tiene contraseña propia.
         if (u.getPasswordHash() == null || !encoder.matches(r.password(), u.getPasswordHash()))
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "credenciales inválidas");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Correo o contraseña incorrectos");
         if (u.isBloqueado())
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "cuenta bloqueada. Contacta con soporte.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Tu cuenta está bloqueada. Escribe a gorkajesusquesadavegadev@gmail.com para recuperarla.");
         return new AuthResponse(jwt.generate(u.getId(), u.getRol().name()), u.getId(), u.getNombre(), u.getRol().name());
     }
 
@@ -78,20 +78,20 @@ public class AuthService {
      */
     public AuthResponse loginConGoogle(String idTokenStr) {
         if (googleVerifier == null)
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Google Sign-In no configurado");
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "El acceso con Google no está disponible ahora mismo. Entra con tu correo y contraseña.");
 
         GoogleIdToken idToken;
         try {
             idToken = googleVerifier.verify(idTokenStr);
         } catch (GeneralSecurityException | IOException | IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "token de Google inválido");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No hemos podido validar tu cuenta de Google. Inténtalo de nuevo.");
         }
         if (idToken == null)
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "token de Google inválido");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No hemos podido validar tu cuenta de Google. Inténtalo de nuevo.");
 
         GoogleIdToken.Payload payload = idToken.getPayload();
         if (!Boolean.TRUE.equals(payload.getEmailVerified()))
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "email de Google no verificado");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Tu correo de Google no está verificado. Verifícalo en Google y vuelve a intentarlo.");
         String sub = payload.getSubject();
         String email = payload.getEmail();
         String nombre = (String) payload.get("name");
@@ -115,7 +115,7 @@ public class AuthService {
         u = usuarios.save(u);
 
         if (u.isBloqueado())
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "cuenta bloqueada. Contacta con soporte.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Tu cuenta está bloqueada. Escribe a gorkajesusquesadavegadev@gmail.com para recuperarla.");
         return new AuthResponse(jwt.generate(u.getId(), u.getRol().name()), u.getId(), u.getNombre(), u.getRol().name());
     }
 }

@@ -11,32 +11,78 @@ export const tokenStore = {
   clear: () => sessionStorage.removeItem(TOKEN_KEY),
 };
 
+/**
+ * Mensaje de respaldo por código de estado.
+ *
+ * El backend manda un texto pensado para el usuario en `detail`. Pero si la
+ * respuesta no llega a tocar el backend —un 502 del proxy, un mantenimiento,
+ * un HTML de error de la CDN— el cuerpo no es JSON, y antes se pintaba tal
+ * cual: el usuario acababa viendo etiquetas HTML dentro del recuadro de error.
+ */
+function mensajePorEstado(estado) {
+  if (estado === 401) return "Correo o contraseña incorrectos.";
+  if (estado === 403) return "No tienes permiso para hacer esto.";
+  if (estado === 404) return "No hemos encontrado lo que buscas.";
+  if (estado === 409) return "Esa operación no se puede completar ahora mismo.";
+  if (estado === 429) return "Demasiados intentos seguidos. Espera un momento y prueba otra vez.";
+  if (estado >= 500) return "El servicio no responde ahora mismo. Inténtalo en unos segundos.";
+  return "No hemos podido completar la operación. Inténtalo de nuevo.";
+}
+
+// Un texto sirve para enseñarlo solo si parece una frase, no una traza ni HTML.
+const TEXTO_TECNICO = /<[a-z!/]|Exception|Throwable|\bError:|\bat [a-z]+\.[a-z]+\.|stack|\{"|^\s*[{[]/i;
+
+function textoUsable(t) {
+  return Boolean(t) && typeof t === "string" && t.trim().length > 0
+    && t.length <= 300 && !TEXTO_TECNICO.test(t);
+}
+
 async function req(method, path, body) {
   const headers = { "Content-Type": "application/json" };
   const token = tokenStore.get();
   if (token) headers["Authorization"] = "Bearer " + token;
-  const res = await fetch(BASE + path, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+
+  let res;
+  try {
+    res = await fetch(BASE + path, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch (_) {
+    // fetch solo rechaza si no hubo respuesta: sin cobertura, DNS, CORS…
+    // El navegador dice "Failed to fetch", que no le sirve a nadie.
+    const err = new Error("Sin conexión. Comprueba tu internet e inténtalo de nuevo.");
+    err.status = 0;
+    throw err;
+  }
+
   if (!res.ok) {
-    const text = await res.text();
-    let msg = text || `${res.status} ${res.statusText}`;
+    const text = await res.text().catch(() => "");
+    let msg = null;
     try {
-      const body = JSON.parse(text);
-      // 'detail' lo usa ProblemDetail (errores de validación con mensaje
-      // legible); 'message' el resto de errores de Spring.
-      if (body && (body.detail || body.message)) msg = body.detail || body.message;
+      const cuerpo = JSON.parse(text);
+      // 'detail' lo usa ProblemDetail, que es lo que devuelve ErroresApi;
+      // 'message' queda por compatibilidad con respuestas antiguas.
+      const candidato = cuerpo && (cuerpo.detail || cuerpo.message);
+      if (textoUsable(candidato)) msg = candidato;
     } catch (_) {
-      /* plain text */
+      // No era JSON. Puede ser el HTML de error de un proxy: no se enseña.
     }
-    const err = new Error(msg);
+    const err = new Error(msg || mensajePorEstado(res.status));
     err.status = res.status;
     throw err;
   }
+
   const text = await res.text();
-  return text ? JSON.parse(text) : null;
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch (_) {
+    const err = new Error("La respuesta del servidor no era válida. Inténtalo de nuevo.");
+    err.status = res.status;
+    throw err;
+  }
 }
 
 export const api = {
