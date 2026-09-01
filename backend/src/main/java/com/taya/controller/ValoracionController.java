@@ -9,11 +9,14 @@ public class ValoracionController {
     private final ValoracionService valoraciones;
     public ValoracionController(ValoracionService valoraciones) { this.valoraciones = valoraciones; }
 
-    public record ValorarRequest(@Min(1) @Max(5) int estrellas, String comentario) {}
+    public record ValorarRequest(
+        @Min(value = 1, message = "La valoración va de 1 a 5")
+        @Max(value = 5, message = "La valoración va de 1 a 5") int estrellas,
+        @Size(max = 500, message = "El comentario es demasiado largo") String comentario) {}
 
     @PostMapping("/{viajeId}")
     public void valorar(@AuthenticationPrincipal String uid, @PathVariable Long viajeId,
-                        @RequestBody ValorarRequest r) {
+                        @jakarta.validation.Valid @RequestBody ValorarRequest r) {
         valoraciones.valorar(viajeId, Long.valueOf(uid), r.estrellas(), r.comentario());
     }
 

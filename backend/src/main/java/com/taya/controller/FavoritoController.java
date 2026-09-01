@@ -1,7 +1,10 @@
 package com.taya.controller;
 import com.taya.model.Favorito;
 import com.taya.repository.FavoritoRepository;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +19,12 @@ public class FavoritoController {
     public FavoritoController(FavoritoRepository favoritos) { this.favoritos = favoritos; }
 
     public record FavoritoResponse(Long id, String etiqueta, String direccion, double lat, double lng) {}
-    public record CrearFavoritoRequest(@NotBlank String etiqueta, String direccion, double lat, double lng) {}
+    public record CrearFavoritoRequest(
+        @NotBlank(message = "Ponle un nombre al favorito")
+        @Size(max = 60, message = "El nombre es demasiado largo") String etiqueta,
+        @Size(max = 200, message = "La dirección es demasiado larga") String direccion,
+        @DecimalMin(value = "-90", message = "Coordenada no válida") @DecimalMax(value = "90", message = "Coordenada no válida") double lat,
+        @DecimalMin(value = "-180", message = "Coordenada no válida") @DecimalMax(value = "180", message = "Coordenada no válida") double lng) {}
 
     private FavoritoResponse aResponse(Favorito f) {
         return new FavoritoResponse(f.getId(), f.getEtiqueta(), f.getDireccion(), f.getLat(), f.getLng());
@@ -29,7 +37,7 @@ public class FavoritoController {
 
     @PostMapping
     @Transactional
-    public FavoritoResponse crear(@AuthenticationPrincipal String uid, @RequestBody CrearFavoritoRequest r) {
+    public FavoritoResponse crear(@AuthenticationPrincipal String uid, @jakarta.validation.Valid @RequestBody CrearFavoritoRequest r) {
         Long usuarioId = Long.valueOf(uid);
         if (favoritos.countByUsuarioId(usuarioId) >= MAX_POR_USUARIO)
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Has alcanzado el máximo de favoritos");

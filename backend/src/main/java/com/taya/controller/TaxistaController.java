@@ -19,7 +19,12 @@ public class TaxistaController {
         this.ubicacion=u; this.tarifa=t; this.viajes=v; this.usuarios=usuarios; this.trips=trips;
     }
 
-    public record EstadoRequest(String estado, Double lat, Double lng) {}
+    public record EstadoRequest(
+        @jakarta.validation.constraints.Size(max = 20, message = "Estado no válido") String estado,
+        @jakarta.validation.constraints.DecimalMin(value = "-90", message = "Coordenada no válida")
+        @jakarta.validation.constraints.DecimalMax(value = "90", message = "Coordenada no válida") Double lat,
+        @jakarta.validation.constraints.DecimalMin(value = "-180", message = "Coordenada no válida")
+        @jakarta.validation.constraints.DecimalMax(value = "180", message = "Coordenada no válida") Double lng) {}
 
     /**
      * Ping de posición por REST — equivalente al 'location:update' del WebSocket.
@@ -27,9 +32,13 @@ public class TaxistaController {
      * app en Expo Go, etc.), el taxista sigue visible, despachable y con el
      * fallback de 'pendiente-cercano' operativo solo con HTTPS.
      */
-    public record PingRequest(double lat, double lng) {}
+    public record PingRequest(
+        @jakarta.validation.constraints.DecimalMin(value = "-90", message = "Coordenada no válida")
+        @jakarta.validation.constraints.DecimalMax(value = "90", message = "Coordenada no válida") double lat,
+        @jakarta.validation.constraints.DecimalMin(value = "-180", message = "Coordenada no válida")
+        @jakarta.validation.constraints.DecimalMax(value = "180", message = "Coordenada no válida") double lng) {}
     @PostMapping("/ping")
-    public void ping(@AuthenticationPrincipal String uid, @RequestBody PingRequest r) {
+    public void ping(@AuthenticationPrincipal String uid, @jakarta.validation.Valid @RequestBody PingRequest r) {
         Long id = Long.valueOf(uid);
         ubicacion.actualizarUbicacion(id, r.lat(), r.lng());
         Long clienteId = ubicacion.clienteDelViaje(id);
@@ -38,7 +47,7 @@ public class TaxistaController {
 
     @PutMapping("/estado")
     @Transactional
-    public void estado(@AuthenticationPrincipal String uid, @RequestBody EstadoRequest r) {
+    public void estado(@AuthenticationPrincipal String uid, @jakarta.validation.Valid @RequestBody EstadoRequest r) {
         Long id = Long.valueOf(uid);
         boolean libre = "LIBRE".equals(r.estado());
         if (libre) ubicacion.setLibre(id, r.lat(), r.lng());

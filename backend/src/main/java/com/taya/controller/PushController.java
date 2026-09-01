@@ -19,11 +19,15 @@ public class PushController {
     @GetMapping("/vapid-public-key")
     public Map<String, String> vapidKey() { return Map.of("publicKey", push.publicKey()); }
 
-    public record SubscribeRequest(String endpoint, String p256dh, String auth) {}
+    public record SubscribeRequest(
+        @jakarta.validation.constraints.NotBlank(message = "Falta el endpoint de la suscripción")
+        @jakarta.validation.constraints.Size(max = 1000, message = "Endpoint demasiado largo") String endpoint,
+        @jakarta.validation.constraints.Size(max = 500, message = "Clave demasiado larga") String p256dh,
+        @jakarta.validation.constraints.Size(max = 500, message = "Clave demasiado larga") String auth) {}
 
     @PostMapping("/subscribe")
     @Transactional
-    public void subscribe(@AuthenticationPrincipal String uid, @RequestBody SubscribeRequest r) {
+    public void subscribe(@AuthenticationPrincipal String uid, @jakarta.validation.Valid @RequestBody SubscribeRequest r) {
         if (r.endpoint() == null || r.p256dh() == null || r.auth() == null) return;
         var sub = subs.findByEndpoint(r.endpoint()).orElseGet(PushSubscription::new);
         sub.setUsuarioId(Long.valueOf(uid));
@@ -35,7 +39,7 @@ public class PushController {
 
     @PostMapping("/unsubscribe")
     @Transactional
-    public void unsubscribe(@RequestBody SubscribeRequest r) {
+    public void unsubscribe(@jakarta.validation.Valid @RequestBody SubscribeRequest r) {
         if (r.endpoint() != null) subs.deleteByEndpoint(r.endpoint());
     }
 }
