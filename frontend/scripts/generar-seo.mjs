@@ -90,6 +90,16 @@ const IDIOMAS = {
     h2Inter: "Tarifa 3 · Interurbana (aeropuerto, sur, norte y resto de la isla)",
     interNota:
       "Se aplica en cuanto el origen o el destino queda fuera del casco urbano: aeropuerto, Maspalomas, Mogán, Telde, Gáldar… No hay bajada de bandera, sino un mínimo de percepción que ya incluye los primeros 1.500 metros.",
+    h2Muni: "Qué tarifa se aplica en cada municipio",
+    muniIntro: "La licencia del taxi es municipal y la tarifa la marca el municipio donde EMPIEZA el viaje. Estos son los municipios que cubre CanaryCab hoy:",
+    muniCol1: "Municipio de origen",
+    muniCol2: "Tarifa aplicada",
+    muni: [
+      ["Las Palmas de Gran Canaria (dentro del casco)", "Tarifa 1 urbana — más barata por km, con recargo de noche, sábados y festivos. Bajada de bandera incluye 500 m."],
+      ["San Bartolomé de Tirajana (Maspalomas, Playa del Inglés, San Agustín, El Tablero…)", "Tarifa 3 interurbana — no tiene tarifa urbana propia. Precio único las 24 horas. Mínimo incluye 1.500 m."],
+      ["Entre municipios, al aeropuerto o resto de la isla", "Tarifa 3 interurbana."],
+    ],
+    muniNota: "La tarifa depende de dónde SALE el viaje, no del taxista. Un conductor de un municipio no puede coger un servicio que arranca en otro: es una obligación de la licencia municipal del taxi.",
     h2Sup: "Suplementos oficiales",
     h2Ej: "Cuánto cuesta un taxi en Gran Canaria: precios de referencia",
     ejNota:
@@ -163,6 +173,16 @@ const IDIOMAS = {
     h2Inter: "Tariff 3 · Interurban (airport, south, north and the rest of the island)",
     interNota:
       "Applies as soon as the pick-up or drop-off is outside the city: airport, Maspalomas, Mogán, Telde, Gáldar… There is no flag drop, but a minimum charge that already covers the first 1,500 metres.",
+    h2Muni: "Which tariff applies in each municipality",
+    muniIntro: "Taxi licences are municipal, and the tariff is set by the municipality where the trip STARTS. These are the municipalities CanaryCab covers today:",
+    muniCol1: "Municipality of origin",
+    muniCol2: "Tariff applied",
+    muni: [
+      ["Las Palmas de Gran Canaria (within the city)", "Urban Tariff 1 — cheaper per km, with a night, Saturday and holiday surcharge. Flag drop includes 500 m."],
+      ["San Bartolomé de Tirajana (Maspalomas, Playa del Inglés, San Agustín, El Tablero…)", "Interurban Tariff 3 — no urban tariff of its own. Single price, 24 hours. Minimum includes 1,500 m."],
+      ["Between municipalities, to the airport or the rest of the island", "Interurban Tariff 3."],
+    ],
+    muniNota: "The tariff depends on where the trip STARTS, not on the driver. A driver from one municipality cannot take a ride starting in another: it is an obligation of the municipal taxi licence.",
     h2Sup: "Official supplements",
     h2Ej: "How much a taxi costs in Gran Canaria: reference prices",
     ejNota:
@@ -236,6 +256,16 @@ const IDIOMAS = {
     h2Inter: "Tarif 3 · Überland (Flughafen, Süden, Norden und restliche Insel)",
     interNota:
       "Gilt, sobald Start oder Ziel außerhalb der Stadt liegt: Flughafen, Maspalomas, Mogán, Telde, Gáldar… Es gibt keine Grundgebühr, sondern ein Mindestentgelt, das bereits die ersten 1.500 Meter enthält.",
+    h2Muni: "Welcher Tarif in welcher Gemeinde gilt",
+    muniIntro: "Die Taxilizenz ist gemeindegebunden; der Tarif richtet sich nach der Gemeinde, in der die Fahrt BEGINNT. Diese Gemeinden deckt CanaryCab derzeit ab:",
+    muniCol1: "Startgemeinde",
+    muniCol2: "Angewendeter Tarif",
+    muni: [
+      ["Las Palmas de Gran Canaria (im Stadtgebiet)", "Städtischer Tarif 1 — günstiger pro km, mit Zuschlag nachts, samstags und an Feiertagen. Grundgebühr enthält 500 m."],
+      ["San Bartolomé de Tirajana (Maspalomas, Playa del Inglés, San Agustín, El Tablero…)", "Überörtlicher Tarif 3 — kein eigener Stadttarif. Einheitspreis, 24 Stunden. Mindestbetrag enthält 1.500 m."],
+      ["Zwischen Gemeinden, zum Flughafen oder in den Rest der Insel", "Überörtlicher Tarif 3."],
+    ],
+    muniNota: "Der Tarif hängt davon ab, wo die Fahrt BEGINNT, nicht vom Fahrer. Ein Fahrer aus einer Gemeinde darf keine Fahrt übernehmen, die in einer anderen beginnt: Das ist eine Pflicht der gemeindlichen Taxilizenz.",
     h2Sup: "Offizielle Zuschläge",
     h2Ej: "Was ein Taxi auf Gran Canaria kostet: Richtpreise",
     ejNota:
@@ -666,6 +696,18 @@ ${filasT3(L)}
           </tbody>
         </table>
       </div>
+
+      <h2>${esc(L.h2Muni)}</h2>
+      <p class="nota">${esc(L.muniIntro)}</p>
+      <div class="tabla-scroll">
+        <table>
+          <thead><tr><th>${esc(L.muniCol1)}</th><th>${esc(L.muniCol2)}</th></tr></thead>
+          <tbody>
+${L.muni.map(([m, t3]) => `            <tr><th scope="row">${esc(m)}</th><td>${esc(t3)}</td></tr>`).join("\n")}
+          </tbody>
+        </table>
+      </div>
+      <p class="nota">${esc(L.muniNota)}</p>
 
       <h2>${esc(L.h2Sup)}</h2>
       <div class="tabla-scroll">

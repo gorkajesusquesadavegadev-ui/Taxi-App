@@ -74,7 +74,7 @@ export default function TarifaActual() {
                 <div className="grain absolute inset-0" />
                 <div className="relative">
                   <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-volcanic/60">
-                    {tr("fare.taxiLpgc")}
+                    {tr("fare.taxiGc")}
                   </p>
                   <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight drop-shadow-sm">
                     {tr("fare.farePrefix")} {t.franja}
@@ -124,13 +124,49 @@ export default function TarifaActual() {
                 </div>
               </div>
 
-              {/* nota */}
+              {/* qué tarifa se aplica según el municipio de origen del viaje */}
+              <div className="surface p-4 text-sm leading-relaxed text-volcanic/70">
+                <p className="font-semibold text-volcanic">{tr("fare.byTownTitle")}</p>
+                <p className="mt-1 text-volcanic/60">{tr("fare.byTownIntro")}</p>
+                <ul className="mt-3 space-y-2.5">
+                  <li className="flex gap-2.5">
+                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-atlantic" aria-hidden="true" />
+                    <span>
+                      <strong className="font-bold text-volcanic">{tr("fare.townLpgc")}</strong>{" "}
+                      {tr("fare.townLpgcBody")}
+                    </span>
+                  </li>
+                  <li className="flex gap-2.5">
+                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-taxi" aria-hidden="true" />
+                    <span>
+                      <strong className="font-bold text-volcanic">{tr("fare.townSbt")}</strong>{" "}
+                      {tr("fare.townSbtBody")}
+                    </span>
+                  </li>
+                  <li className="flex gap-2.5">
+                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-volcanic/40" aria-hidden="true" />
+                    <span>
+                      <strong className="font-bold text-volcanic">{tr("fare.townRest")}</strong>{" "}
+                      {tr("fare.townRestBody")}
+                    </span>
+                  </li>
+                </ul>
+                <p className="mt-3 rounded-xl bg-taxi/10 px-3 py-2 text-xs font-semibold text-volcanic/70">
+                  {tr("fare.townNote")}
+                </p>
+              </div>
+
+              {/* nota + documentos oficiales */}
               <div className="surface p-4 text-sm leading-relaxed text-volcanic/65">
                 <p className="font-semibold text-volcanic">{tr("fare.howCalc")}</p>
                 <p className="mt-1">{tr("fare.howCalcBody", { m: t.metrosIncluidosUrbano })}</p>
-                <p className="mt-2 text-xs text-volcanic/45">
-                  {tr("fare.official")}
+                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-volcanic/40">
+                  {tr("fare.sourcesTitle")}
                 </p>
+                <ul className="mt-1 space-y-0.5 text-xs text-volcanic/50">
+                  <li>{tr("fare.sourceT1")}</li>
+                  <li>{tr("fare.sourceT3")}</li>
+                </ul>
               </div>
             </>
           )}
