@@ -53,6 +53,34 @@ public class DataSeeder implements CommandLineRunner {
         repo.save(c);
         sembrarEventos();
         sembrarAdmin();
+        asignarMunicipiosPendientes();
+    }
+
+    /**
+     * Rellena el municipio de los taxistas que aún no lo tienen (registrados
+     * antes de existir el campo), deduciéndolo del texto de su licencia con la
+     * MISMA regla que se aplica a los nuevos registros. Solo escribe cuando la
+     * licencia deja claro el municipio; si es ambigua, la deja sin asignar para
+     * que el admin la ponga a mano. Idempotente: en arranques posteriores ya no
+     * queda ninguno pendiente, y nunca pisa una asignación manual del admin
+     * (esas ya no son null).
+     */
+    private void asignarMunicipiosPendientes() {
+        int asignados = 0, pendientes = 0;
+        for (Usuario t : usuarios.findByRolOrderByCreadoEnDesc(Rol.TAXISTA)) {
+            if (t.getMunicipioLicencia() != com.taya.model.Municipio.DESCONOCIDO) continue; // ya tiene
+            var deducido = com.taya.util.Municipios.deLicencia(t.getLicencia());
+            if (deducido != com.taya.model.Municipio.DESCONOCIDO) {
+                t.setMunicipioLicencia(deducido);
+                usuarios.save(t);
+                asignados++;
+            } else {
+                pendientes++;
+            }
+        }
+        if (asignados > 0 || pendientes > 0)
+            log.info("Municipios de taxistas: {} asignados por licencia, {} sin deducir (los asigna el admin)",
+                asignados, pendientes);
     }
 
     /** Crea el usuario admin y, en el primer arranque, verifica a los taxistas
