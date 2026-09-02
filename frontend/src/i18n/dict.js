@@ -41,7 +41,7 @@ export const DICT = {
     "adm.tUsers": "Usuarios", "adm.tClients": "Clientes", "adm.tDrivers": "Taxistas", "adm.tPending": "Pendientes verificar",
     "adm.tOnline": "Taxistas online", "adm.tToday": "Viajes hoy", "adm.tCompleted": "Completados", "adm.tCancelled": "Cancelados",
     "adm.tRevenue": "Ingresos totales", "adm.noneToVerify": "No hay taxistas pendientes de verificar 🎉",
-    "adm.registered": "Registrado", "adm.verifyBtn": "Verificar", "adm.verified": "Verificado", "adm.blocked": "BLOQUEADO",
+    "adm.registered": "Registrado", "adm.verifyBtn": "Verificar", "adm.verified": "Verificado", "adm.municipality": "Municipio:", "adm.muniSaved": "Municipio actualizado", "adm.blocked": "BLOQUEADO",
     "adm.unblock": "Desbloquear", "adm.block": "Bloquear", "adm.verifiedMsg": "Taxista verificado ✓", "adm.verifRemoved": "Verificación retirada",
     "adm.userBlocked": "Usuario bloqueado", "adm.userUnblocked": "Usuario desbloqueado",
 
@@ -224,7 +224,7 @@ export const DICT = {
     "adm.tUsers": "Users", "adm.tClients": "Passengers", "adm.tDrivers": "Drivers", "adm.tPending": "Pending verification",
     "adm.tOnline": "Drivers online", "adm.tToday": "Trips today", "adm.tCompleted": "Completed", "adm.tCancelled": "Cancelled",
     "adm.tRevenue": "Total revenue", "adm.noneToVerify": "No drivers pending verification 🎉",
-    "adm.registered": "Registered", "adm.verifyBtn": "Verify", "adm.verified": "Verified", "adm.blocked": "BLOCKED",
+    "adm.registered": "Registered", "adm.verifyBtn": "Verify", "adm.verified": "Verified", "adm.municipality": "Municipality:", "adm.muniSaved": "Municipality updated", "adm.blocked": "BLOCKED",
     "adm.unblock": "Unblock", "adm.block": "Block", "adm.verifiedMsg": "Driver verified ✓", "adm.verifRemoved": "Verification removed",
     "adm.userBlocked": "User blocked", "adm.userUnblocked": "User unblocked",
 
@@ -398,7 +398,7 @@ export const DICT = {
     "adm.tUsers": "Benutzer", "adm.tClients": "Fahrgäste", "adm.tDrivers": "Fahrer", "adm.tPending": "Ausstehende Prüfung",
     "adm.tOnline": "Fahrer online", "adm.tToday": "Fahrten heute", "adm.tCompleted": "Abgeschlossen", "adm.tCancelled": "Storniert",
     "adm.tRevenue": "Gesamteinnahmen", "adm.noneToVerify": "Keine Fahrer zur Prüfung 🎉",
-    "adm.registered": "Registriert", "adm.verifyBtn": "Prüfen", "adm.verified": "Verifiziert", "adm.blocked": "GESPERRT",
+    "adm.registered": "Registriert", "adm.verifyBtn": "Prüfen", "adm.verified": "Verifiziert", "adm.municipality": "Gemeinde:", "adm.muniSaved": "Gemeinde aktualisiert", "adm.blocked": "GESPERRT",
     "adm.unblock": "Entsperren", "adm.block": "Sperren", "adm.verifiedMsg": "Fahrer verifiziert ✓", "adm.verifRemoved": "Verifizierung entfernt",
     "adm.userBlocked": "Benutzer gesperrt", "adm.userUnblocked": "Benutzer entsperrt",
 

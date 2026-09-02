@@ -16,6 +16,11 @@ public class Usuario {
     // siguen siendo email+contraseña normal.
     @Column(name = "google_sub", unique = true) private String googleSub;
     private String licencia;
+    // Municipio de la licencia (municipal). Nullable como el resto de columnas
+    // añadidas después: las filas antiguas quedan a NULL y el getter las
+    // normaliza a DESCONOCIDO. Se deduce del texto de la licencia al registrar
+    // y el admin puede corregirlo al verificar.
+    @Enumerated(EnumType.STRING) @Column(name = "municipio_licencia") private Municipio municipioLicencia;
     @Column(name = "vehiculo_matricula") private String vehiculoMatricula;
     @Column(name = "vehiculo_modelo") private String vehiculoModelo;
     private String telefono; // contacto WhatsApp para reservas
@@ -52,6 +57,8 @@ public class Usuario {
     public Rol getRol() { return rol; } public void setRol(Rol v) { this.rol = v; }
     public String getGoogleSub() { return googleSub; } public void setGoogleSub(String v) { this.googleSub = v; }
     public String getLicencia() { return licencia; } public void setLicencia(String v) { this.licencia = v; }
+    public Municipio getMunicipioLicencia() { return municipioLicencia == null ? Municipio.DESCONOCIDO : municipioLicencia; }
+    public void setMunicipioLicencia(Municipio m) { this.municipioLicencia = m; }
     public String getVehiculoMatricula() { return vehiculoMatricula; } public void setVehiculoMatricula(String v) { this.vehiculoMatricula = v; }
     public String getVehiculoModelo() { return vehiculoModelo; } public void setVehiculoModelo(String v) { this.vehiculoModelo = v; }
     public String getTelefono() { return telefono; } public void setTelefono(String v) { this.telefono = v; }

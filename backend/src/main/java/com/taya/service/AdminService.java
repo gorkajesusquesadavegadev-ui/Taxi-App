@@ -26,7 +26,7 @@ public class AdminService {
 
     public record UsuarioAdmin(Long id, String nombre, String email, String telefono, String rol,
         boolean verificado, boolean bloqueado, double ratingMedia, int ratingCount,
-        String licencia, String matricula, String modelo, String documentoUrl, Instant creadoEn) {}
+        String licencia, String municipio, String matricula, String modelo, String documentoUrl, Instant creadoEn) {}
 
     public record ViajeAdmin(Long id, String estado, Long clienteId, Long taxistaId,
         String origen, String destino, BigDecimal precio, String tipo, Instant solicitadoEn) {}
@@ -38,7 +38,7 @@ public class AdminService {
     private UsuarioAdmin toAdmin(Usuario u) {
         return new UsuarioAdmin(u.getId(), u.getNombre(), u.getEmail(), u.getTelefono(), u.getRol().name(),
             u.isVerificado(), u.isBloqueado(), u.getRatingMedia(), u.getRatingCount(),
-            u.getLicencia(), u.getVehiculoMatricula(), u.getVehiculoModelo(), u.getDocumentoUrl(), u.getCreadoEn());
+            u.getLicencia(), u.getMunicipioLicencia().name(), u.getVehiculoMatricula(), u.getVehiculoModelo(), u.getDocumentoUrl(), u.getCreadoEn());
     }
 
     public List<UsuarioAdmin> usuarios() {
@@ -57,6 +57,16 @@ public class AdminService {
         Usuario u = usuarios.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "usuario no existe"));
         u.setVerificado(verificado);
+        usuarios.save(u);
+    }
+
+    @Transactional
+    public void asignarMunicipio(Long id, com.taya.model.Municipio municipio) {
+        Usuario u = usuarios.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "usuario no existe"));
+        if (u.getRol() != Rol.TAXISTA)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "solo los taxistas tienen municipio de licencia");
+        u.setMunicipioLicencia(municipio);
         usuarios.save(u);
     }
 

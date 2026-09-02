@@ -55,7 +55,12 @@ public class AuthService {
         Usuario u = new Usuario();
         u.setNombre(r.nombre()); u.setEmail(r.email());
         u.setPasswordHash(encoder.encode(r.password())); u.setRol(r.rol());
-        u.setLicencia(r.licencia()); u.setVehiculoMatricula(r.vehiculoMatricula());
+        u.setLicencia(r.licencia());
+        // El municipio se deduce del texto de la licencia (el admin lo corrige
+        // al verificar si hiciera falta). Solo tiene sentido en taxistas.
+        if (r.rol() == Rol.TAXISTA)
+            u.setMunicipioLicencia(com.taya.util.Municipios.deLicencia(r.licencia()));
+        u.setVehiculoMatricula(r.vehiculoMatricula());
         u.setVehiculoModelo(r.vehiculoModelo()); u.setTelefono(r.telefono());
         // Queda constancia de cuándo aceptó y a qué versión del texto: sin esto
         // el consentimiento no es demostrable y, a efectos del RGPD, es como no

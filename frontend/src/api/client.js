@@ -171,6 +171,7 @@ export const api = {
   adminPendientes: () => req("GET", "/admin/taxistas/pendientes"),
   adminVerificar: (id, valor) => req("PUT", `/admin/taxistas/${id}/verificar?valor=${valor}`),
   adminBloquear: (id, valor) => req("PUT", `/admin/usuarios/${id}/bloquear?valor=${valor}`),
+  adminMunicipio: (id, valor) => req("PUT", `/admin/taxistas/${id}/municipio?valor=${valor}`),
   adminViajes: () => req("GET", "/admin/viajes"),
   // foro de taxistas
   foroHistorial: () => req("GET", "/foro"),

@@ -24,6 +24,11 @@ public class AdminController {
         admin.verificar(id, valor);
     }
 
+    @PutMapping("/taxistas/{id}/municipio")
+    public void municipio(@PathVariable Long id, @RequestParam com.taya.model.Municipio valor) {
+        admin.asignarMunicipio(id, valor);
+    }
+
     @PutMapping("/usuarios/{id}/bloquear")
     public void bloquear(@PathVariable Long id, @RequestParam(defaultValue = "true") boolean valor) {
         admin.bloquear(id, valor);

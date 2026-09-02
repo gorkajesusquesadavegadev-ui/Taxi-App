@@ -25,6 +25,9 @@ function Stat({ label, value, accent = "text-volcanic" }) {
   );
 }
 
+const MUNI_LABEL = { LAS_PALMAS: "Las Palmas", SAN_BARTOLOME: "S. B. Tirajana", DESCONOCIDO: "Sin asignar" };
+const MUNIS = ["LAS_PALMAS", "SAN_BARTOLOME", "DESCONOCIDO"];
+
 export default function AdminPanel() {
   const { logout, user } = useAuth();
   const { t: tr } = useI18n();
@@ -57,6 +60,10 @@ export default function AdminPanel() {
   }
   async function bloquear(id, valor) {
     try { await api.adminBloquear(id, valor); await cargar(); setMsg(valor ? tr("adm.userBlocked") : tr("adm.userUnblocked")); }
+    catch (e) { setMsg(e.message || tr("common.error")); }
+  }
+  async function cambiarMunicipio(id, valor) {
+    try { await api.adminMunicipio(id, valor); await cargar(); setMsg(tr("adm.muniSaved")); }
     catch (e) { setMsg(e.message || tr("common.error")); }
   }
 
@@ -135,6 +142,18 @@ export default function AdminPanel() {
                         {t.matricula && <span className="rounded-md bg-taxi/20 px-2 py-0.5 font-mono font-black text-volcanic">{t.matricula}</span>}
                         {t.modelo && <span className="rounded-md bg-sand px-2 py-0.5 font-semibold text-volcanic/60">{t.modelo}</span>}
                       </div>
+                      {/* Municipio de la licencia: se deduce del texto, el admin
+                          lo confirma o corrige aquí al revisar la licencia real. */}
+                      <label className="mt-2 flex items-center gap-2 text-xs">
+                        <span className="font-semibold text-volcanic/50">{tr("adm.municipality")}</span>
+                        <select
+                          value={t.municipio || "DESCONOCIDO"}
+                          onChange={(e) => cambiarMunicipio(t.id, e.target.value)}
+                          className={`rounded-lg border-2 px-2 py-1 font-bold ${t.municipio === "DESCONOCIDO" ? "border-coral/50 text-coral" : "border-sand-deep text-volcanic"}`}
+                        >
+                          {MUNIS.map((m) => <option key={m} value={m}>{MUNI_LABEL[m]}</option>)}
+                        </select>
+                      </label>
                       <p className="mt-1 text-[11px] text-volcanic/40">{tr("adm.registered")} {fmtFecha(t.creadoEn)}</p>
                     </div>
                     <button
@@ -158,7 +177,7 @@ export default function AdminPanel() {
                     {u.rol === "TAXISTA" && u.verificado && <span title={tr("adm.verified")} className="text-palm">✓</span>}
                     {u.bloqueado && <span className="rounded bg-coral/15 px-1.5 text-[10px] font-bold text-coral">{tr("adm.blocked")}</span>}
                   </p>
-                  <p className="truncate text-xs text-volcanic/55">{u.email} · {u.rol}{u.ratingCount > 0 ? ` · ⭐ ${u.ratingMedia} (${u.ratingCount})` : ""}</p>
+                  <p className="truncate text-xs text-volcanic/55">{u.email} · {u.rol}{u.rol === "TAXISTA" ? ` · ${MUNI_LABEL[u.municipio] || "Sin asignar"}` : ""}{u.ratingCount > 0 ? ` · ⭐ ${u.ratingMedia} (${u.ratingCount})` : ""}</p>
                 </div>
                 {u.rol !== "ADMIN" && (
                   u.bloqueado ? (
