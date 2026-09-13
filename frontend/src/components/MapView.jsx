@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -10,6 +10,67 @@ import {
   useMapEvents,
 } from "react-leaflet";
 import L from "leaflet";
+
+/*
+ * Fondo del mapa con proveedor fiable + respaldo.
+ *
+ * El mapa mostraba "API key required" dentro de las teselas. Ese error lo
+ * devuelve CARTO cuando rechaza la petición (cambió su política: sus basemaps
+ * gratuitos ya no son abiertos para cualquier volumen/origen). Y lo peor: lo
+ * devuelve como una IMAGEN PNG válida con HTTP 200, así que Leaflet la da por
+ * "cargada" y no salta ningún error — no hay forma fiable de detectarlo desde
+ * el cliente. Encima el Service Worker la cacheaba y la seguía mostrando.
+ *
+ * Por eso el principal pasa a ser OpenStreetMap, que es realmente sin clave,
+ * estable y nunca pinta un error dentro de la tesela. CARTO queda solo como
+ * respaldo por si OSM tuviera una caída (OSM sí falla con error de red real,
+ * que Leaflet detecta y dispara el salto). Cada tesela buena reinicia el
+ * contador, así que el salto solo ocurre ante una ráfaga de fallos reales.
+ */
+const PROVEEDORES = [
+  {
+    // Principal: teselas estándar de OpenStreetMap. Sin clave, sin subdominios
+    // {s} (ya no se usan), sirven directamente desde tile.openstreetmap.org.
+    url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution: "&copy; OpenStreetMap",
+    subdomains: "abc",
+  },
+  {
+    // Respaldo solo si OSM cae con error de red real.
+    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+    attribution: "&copy; OpenStreetMap &copy; CARTO",
+    subdomains: "abcd",
+  },
+];
+const ERRORES_PARA_SALTAR = 5;
+
+function FondoResiliente() {
+  const [idx, setIdx] = useState(0);
+  const errores = useRef(0);
+  const p = PROVEEDORES[idx];
+  return (
+    <TileLayer
+      // key fuerza el remontado limpio al cambiar de proveedor
+      key={idx}
+      url={p.url}
+      attribution={p.attribution}
+      subdomains={p.subdomains}
+      maxZoom={20}
+      eventHandlers={{
+        tileload: () => {
+          errores.current = 0; // una tesela buena: no era una caída real
+        },
+        tileerror: () => {
+          errores.current += 1;
+          if (errores.current >= ERRORES_PARA_SALTAR && idx < PROVEEDORES.length - 1) {
+            errores.current = 0;
+            setIdx((i) => i + 1); // proveedor caído: saltar al siguiente
+          }
+        },
+      }}
+    />
+  );
+}
 
 // semáforo de demanda (zonas calientes)
 const ZONA_COLOR = { ALTO: "#E03131", MEDIO: "#F08C00", BAJO: "#FFC400" };
@@ -126,12 +187,8 @@ export default function MapView({
       className={`h-full w-full ${className}`}
       attributionControl={true}
     >
-      {/* CARTO Voyager: soft whites, dune-yellow roads, Atlantic blue water */}
-      <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-        attribution='&copy; OpenStreetMap &copy; CARTO'
-        maxZoom={20}
-      />
+      {/* CARTO Voyager con respaldo automático a OpenStreetMap si falla */}
+      <FondoResiliente />
       {onClick && <ClickHandler onClick={onClick} />}
       <Recenter center={center} follow={follow} />
       <FitRoute route={routePts ? route : null} follow={follow} />

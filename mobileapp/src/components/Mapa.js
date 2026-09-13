@@ -63,9 +63,27 @@ const HTML = `<!DOCTYPE html><html><head>
   }
   var map = L.map('map', { zoomControl: false, attributionControl: true })
     .setView([28.1235, -15.4363], 12);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png', {
-    attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 20
-  }).addTo(map);
+  // Fondo con proveedor fiable + respaldo. CARTO devolvia "API key required"
+  // dentro de la tesela (rechaza peticiones y ya no es abierto para cualquier
+  // volumen). Principal pasa a OpenStreetMap, sin clave y estable; CARTO queda
+  // solo de respaldo por si OSM cae con error de red real. Cada tesela buena
+  // reinicia el contador; el salto solo ocurre ante una rafaga de fallos.
+  var FONDOS = [
+    { url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', sub: 'abc', attr: '&copy; OpenStreetMap' },
+    { url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png', sub: 'abcd', attr: '&copy; OpenStreetMap &copy; CARTO' }
+  ];
+  var fondoIdx = 0, erroresTesela = 0, capaFondo;
+  function ponerFondo(i) {
+    if (capaFondo) map.removeLayer(capaFondo);
+    capaFondo = L.tileLayer(FONDOS[i].url, { attribution: FONDOS[i].attr, subdomains: FONDOS[i].sub, maxZoom: 20 });
+    capaFondo.on('tileload', function () { erroresTesela = 0; });
+    capaFondo.on('tileerror', function () {
+      erroresTesela++;
+      if (erroresTesela >= 5 && fondoIdx < FONDOS.length - 1) { erroresTesela = 0; fondoIdx++; ponerFondo(fondoIdx); }
+    });
+    capaFondo.addTo(map);
+  }
+  ponerFondo(0);
 
   var DOT = { origin: '#FFC400', nearby: '#1577C2', stop: '#0B2E4F' };
   function dotIcon(kind){

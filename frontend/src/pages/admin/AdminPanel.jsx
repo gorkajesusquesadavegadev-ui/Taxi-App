@@ -179,6 +179,19 @@ export default function AdminPanel() {
                   </p>
                   <p className="truncate text-xs text-volcanic/55">{u.email} · {u.rol}{u.rol === "TAXISTA" ? ` · ${MUNI_LABEL[u.municipio] || "Sin asignar"}` : ""}{u.ratingCount > 0 ? ` · ⭐ ${u.ratingMedia} (${u.ratingCount})` : ""}</p>
                 </div>
+                {/* Municipio de la licencia: se puede asignar/corregir aquí a
+                    cualquier taxista, esté verificado o no (los ya verificados
+                    no aparecen en la pestaña Verificar). */}
+                {u.rol === "TAXISTA" && (
+                  <select
+                    value={u.municipio || "DESCONOCIDO"}
+                    onChange={(e) => cambiarMunicipio(u.id, e.target.value)}
+                    aria-label={tr("adm.municipality")}
+                    className={`shrink-0 rounded-lg border-2 px-2 py-1 text-xs font-bold ${u.municipio === "DESCONOCIDO" || !u.municipio ? "border-coral/50 text-coral" : "border-sand-deep text-volcanic"}`}
+                  >
+                    {MUNIS.map((m) => <option key={m} value={m}>{MUNI_LABEL[m]}</option>)}
+                  </select>
+                )}
                 {u.rol !== "ADMIN" && (
                   u.bloqueado ? (
                     <button onClick={() => bloquear(u.id, false)} className="shrink-0 rounded-lg bg-palm/15 px-3 py-1.5 text-xs font-bold text-palm">{tr("adm.unblock")}</button>

@@ -64,10 +64,13 @@ export default defineConfig({
         importScripts: ["/push-sw.js"],
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.origin.includes("basemaps.cartocdn.com"),
+            // CARTO y el respaldo de OpenStreetMap: mismas reglas de caché.
+            urlPattern: ({ url }) =>
+              url.origin.includes("basemaps.cartocdn.com") ||
+              url.origin.includes("tile.openstreetmap.org"),
             handler: "CacheFirst",
             options: {
-              cacheName: "mapa-tiles",
+              cacheName: "mapa-tiles-v2", // v2: descarta teselas de error de CARTO cacheadas con 200
               expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 14 },
             },
           },
