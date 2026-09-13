@@ -417,15 +417,12 @@ public class ViajeService {
         return candidatos.stream()
             .filter(v -> v.getSolicitadoEn().isAfter(ventana))
             .filter(v -> {
-                // Licencia municipal: solo viajes que salen del municipio del
-                // taxista (o de zona sin municipio asignado). Misma regla que el
-                // matching por WS/push.
+                // Licencia municipal: EXACTAMENTE la misma regla que el matching
+                // por WS/push (MatchingService.atiende), no una copia que pueda
+                // divergir. Un taxista solo recibe viajes que salen de su
+                // municipio; de zonas sin municipio modelado, cualquiera.
                 var muniViaje = com.taya.util.Municipios.dePunto(v.getOrigenLat(), v.getOrigenLng());
-                var muniTax = taxista.getMunicipioLicencia();
-                if (muniTax != com.taya.model.Municipio.DESCONOCIDO
-                    && muniViaje != com.taya.model.Municipio.DESCONOCIDO
-                    && muniTax != muniViaje) return false;
-                return true;
+                return MatchingService.atiende(taxista, muniViaje);
             })
             .filter(v -> {
                 double dlat = Math.toRadians(v.getOrigenLat() - tLat);

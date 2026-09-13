@@ -34,18 +34,31 @@ public class MatchingService {
     /**
      * ¿Puede este taxista atender un viaje que empieza en muniViaje?
      *
-     * La licencia es municipal: un taxista de Las Palmas no puede coger un
-     * servicio que arranca en San Bartolomé de Tirajana, ni al revés. Pero solo
-     * se filtra cuando SE CONOCEN los dos municipios: si el del taxista o el del
-     * origen es DESCONOCIDO (cuentas anteriores a este campo, o zonas de la isla
-     * sin municipio propio en el sistema), se deja pasar como antes, para no
-     * dejar a nadie sin viajes mientras se asignan los municipios.
+     * La licencia es municipal: un taxista solo puede recoger en su municipio.
+     * Un taxista de Las Palmas NO puede coger un servicio que arranca en San
+     * Bartolomé de Tirajana, ni al revés. Esto es obligatorio, no una
+     * preferencia: un taxi recogiendo fuera de su municipio es ilegal.
+     *
+     * Regla:
+     *   - Si el viaje SALE de un municipio que el sistema conoce (Las Palmas o
+     *     San Bartolomé), SOLO lo reciben los taxistas de ESE municipio. Uno de
+     *     otro municipio queda fuera, y uno SIN municipio asignado también
+     *     (antes pasaba: un taxista sin asignar recibía todo, incluidos los
+     *     viajes del sur — justo el fallo que reportó un taxista de Las Palmas
+     *     al que le llegó un viaje de Maspalomas).
+     *   - Si el viaje sale de una zona que el sistema no modela como municipio
+     *     propio (aeropuerto, centro/norte de la isla, otro municipio sin
+     *     taxistas aquí), lo puede coger cualquiera: no hay a quién
+     *     restringirlo y así no se quedan esos viajes sin taxi.
+     *
+     * Con esto el filtro es correcto AUNQUE el taxista esté sin municipio
+     * asignado: un DESCONOCIDO ya no recibe viajes de Las Palmas ni del sur.
      */
     static boolean atiende(Usuario t, com.taya.model.Municipio muniViaje) {
-        com.taya.model.Municipio muniTax = t.getMunicipioLicencia();
-        if (muniTax == com.taya.model.Municipio.DESCONOCIDO
-            || muniViaje == com.taya.model.Municipio.DESCONOCIDO) return true;
-        return muniTax == muniViaje;
+        // Origen sin municipio modelado: cualquiera puede cogerlo.
+        if (muniViaje == com.taya.model.Municipio.DESCONOCIDO) return true;
+        // Origen en un municipio conocido: solo taxistas de ese mismo municipio.
+        return t.getMunicipioLicencia() == muniViaje;
     }
 
     public void difundirNuevoViaje(Viaje viaje) {

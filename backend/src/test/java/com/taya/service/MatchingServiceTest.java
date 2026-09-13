@@ -17,6 +17,10 @@ class MatchingServiceTest {
         u.setId(id);
         u.setVerificado(true);
         u.setBloqueado(false);
+        // Los viajes de prueba salen de (28.1,-15.4) = Las Palmas, así que el
+        // taxista debe ser de Las Palmas para poder recibirlos (la licencia es
+        // municipal). Sin municipio no recibiría un viaje de un municipio conocido.
+        u.setMunicipioLicencia(com.taya.model.Municipio.LAS_PALMAS);
         return u;
     }
 
