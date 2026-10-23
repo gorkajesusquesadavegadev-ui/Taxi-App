@@ -1,199 +1,204 @@
 <div align="center">
 
-# 🚕 TAYA
+# 🚕 CanaryCab
 
-### La app de taxis de Gran Canaria
+### A real-time taxi app for Gran Canaria
 
-Pide, reserva y viaja por la isla con **rutas reales, tarifas oficiales y seguimiento en vivo**.
-Pensada para clientes y taxistas, con tarificación según la ordenanza del taxi de
-Las Palmas de Gran Canaria (BOC nº 150, 2023).
+Book a taxi, see the real street route and the official fare before you ride, and follow your driver live.
+Passenger, driver and admin apps, with fares calculated from the Las Palmas de Gran Canaria taxi ordinance (BOC nº 150, 2023).
 
 ![Java](https://img.shields.io/badge/Java-17-007396?logo=openjdk&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2.5-6DB33F?logo=springboot&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2-6DB33F?logo=springboot&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-0B5C9E)
 
-![Estado](https://img.shields.io/badge/estado-en%20desarrollo-FFC400)
-![Licencia](https://img.shields.io/badge/licencia-MIT-0B5C9E)
-![Plataforma](https://img.shields.io/badge/plataforma-web%20responsive-1577C2)
-![Región](https://img.shields.io/badge/Gran%20Canaria-%E2%98%80%EF%B8%8F-00A87E)
-![PRs](https://img.shields.io/badge/PRs-welcome-brightgreen)
+<br>
+
+<a href="https://drive.google.com/file/d/1UtCLmMCiPFVPNWl5038WYH29aiRMssLB/view?usp=sharing">
+  <img src="docs/demo-thumbnail.jpg" width="760" alt="Watch the 2-minute CanaryCab demo">
+</a>
+
+**[▶ Watch the 2-minute demo](https://drive.google.com/file/d/1UtCLmMCiPFVPNWl5038WYH29aiRMssLB/view?usp=sharing)**
 
 </div>
 
+> **Status:** CanaryCab ran in production at canarycab.com from summer to October 2026.
+> It is currently offline to save hosting costs. The demo video was recorded on the live deployment,
+> and the app can be run locally in a few minutes (see [Run it locally](#-run-it-locally)).
+
 ---
 
-## 📱 Capturas (vista móvil)
+## 👋 About the project
+
+I designed and built CanaryCab on my own between June and September 2026, from the database to the
+mobile screens, using Claude Code as an AI pair programmer. The goal was a taxi app that fits Gran Canaria:
+official local fares, airport transfers, island excursions and the way local drivers actually work.
+
+**Author:** Gorka Jesús Quesada Vega ·
+[Portfolio](https://gorka-quesada.vercel.app) ·
+[LinkedIn](https://www.linkedin.com/in/gorka-quesada-vega-1678a1427) ·
+[GitHub](https://github.com/gorkajesusquesadavegadev-ui)
+
+---
+
+## 📱 Screenshots
 
 <div align="center">
-
 <table>
   <tr>
-    <td align="center"><img src="docs/screenshots/login.png" width="220" alt="Inicio de sesión"/><br/><sub><b>Bienvenida</b></sub></td>
-    <td align="center"><img src="docs/screenshots/cliente-pedir.png" width="220" alt="Pedir taxi"/><br/><sub><b>Pedir taxi</b></sub></td>
-    <td align="center"><img src="docs/screenshots/cliente-viaje.png" width="220" alt="Viaje en curso"/><br/><sub><b>Viaje en vivo</b></sub></td>
+    <td align="center"><img src="docs/screenshots/landing.png" width="220" alt="Landing page"/><br/><sub><b>Landing (EN / ES / DE)</b></sub></td>
+    <td align="center"><img src="docs/screenshots/book.png" width="220" alt="Book a taxi"/><br/><sub><b>Book · route and fare</b></sub></td>
+    <td align="center"><img src="docs/screenshots/tracking.png" width="220" alt="Taxi on the way"/><br/><sub><b>Passenger · taxi on the way</b></sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/screenshots/transfers.png" width="220" alt="Transfers y excursiones"/><br/><sub><b>Transfers y excursiones</b></sub></td>
-    <td align="center"><img src="docs/screenshots/reservas.png" width="220" alt="Reservas"/><br/><sub><b>Reservas</b></sub></td>
-    <td align="center"><img src="docs/screenshots/tarifa.png" width="220" alt="Tarifa actual"/><br/><sub><b>Tarifa actual</b></sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="docs/screenshots/taxista-mapa.png" width="220" alt="Mapa de demanda"/><br/><sub><b>Taxista · demanda</b></sub></td>
-    <td align="center"><img src="docs/screenshots/taxista-solicitud.png" width="220" alt="Solicitud y avisos"/><br/><sub><b>Taxista · avisos</b></sub></td>
-    <td align="center"><img src="docs/screenshots/foro.png" width="220" alt="Foro de taxistas"/><br/><sub><b>Foro de taxistas</b></sub></td>
+    <td align="center"><img src="docs/screenshots/driver-trip.png" width="220" alt="Driver trip"/><br/><sub><b>Driver · trip in progress</b></sub></td>
+    <td align="center"><img src="docs/screenshots/demand-map.png" width="220" alt="Demand map"/><br/><sub><b>Driver · demand map</b></sub></td>
+    <td align="center"><img src="docs/screenshots/transfers.png" width="220" alt="Transfers"/><br/><sub><b>Fixed-price transfers</b></sub></td>
   </tr>
 </table>
-
-<sub>📷 ¿Faltan imágenes? Añádelas en <code>docs/screenshots/</code> — guía en
-<a href="docs/screenshots/README.md">docs/screenshots/README.md</a>.</sub>
-
 </div>
 
 ---
 
-## ✨ Qué hace
+## ✨ Features
 
-TAYA conecta a **clientes** que necesitan un taxi con **taxistas** disponibles, en tiempo real,
-en toda Gran Canaria. No es solo "pedir taxi": incluye reservas programadas, transfers y
-excursiones de precio cerrado, foro de taxistas, estadísticas y un mapa de demanda.
+### Passenger
+- **Book a taxi** by typing the address (autocomplete), **dictating it by voice** or tapping the map.
+- **Real street route** with estimated time, distance and fare before booking.
+- **Live trip status:** taxi on the way → arrived → in progress → completed, with the driver's plate and ETA.
+- **Fixed-price airport transfers** and **island excursions** (Roque Nublo, island tour…).
+- **Scheduled bookings** for a given day and time, with WhatsApp contact with the driver.
+- Current fare always visible, **trip history with PDF receipts** and spending statistics.
 
-### Para el cliente
-- **Pedir taxi** escribiendo la dirección (autocompletado), **dictándola por voz** o tocando el mapa.
-- **Ruta real por calles** (OSRM) con **tiempo estimado, km y precio** antes de pedir.
-- **Seguimiento en vivo**: *taxi en camino → ha llegado (aviso) → en curso → completado*.
-- **Transfers** (aeropuerto, sur…) y **excursiones** (Roque Nublo, vuelta a la isla…) a precio cerrado.
-- **Reservas** para un día y hora concretos, con **contacto WhatsApp** al taxista.
-- **Tarifa actual** visible en todo momento, **historial** de viajes y **estadísticas** de gasto.
-- Contacto con el taxista desde el historial (por si te dejaste algo en el coche).
+### Driver
+- **Demand map** (high / medium / low) based on past pick-ups and local events (matches, concerts, cruise ships).
+- **Instant ride requests** with sound; the first driver to accept gets the ride.
+- Step-by-step trip flow: arrived → start → finish, plus scheduled bookings with reminders.
+- **Drivers' forum** (real-time group chat), earnings statistics and editable vehicle profile.
 
-### Para el taxista
-- **Mapa de demanda** por colores (roja/naranja/amarilla) según histórico de recogidas y **eventos**
-  (partidos, conciertos, cruceros).
-- Recibe solicitudes al instante (con sonido), acepta y gestiona el viaje paso a paso.
-- **Reservas**: acepta carreras programadas; **campana de avisos** siempre visible (recordatorios,
-  nuevas reservas, "ya tomada", "caducada").
-- **Foro** de taxistas (chat de grupo en tiempo real).
-- **Estadísticas** de ingresos y carreras; perfil y vehículo editables.
+### Admin
+- **Driver verification:** new drivers can't take rides until an admin approves them.
+- User management and platform statistics.
+
+### Also
+- Multilingual interface (English, Spanish, German) and legal pages written for GDPR.
+- Installable as a PWA, plus a React Native (Expo) mobile app.
 
 ---
 
-## 🧮 Sistema de tarifas (oficial LPGC, BOC nº 150 / 2023)
+## 🧮 Official fares (Las Palmas de Gran Canaria, BOC nº 150 / 2023)
 
-El precio se calcula **en tiempo real** según hora, día, festivos y zona:
+The fare is calculated in real time from the time of day, the day of the week, public holidays and the zone:
 
-| Franja | Bajada de bandera | €/km |
+| Period | Flag fall | €/km |
 |---|---|---|
-| Diurna laborable (6–22) | 2,95 € | 0,80 |
-| Nocturna (22–6) y festivos/domingos | 3,65 € | 0,85 |
-| 25-dic, 1 y 6-ene (9–22) | 4,30 € | 0,85 |
+| Weekday daytime (6–22) | €2.95 | 0.80 |
+| Night (22–6), Sundays and holidays | €3.65 | 0.85 |
+| 25 Dec, 1 and 6 Jan (9–22) | €4.30 | 0.85 |
 
-- La bajada de bandera incluye los **primeros 1.032 m**.
-- **Tres zonas**: urbano (casco de Las Palmas), **Tarifa 3** (barrios periféricos: Tafira,
-  Marzagán…) e **interurbano** (aeropuerto, sur, norte — km más caro por el retorno).
-- **Festivos auto-mantenidos**: se siembran solos cada año con la **Semana Santa calculada**;
-  los locales se pueden añadir a mano en la base de datos.
+- The flag fall includes the **first 1,032 m**.
+- **Three zones:** urban (Las Palmas city), **Fare 3** (outer districts such as Tafira or Marzagán) and **interurban** (airport, south, north).
+- **Holidays maintain themselves:** they are seeded every year, with Easter calculated automatically.
 
 ---
 
-## 🏗️ Arquitectura
+## 🏗️ Architecture
 
 ```
-Navegador  ──http──>  Frontend (React + Vite)  ──REST/WebSocket──>  Backend (Spring Boot :8080)
-http://localhost:5173                                                │
-                                                                     ├──> PostgreSQL :5432  (datos)
-                                                                     └──> Redis :6379       (taxis cercanos, GEORADIUS)
+Browser / PWA ──HTTP──> Frontend (React + Vite) ──REST + WebSocket──> Backend (Spring Boot)
+                                                                       │
+                                                                       ├──> PostgreSQL  (data)
+                                                                       └──> Redis       (nearby taxis + pub/sub)
 
-Servicios externos:  OSRM (rutas por calle) · Nominatim (direcciones)
+External services:  OSRM (street routing) · Nominatim (geocoding)
 ```
 
-| Capa | Tecnología |
+| Layer | Technology |
 |---|---|
-| Frontend | React 18, Vite, Tailwind CSS, React Router, Leaflet (mapas) |
-| Backend | Spring Boot 3.2.5, Java 17, Spring Security (JWT), JPA, WebSocket |
-| Datos | PostgreSQL 16 (persistencia), Redis 7 (geolocalización en vivo) |
-| Mapas/Geo | OSRM (rutas y distancia), Nominatim (geocodificación) |
+| Frontend | React 18, Vite, Tailwind CSS, React Router, Leaflet maps |
+| Mobile | React Native with Expo |
+| Backend | Java 17, Spring Boot 3.2, Spring Security (JWT), JPA, WebSocket |
+| Data | PostgreSQL 16, Redis 7 (geolocation of available taxis) |
+| Maps | OSRM for routes and distances, Nominatim for addresses |
+| Ops | Docker Compose, deployed with Vercel (frontend) and Railway (backend) |
 
-**Tiempo real** vía WebSocket (`/ws`): estados del viaje, ubicación del taxi, foro, reservas.
+**Real time:** trip status, taxi position, forum and bookings travel over a WebSocket connection (`/ws`).
+Messages go through Redis pub/sub so they reach the user whichever server instance they are connected to.
+When several drivers accept the same ride at once, a conditional database update makes sure only the first one gets it.
 
 ---
 
-## 🚀 Arranque rápido (local)
+## 📂 Project structure
 
-Requisitos: **Java 17**, **Node 18+**, **PostgreSQL 16**, **Redis 7**.
-Guía detallada paso a paso (incluida instalación y pgAdmin): **[docs/RUN.md](docs/RUN.md)**.
-
-```bash
-# 1) Base de datos (o usa docker-compose up -d)
-#    DB: taya_taxi  ·  user: taya_user  ·  pass: password
-
-# 2) Backend  (o botón Play en IntelliJ)
-cd backend && mvn spring-boot:run        # :8080
-
-# 3) Frontend
-cd frontend && npm install && npm run dev # :5173
+```
+backend/     Spring Boot API (Java 17)
+frontend/    React + Vite web app / PWA
+mobileapp/   React Native (Expo) app
+osrm/        Local routing server setup
+legal/       GDPR documentation (records of processing, compliance checklist)
+docs/        Run and deploy guides, screenshots
 ```
 
-Con Docker para la infra:
+---
+
+## 🚀 Run it locally
+
+Requirements: **Java 17**, **Node 18+**, **PostgreSQL 16**, **Redis 7** (or Docker).
+Step-by-step guide: **[docs/RUN.md](docs/RUN.md)**.
 
 ```bash
-docker compose up -d        # PostgreSQL + Redis
+# 1) Database and Redis
+docker compose up -d
+
+# 2) Backend  (:8080)
+cd backend && mvn spring-boot:run
+
+# 3) Frontend (:5173)
+cd frontend && npm install && npm run dev
 ```
 
-### Usuarios de prueba
-| Rol | Email | Contraseña |
+### Test users (local seed data)
+| Role | Email | Password |
 |---|---|---|
-| Cliente | `ana@taya.es` | `123456` |
-| Taxista | `luis@taya.es` | `123456` |
+| Passenger | `ana@taya.es` | `123456` |
+| Driver | `luis@taya.es` | `123456` |
 
 ---
 
-## 📚 Documentación
+## 🗺️ API overview
 
-- **[docs/RUN.md](docs/RUN.md)** — guía de instalación y arranque, tablas de la BD y datos de prueba.
-- **[docs/DEPLOY.md](docs/DEPLOY.md)** — PWA, despliegue (Vercel + Railway) y APK para la Play Store.
-- **[ROADMAP.md](ROADMAP.md)** — estado actual y aspectos de mejora.
-- `docs/superpowers/` — spec y plan del MVP inicial (histórico).
+Base path `/api` · Authentication: JWT (`Authorization: Bearer …`)
 
----
-
-## 🗺️ API (resumen)
-
-Base: `/api` · Autenticación: JWT (`Authorization: Bearer …`)
-
-| Área | Endpoints |
+| Area | Endpoints |
 |---|---|
 | Auth | `POST /auth/register`, `POST /auth/login` |
-| Usuario | `GET/PUT /usuarios/me`, `PUT /usuarios/me/password` |
-| Viajes | `POST /viajes/estimar`, `/solicitar`, `/solicitar-oferta`, `GET /viajes/activo`, `/{id}`, `/{id}/ruta`, `PUT /{id}/aceptar`·`llegada`·`iniciar`·`finalizar`·`cancelar` |
-| Catálogo | `GET /catalogo` (transfers + excursiones) |
-| Reservas | `POST /reservas`, `GET /reservas/mias`·`disponibles`·`taxista`, `PUT /reservas/{id}/aceptar`·`cancelar` |
-| Tarifa | `GET /tarifa/actual` |
+| User | `GET/PUT /usuarios/me`, `PUT /usuarios/me/password` |
+| Trips | `POST /viajes/estimar`, `/solicitar`, `/solicitar-oferta`, `GET /viajes/activo`, `/{id}`, `/{id}/ruta`, `PUT /{id}/aceptar`·`llegada`·`iniciar`·`finalizar`·`cancelar` |
+| Catalogue | `GET /catalogo` (transfers and excursions) |
+| Bookings | `POST /reservas`, `GET /reservas/mias`·`disponibles`·`taxista`, `PUT /reservas/{id}/aceptar`·`cancelar` |
+| Fare | `GET /tarifa/actual` |
 | Stats | `GET /stats/cliente`·`taxista`·`zonas` |
-| Foro | `GET/POST /foro` |
-| Taxistas | `GET /taxistas/cercanos`, `PUT /taxista/estado` |
+| Forum | `GET/POST /foro` |
+| Drivers | `GET /taxistas/cercanos`, `PUT /taxista/estado` |
+
+The data model (`usuarios`, `viajes`, `reservas`, `mensajes_foro`, `eventos`, `dias_festivos`,
+`configuracion_tarifa`) is described in [docs/RUN.md](docs/RUN.md).
 
 ---
 
-## 🧱 Modelo de datos
+## 📚 More documentation
 
-`usuarios` · `viajes` · `reservas` · `mensajes_foro` · `eventos` (demanda) ·
-`dias_festivos` · `configuracion_tarifa`. Detalle en [docs/RUN.md](docs/RUN.md).
+- **[docs/RUN.md](docs/RUN.md)** — installation, database tables and test data.
+- **[docs/DEPLOY.md](docs/DEPLOY.md)** — PWA, deployment (Vercel + Railway) and Android build.
+- **[ROADMAP.md](ROADMAP.md)** — current status and planned improvements.
 
----
+## 📄 License
 
-## 🗓️ Roadmap
-
-Estado actual y mejoras priorizadas (GPS real, suplementos del BOC, pagos,
-valoraciones, push…) en **[ROADMAP.md](ROADMAP.md)**.
-
-## 📄 Licencia
-
-Distribuido bajo licencia **MIT**. Ver [LICENSE](LICENSE).
-
----
+MIT. See [LICENSE](LICENSE).
 
 <div align="center">
-<sub>Hecho con ☀️ en Gran Canaria · Tarifas oficiales del taxi de Las Palmas de Gran Canaria.</sub>
+<sub>Made with ☀️ in Gran Canaria.</sub>
 </div>
